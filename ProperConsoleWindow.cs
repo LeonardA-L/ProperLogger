@@ -4,6 +4,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
+using System.Globalization;
 
 public class ProperConsoleWindow : EditorWindow
 {
@@ -41,7 +42,8 @@ public class ProperConsoleWindow : EditorWindow
     [Serializable]
     private struct ConsoleLogEntry
     {
-        public DateTime date;
+        public long date;
+        public string timestamp;
         public string message;
         public LogLevel level;
         public string stackTrace;
@@ -64,6 +66,7 @@ public class ProperConsoleWindow : EditorWindow
     float innerScrollableHeight = 0;
     float outerScrollableHeight = 0;
 
+    // This could be a dictionnary, but Dictionnaries are not Unity-serializables which causes problems when switching Modes
     private int m_logCounter = 0;
     private int m_warningCounter = 0;
     private int m_errorCounter = 0;
@@ -174,9 +177,11 @@ public class ProperConsoleWindow : EditorWindow
     {
         lock (m_entriesLock)
         {
+            var now = DateTime.Now;
             m_entries.Add(new ConsoleLogEntry()
             {
-                date = DateTime.Now,
+                date = now.Ticks,
+                timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                 level = GetLogLevelFromUnityLogType(type),
                 message = condition,
                 stackTrace = stackTrace,
@@ -207,6 +212,9 @@ public class ProperConsoleWindow : EditorWindow
 
     private void Clear()
     {
+        m_logCounter = 0;
+        m_warningCounter = 0;
+        m_errorCounter = 0;
         m_entries.Clear();
     }
 
@@ -217,10 +225,16 @@ public class ProperConsoleWindow : EditorWindow
         return m_errorCounter;
     }
 
+    private string GetCounterString(LogLevel level)
+    {
+        int count = GetCounter(level);
+        return $"{((count > 999) ? ("999+") : $"{count}")}";
+    }
+
     private void FlagButton(LogLevel level, string label)
     {
         bool hasFlag = (m_logLevelFilter & level) != 0;
-        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {GetCounter(level)}"), "ToolbarButton", GUILayout.ExpandWidth(false));
+        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {GetCounterString(level)}"), "ToolbarButton", GUILayout.ExpandWidth(false));
         if (hasFlag != newFlagValue)
         {
             m_logLevelFilter ^= level;
@@ -252,8 +266,6 @@ public class ProperConsoleWindow : EditorWindow
         FlagButton(LogLevel.Warning, "W");
         FlagButton(LogLevel.Error, "E");
 
-
-
         GUILayout.EndHorizontal();
 
         float startY = 0;
@@ -279,7 +291,7 @@ public class ProperConsoleWindow : EditorWindow
         var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
         for (int i= 0;i< filteredEntries.Count;i++)
         {
-            GUILayout.Label(filteredEntries[i].message);
+            DisplayEntry(filteredEntries[i]);
         }
 
         GUILayout.EndVertical();
@@ -323,6 +335,43 @@ public class ProperConsoleWindow : EditorWindow
         {
             Debug.Assert(false);
         }
+
+        if (GUILayout.Button("Add 1000 Log"))
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+            }
+        }
+    }
+
+    private void DisplayEntry(ConsoleLogEntry entry)
+    {
+        float imageSize = 35;
+        GUILayout.BeginHorizontal();
+        // Picto space
+        GUILayout.Box("", GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+        // Text space
+        GUILayout.BeginVertical();
+        GUILayout.Label($"[{entry.timestamp}] {entry.message}");
+        GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}"); // TODO cache this line
+        GUILayout.EndVertical();
+        // Category Space
+        GUILayout.EndHorizontal();
+    }
+
+    private string StackStraceFirstLine(string stack)
+    {
+        var split = stack.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        if(split.Length == 0)
+        {
+            return "";
+        }
+        if(split.Length > 1)
+        {
+            return split[1];
+        }
+        return split[0];
     }
 
     private bool ValidFilter(ConsoleLogEntry e)
