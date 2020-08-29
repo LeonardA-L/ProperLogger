@@ -7,6 +7,7 @@ using UnityEditor.PackageManager;
 
 public class ProperConsoleWindow : EditorWindow
 {
+    [Serializable]
     [Flags]
     public enum LogLevel
     {
@@ -63,7 +64,9 @@ public class ProperConsoleWindow : EditorWindow
     float innerScrollableHeight = 0;
     float outerScrollableHeight = 0;
 
-    private Dictionary<LogLevel, int> m_levelCounters = null;
+    private int m_logCounter = 0;
+    private int m_warningCounter = 0;
+    private int m_errorCounter = 0;
 
     public static ProperConsoleWindow Instance => m_instance;
 
@@ -102,29 +105,11 @@ public class ProperConsoleWindow : EditorWindow
     {
         Debug.Log("OnEnable");
         m_entries = m_entries ?? new List<ConsoleLogEntry>();
-        InitLevelCounters();
         m_listening = false;
         m_entriesLock = new object();
         m_instance = this;
         EditorApplication.playModeStateChanged += ModeChanged;
         InitListener();
-    }
-
-    private void InitLevelCounters()
-    {
-        m_levelCounters = m_levelCounters ?? new Dictionary<LogLevel, int>();
-        if (!m_levelCounters.ContainsKey(LogLevel.Log))
-        {
-            m_levelCounters[LogLevel.Log] = 0;
-        }
-        if (!m_levelCounters.ContainsKey(LogLevel.Warning))
-        {
-            m_levelCounters[LogLevel.Warning] = 0;
-        }
-        if (!m_levelCounters.ContainsKey(LogLevel.Error))
-        {
-            m_levelCounters[LogLevel.Error] = 0;
-        }
     }
 
     private void ModeChanged(PlayModeStateChange obj)
@@ -200,15 +185,15 @@ public class ProperConsoleWindow : EditorWindow
             switch (type)
             {
                 case LogType.Log:
-                    m_levelCounters[LogLevel.Log]++;
+                    m_logCounter++;
                     break;
                 case LogType.Warning:
-                    m_levelCounters[LogLevel.Warning]++;
+                    m_warningCounter++;
                     break;
                 case LogType.Error:
                 case LogType.Exception:
                 case LogType.Assert:
-                    m_levelCounters[LogLevel.Error]++;
+                    m_errorCounter++;
                     break;
             }
         }
@@ -225,10 +210,17 @@ public class ProperConsoleWindow : EditorWindow
         m_entries.Clear();
     }
 
+    private int GetCounter(LogLevel level)
+    {
+        if (level.HasFlag(LogLevel.Log)) { return m_logCounter; }
+        if (level.HasFlag(LogLevel.Warning)) { return m_warningCounter; }
+        return m_errorCounter;
+    }
+
     private void FlagButton(LogLevel level, string label)
     {
         bool hasFlag = (m_logLevelFilter & level) != 0;
-        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {m_levelCounters[level]}"), "ToolbarButton", GUILayout.ExpandWidth(false));
+        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {GetCounter(level)}"), "ToolbarButton", GUILayout.ExpandWidth(false));
         if (hasFlag != newFlagValue)
         {
             m_logLevelFilter ^= level;
