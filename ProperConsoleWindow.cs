@@ -47,6 +47,7 @@ public class ProperConsoleWindow : EditorWindow
         public string message;
         public LogLevel level;
         public string stackTrace;
+        public int count;
     }
 
     private static ProperConsoleWindow m_instance = null;
@@ -60,6 +61,7 @@ public class ProperConsoleWindow : EditorWindow
     private bool m_clearOnPlay = false;
     private bool m_clearOnBuild = false;
     private bool m_errorPause = false;
+    private bool m_collapse = false;
 
     string searchString = null;
     private LogLevel m_logLevelFilter = LogLevel.All;
@@ -185,6 +187,7 @@ public class ProperConsoleWindow : EditorWindow
                 level = GetLogLevelFromUnityLogType(type),
                 message = condition,
                 stackTrace = stackTrace,
+                count = 1,
             });
 
             switch (type)
@@ -243,6 +246,7 @@ public class ProperConsoleWindow : EditorWindow
 
     void OnGUI()
     {
+        bool callForRepaint = false;
         bool repaint = Event.current.type == EventType.Repaint;
 
         GUILayout.BeginHorizontal("Toolbar");
@@ -251,6 +255,9 @@ public class ProperConsoleWindow : EditorWindow
             Clear();
             GUIUtility.keyboardControl = 0;
         }
+        bool lastCollapse = m_collapse;
+        m_collapse = GUILayout.Toggle(m_collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
+        callForRepaint = m_collapse != lastCollapse;
         m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
         m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
         m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -289,9 +296,13 @@ public class ProperConsoleWindow : EditorWindow
         if(m_entries.Count == 0) GUILayout.Space(10);
 
         var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
-        for (int i= 0;i< filteredEntries.Count;i++)
+        if (m_collapse)
         {
-            DisplayEntry(filteredEntries[i]);
+            DisplayCollapse(filteredEntries);
+        }
+        else
+        {
+            DisplayList(filteredEntries);
         }
 
         GUILayout.EndVertical();
@@ -343,6 +354,11 @@ public class ProperConsoleWindow : EditorWindow
                 Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
             }
         }
+
+        if (callForRepaint)
+        {
+            Repaint();
+        }
     }
 
     private void DisplayEntry(ConsoleLogEntry entry)
@@ -356,8 +372,60 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.Label($"[{entry.timestamp}] {entry.message}");
         GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}"); // TODO cache this line
         GUILayout.EndVertical();
+        // Collapse Space
+        if (m_collapse)
+        {
+            GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false)); // TODO style
+        }
         // Category Space
         GUILayout.EndHorizontal();
+    }
+
+    private void DisplayList(List<ConsoleLogEntry> filteredEntries)
+    {
+        for (int i = 0; i < filteredEntries.Count; i++)
+        {
+            DisplayEntry(filteredEntries[i]);
+        }
+    }
+    private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries)
+    {
+        List<ConsoleLogEntry> collapsedEntries = new List<ConsoleLogEntry>();
+
+
+        for (int i = 0; i < filteredEntries.Count; i++)
+        {
+            bool found = false;
+            int foundIdx = 0;
+            for (int j = 0; j < collapsedEntries.Count; j++)
+            {
+                if(collapsedEntries[j].message == filteredEntries[i].message)
+                {
+                    foundIdx = j;
+                    found = true;
+                }
+            }
+            if (found)
+            {
+                collapsedEntries[foundIdx] = new ConsoleLogEntry()
+                {
+                    count = collapsedEntries[foundIdx].count + 1,
+                    date = collapsedEntries[foundIdx].date,
+                    message = collapsedEntries[foundIdx].message,
+                    level = collapsedEntries[foundIdx].level,
+                    stackTrace = collapsedEntries[foundIdx].stackTrace,
+                    timestamp = collapsedEntries[foundIdx].timestamp
+                };
+            } else
+            {
+                collapsedEntries.Add(filteredEntries[i]);
+            }
+        }
+
+        for (int i = 0; i < collapsedEntries.Count; i++)
+        {
+            DisplayEntry(collapsedEntries[i]);
+        }
     }
 
     private string StackStraceFirstLine(string stack)
