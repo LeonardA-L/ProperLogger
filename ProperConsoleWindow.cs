@@ -16,6 +16,7 @@ public class ProperConsoleWindow : EditorWindow
     private bool m_autoScroll = true;
     private bool m_clearOnPlay = false;
     private bool m_clearOnBuild = false;
+    private bool m_errorPause = false;
 
     float innerScrollableHeight = 0;
     float outerScrollableHeight = 0;
@@ -57,6 +58,7 @@ public class ProperConsoleWindow : EditorWindow
     {
         m_clearOnPlay = false;
         m_clearOnBuild = false;
+        m_errorPause = false;
     }
 
     private void OnEnable()
@@ -133,6 +135,10 @@ public class ProperConsoleWindow : EditorWindow
             m_entries.Add(condition);
         }
         this.Repaint();
+        if(m_errorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+        {
+            Debug.Break();
+        }
     }
 
     private void Clear()
@@ -150,6 +156,7 @@ public class ProperConsoleWindow : EditorWindow
         }
         m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton");
         m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton");
+        m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton");
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
 
@@ -197,12 +204,15 @@ public class ProperConsoleWindow : EditorWindow
 
         if (GUILayout.Button("Log"))
         {
-            Debug.Log($"{DateTime.Now.ToString()} {m_listening} {m_autoScroll} {m_entries.Count} {(m_entries.Count+1) * 40}");
+            Debug.Log($"Log {DateTime.Now.ToString()} {m_listening} {m_autoScroll} {m_entries.Count} {(m_entries.Count+1) * 40}");
         }
 
-        if (GUILayout.Button("Clear"))
+        if (GUILayout.Button("LogError"))
         {
-            m_entries.Clear();
+            Debug.LogError("Error");
+            object bad = null;
+            bad.ToString();
+            throw new Exception("Manual error");
         }
     }
 
