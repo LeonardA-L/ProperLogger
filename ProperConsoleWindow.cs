@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class ProperConsoleWindow : EditorWindow
 {
@@ -12,6 +11,16 @@ public class ProperConsoleWindow : EditorWindow
     private object m_entriesLock;
 
     private List<string> m_entries = null;
+
+    private Vector2 m_scrollPosition;
+    private bool m_autoScroll = true;
+    private bool m_clearOnPlay = false;
+    private bool m_clearOnBuild = false;
+
+    float innerScrollableHeight = 0;
+    float outerScrollableHeight = 0;
+
+    public static ProperConsoleWindow Instance => m_instance;
 
     // Add menu named "My Window" to the Window menu
     [MenuItem("Leonard/Console")]
@@ -44,9 +53,16 @@ public class ProperConsoleWindow : EditorWindow
         }
     }
 
+    private void Awake()
+    {
+        m_clearOnPlay = false;
+        m_clearOnBuild = false;
+    }
+
     private void OnEnable()
     {
         Debug.Log("OnEnable");
+        m_entries = m_entries ?? new List<string>();
         m_listening = false;
         m_entriesLock = new object();
         m_instance = this;
@@ -65,7 +81,15 @@ public class ProperConsoleWindow : EditorWindow
             case PlayModeStateChange.EnteredEditMode:
                 EnteredEditMode();
                 break;
+            case PlayModeStateChange.ExitingEditMode:
+                ExitingEditMode();
+                break;
         }
+    }
+
+    private void ExitingEditMode()
+    {
+        Clear();
     }
 
     private void ExitingPlayMode()
@@ -111,19 +135,87 @@ public class ProperConsoleWindow : EditorWindow
         this.Repaint();
     }
 
+    private void Clear()
+    {
+        m_entries.Clear();
+    }
+
     void OnGUI()
     {
-        GUILayout.Label("Hello", EditorStyles.boldLabel);
-        m_entries = m_entries ?? new List<string>();
-
-        if (m_entries.Count > 0)
+        GUILayout.BeginHorizontal((GUIStyle)"Toolbar");
+        if (GUILayout.Button("Clear", (GUIStyle)"ToolbarButton"))
         {
-            GUILayout.Label(m_entries.Last());
+            Clear();
+            GUIUtility.keyboardControl = 0;
+        }
+        m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton");
+        m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton");
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
+
+
+        bool repaint = Event.current.type == EventType.Repaint;
+
+        m_scrollPosition = GUILayout.BeginScrollView(m_scrollPosition, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
+
+        if (repaint)
+        {
+            float scrollTolerance = 0;
+            m_autoScroll = m_scrollPosition.y >= (innerScrollableHeight - outerScrollableHeight - scrollTolerance);
+        }
+
+        GUILayout.BeginVertical();
+
+        if(m_entries.Count == 0) GUILayout.Space(10);
+
+        for (int i= 0;i<m_entries.Count;i++)
+        {
+            GUILayout.Label(m_entries[i]);
+        }
+
+        GUILayout.EndVertical();
+
+        if (repaint)
+        {
+            Rect r = GUILayoutUtility.GetLastRect();
+            innerScrollableHeight = r.yMax;
+        }
+
+        GUILayout.EndScrollView();
+
+        GUILayout.Space(1);
+        if (repaint)
+        {
+            Rect r = GUILayoutUtility.GetLastRect();
+            outerScrollableHeight = r.yMin;
+        }
+
+        if (repaint && m_autoScroll)
+        {
+            m_scrollPosition.y = innerScrollableHeight - outerScrollableHeight;
         }
 
         if (GUILayout.Button("Log"))
         {
-            Debug.Log($"{DateTime.Now.ToString()} {m_listening}");
+            Debug.Log($"{DateTime.Now.ToString()} {m_listening} {m_autoScroll} {m_entries.Count} {(m_entries.Count+1) * 40}");
         }
+
+        if (GUILayout.Button("Clear"))
+        {
+            m_entries.Clear();
+        }
+    }
+
+    public void OnBuild()
+    {
+
+        if (m_clearOnBuild)
+        {
+            Clear();
+        }
+    }
+
+    private void Update()
+    {
     }
 }
