@@ -3,14 +3,54 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using UnityEditor.PackageManager;
 
 public class ProperConsoleWindow : EditorWindow
 {
+    [Flags]
+    public enum LogLevel
+    {
+        Log = 1,
+        Warning = 2,
+        Error = 4,
+        Exception = 8 | Error,
+        Assert = 12 | Error,
+
+        All = Log | Warning | Error | Exception | Assert
+    }
+
+    private static LogLevel GetLogLevelFromUnityLogType (LogType type)
+    {
+        switch (type)
+        {
+            case LogType.Error:
+                return LogLevel.Error;
+            case LogType.Assert:
+                return LogLevel.Assert;
+            case LogType.Warning:
+                return LogLevel.Warning;
+            case LogType.Log:
+            default:
+                return LogLevel.Log;
+            case LogType.Exception:
+                return LogLevel.Exception;
+        }
+    }
+
+    [Serializable]
+    private struct ConsoleLogEntry
+    {
+        public DateTime date;
+        public string message;
+        public LogLevel level;
+        public string stackTrace;
+    }
+
     private static ProperConsoleWindow m_instance = null;
     private bool m_listening = false;
     private object m_entriesLock;
 
-    private List<string> m_entries = null;
+    private List<ConsoleLogEntry> m_entries = null;
 
     private Vector2 m_scrollPosition;
     private bool m_autoScroll = true;
@@ -18,8 +58,12 @@ public class ProperConsoleWindow : EditorWindow
     private bool m_clearOnBuild = false;
     private bool m_errorPause = false;
 
+    string searchString = null;
+    private LogLevel m_logLevelFilter = LogLevel.All;
     float innerScrollableHeight = 0;
     float outerScrollableHeight = 0;
+
+    private Dictionary<LogLevel, int> m_levelCounters = null;
 
     public static ProperConsoleWindow Instance => m_instance;
 
@@ -54,22 +98,33 @@ public class ProperConsoleWindow : EditorWindow
         }
     }
 
-    private void Awake()
-    {
-        m_clearOnPlay = false;
-        m_clearOnBuild = false;
-        m_errorPause = false;
-    }
-
     private void OnEnable()
     {
         Debug.Log("OnEnable");
-        m_entries = m_entries ?? new List<string>();
+        m_entries = m_entries ?? new List<ConsoleLogEntry>();
+        InitLevelCounters();
         m_listening = false;
         m_entriesLock = new object();
         m_instance = this;
         EditorApplication.playModeStateChanged += ModeChanged;
         InitListener();
+    }
+
+    private void InitLevelCounters()
+    {
+        m_levelCounters = m_levelCounters ?? new Dictionary<LogLevel, int>();
+        if (!m_levelCounters.ContainsKey(LogLevel.Log))
+        {
+            m_levelCounters[LogLevel.Log] = 0;
+        }
+        if (!m_levelCounters.ContainsKey(LogLevel.Warning))
+        {
+            m_levelCounters[LogLevel.Warning] = 0;
+        }
+        if (!m_levelCounters.ContainsKey(LogLevel.Error))
+        {
+            m_levelCounters[LogLevel.Error] = 0;
+        }
     }
 
     private void ModeChanged(PlayModeStateChange obj)
@@ -91,7 +146,10 @@ public class ProperConsoleWindow : EditorWindow
 
     private void ExitingEditMode()
     {
-        Clear();
+        if (m_clearOnPlay)
+        {
+            Clear();
+        }
     }
 
     private void ExitingPlayMode()
@@ -116,7 +174,7 @@ public class ProperConsoleWindow : EditorWindow
     {
         if (!m_listening)
         {
-            Application.logMessageReceivedThreaded += Listener;
+           Application.logMessageReceivedThreaded += Listener;
            m_listening = true;
         }
     }
@@ -129,11 +187,32 @@ public class ProperConsoleWindow : EditorWindow
 
     private void Listener(string condition, string stackTrace, LogType type)
     {
-        m_entries = m_entries ?? new List<string>();
         lock (m_entriesLock)
         {
-            m_entries.Add(condition);
+            m_entries.Add(new ConsoleLogEntry()
+            {
+                date = DateTime.Now,
+                level = GetLogLevelFromUnityLogType(type),
+                message = condition,
+                stackTrace = stackTrace,
+            });
+
+            switch (type)
+            {
+                case LogType.Log:
+                    m_levelCounters[LogLevel.Log]++;
+                    break;
+                case LogType.Warning:
+                    m_levelCounters[LogLevel.Warning]++;
+                    break;
+                case LogType.Error:
+                case LogType.Exception:
+                case LogType.Assert:
+                    m_levelCounters[LogLevel.Error]++;
+                    break;
+            }
         }
+
         this.Repaint();
         if(m_errorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
         {
@@ -146,38 +225,69 @@ public class ProperConsoleWindow : EditorWindow
         m_entries.Clear();
     }
 
+    private void FlagButton(LogLevel level, string label)
+    {
+        bool hasFlag = (m_logLevelFilter & level) != 0;
+        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {m_levelCounters[level]}"), "ToolbarButton", GUILayout.ExpandWidth(false));
+        if (hasFlag != newFlagValue)
+        {
+            m_logLevelFilter ^= level;
+        }
+    }
+
     void OnGUI()
     {
-        GUILayout.BeginHorizontal((GUIStyle)"Toolbar");
-        if (GUILayout.Button("Clear", (GUIStyle)"ToolbarButton"))
+        bool repaint = Event.current.type == EventType.Repaint;
+
+        GUILayout.BeginHorizontal("Toolbar");
+        if (GUILayout.Button("Clear", "ToolbarButton", GUILayout.ExpandWidth(false)))
         {
             Clear();
             GUIUtility.keyboardControl = 0;
         }
-        m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton");
-        m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton");
-        m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton");
-        GUILayout.FlexibleSpace();
+        m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
+        m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
+        m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
+
+        searchString = GUILayout.TextField(searchString, "ToolbarSeachTextField");
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            searchString = searchString.Trim();
+        }
+
+        // Log Level Flags
+        FlagButton(LogLevel.Log, "L");
+        FlagButton(LogLevel.Warning, "W");
+        FlagButton(LogLevel.Error, "E");
+
+
+
         GUILayout.EndHorizontal();
 
-
-        bool repaint = Event.current.type == EventType.Repaint;
+        float startY = 0;
+        GUILayout.Space(1);
+        if (repaint)
+        {
+            Rect r = GUILayoutUtility.GetLastRect();
+            startY = r.yMax;
+        }
 
         m_scrollPosition = GUILayout.BeginScrollView(m_scrollPosition, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
 
         if (repaint)
         {
             float scrollTolerance = 0;
-            m_autoScroll = m_scrollPosition.y >= (innerScrollableHeight - outerScrollableHeight - scrollTolerance);
+            m_autoScroll = m_scrollPosition.y >= (innerScrollableHeight - outerScrollableHeight - scrollTolerance + startY);
         }
 
         GUILayout.BeginVertical();
 
         if(m_entries.Count == 0) GUILayout.Space(10);
 
-        for (int i= 0;i<m_entries.Count;i++)
+        var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+        for (int i= 0;i< filteredEntries.Count;i++)
         {
-            GUILayout.Label(m_entries[i]);
+            GUILayout.Label(filteredEntries[i].message);
         }
 
         GUILayout.EndVertical();
@@ -199,21 +309,53 @@ public class ProperConsoleWindow : EditorWindow
 
         if (repaint && m_autoScroll)
         {
-            m_scrollPosition.y = innerScrollableHeight - outerScrollableHeight;
+            m_scrollPosition.y = innerScrollableHeight - outerScrollableHeight + startY;
         }
 
         if (GUILayout.Button("Log"))
         {
-            Debug.Log($"Log {DateTime.Now.ToString()} {m_listening} {m_autoScroll} {m_entries.Count} {(m_entries.Count+1) * 40}");
+            Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+        }
+
+        if (GUILayout.Button("LogWarning"))
+        {
+            Debug.LogWarning($"Warning {DateTime.Now.ToString()} {m_listening} {m_autoScroll}");
         }
 
         if (GUILayout.Button("LogError"))
         {
             Debug.LogError("Error");
-            object bad = null;
-            bad.ToString();
-            throw new Exception("Manual error");
         }
+
+        if (GUILayout.Button("LogAssert"))
+        {
+            Debug.Assert(false);
+        }
+    }
+
+    private bool ValidFilter(ConsoleLogEntry e)
+    {
+        bool valid = true;
+
+        if(m_logLevelFilter != LogLevel.All)
+        {
+            valid &= (e.level & m_logLevelFilter) == e.level;
+            if (!valid)
+            {
+                return false;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            valid &= e.message.IndexOf(searchString, System.StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!valid)
+            {
+                return false;
+            }
+        }
+
+        return valid;
     }
 
     public void OnBuild()
