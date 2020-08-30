@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using System.Globalization;
+using UnityEngine.UI;
 
 public class ProperConsoleWindow : EditorWindow
 {
@@ -73,6 +74,12 @@ public class ProperConsoleWindow : EditorWindow
     private int m_warningCounter = 0;
     private int m_errorCounter = 0;
 
+    private int m_selectedIndex = -1;
+
+    private GUIStyle m_evenIndexBackground = null;
+    private GUIStyle m_selectedIndexBackground = null;
+    private GUIStyle m_regularStyle = null;
+
     public static ProperConsoleWindow Instance => m_instance;
 
     // Add menu named "My Window" to the Window menu
@@ -115,6 +122,8 @@ public class ProperConsoleWindow : EditorWindow
         m_instance = this;
         EditorApplication.playModeStateChanged += ModeChanged;
         InitListener();
+        m_evenIndexBackground = null;
+        m_selectedIndexBackground = null;
     }
 
     private void ModeChanged(PlayModeStateChange obj)
@@ -140,6 +149,8 @@ public class ProperConsoleWindow : EditorWindow
         {
             Clear();
         }
+        m_evenIndexBackground = null;
+        m_selectedIndexBackground = null;
     }
 
     private void ExitingPlayMode()
@@ -150,6 +161,8 @@ public class ProperConsoleWindow : EditorWindow
     private void EnteredEditMode()
     {
         InitListener();
+        m_evenIndexBackground = null;
+        m_selectedIndexBackground = null;
     }
 
     private void OnDisable()
@@ -258,6 +271,10 @@ public class ProperConsoleWindow : EditorWindow
         bool lastCollapse = m_collapse;
         m_collapse = GUILayout.Toggle(m_collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
         callForRepaint = m_collapse != lastCollapse;
+        if(m_collapse != lastCollapse)
+        {
+            m_selectedIndex = -1;
+        }
         m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
         m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
         m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -361,16 +378,47 @@ public class ProperConsoleWindow : EditorWindow
         }
     }
 
-    private void DisplayEntry(ConsoleLogEntry entry)
+    private void DisplayEntry(ConsoleLogEntry entry, int idx)
     {
+        var saveColor = GUI.color;
+        var saveBGColor = GUI.backgroundColor;
         float imageSize = 35;
+        m_regularStyle = m_regularStyle ?? new GUIStyle();
+        GUIStyle currentStyle = m_regularStyle;
+        GUIStyle textStyle = GUI.skin.label;
+        textStyle.normal.textColor = Color.black;
+        if (idx == m_selectedIndex) {
+            if (m_selectedIndexBackground == null)
+            {
+                m_selectedIndexBackground = new GUIStyle();
+                Texture2D tex = new Texture2D(1, 1);
+                tex.SetPixel(0, 0, new Color(58, 114, 176, 255));
+                m_selectedIndexBackground.normal.background = tex;
+            }
+        GUI.color = Color.white;
+        GUI.backgroundColor = new Color(58, 114, 176, 255);
+            currentStyle = m_selectedIndexBackground;
+            textStyle.normal.textColor = Color.white;
+        }
+        else if (idx % 2 == 0)
+        {
+            if (m_evenIndexBackground == null)
+            {
+                m_evenIndexBackground = new GUIStyle();
+                Texture2D tex = new Texture2D(1, 1);
+                tex.SetPixel(0, 0, GUI.backgroundColor);
+                m_evenIndexBackground.normal.background = tex;
+            }
+            currentStyle = m_evenIndexBackground;
+        }
         GUILayout.BeginHorizontal();
+            //GUI.color = saveColor;
         // Picto space
         GUILayout.Box("", GUILayout.Width(imageSize), GUILayout.Height(imageSize));
         // Text space
         GUILayout.BeginVertical();
-        GUILayout.Label($"[{entry.timestamp}] {entry.message}");
-        GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}"); // TODO cache this line
+        GUILayout.Label($"[{entry.timestamp}] {entry.message}", textStyle);
+        GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle); // TODO cache this line
         GUILayout.EndVertical();
         // Collapse Space
         if (m_collapse)
@@ -379,13 +427,22 @@ public class ProperConsoleWindow : EditorWindow
         }
         // Category Space
         GUILayout.EndHorizontal();
+
+        Rect r = GUILayoutUtility.GetLastRect();
+        if(GUI.RepeatButton(r, GUIContent.none, GUIStyle.none))
+        {
+            m_selectedIndex = idx;
+        }
+
+        GUI.color = saveColor;
+        GUI.backgroundColor = saveBGColor;
     }
 
     private void DisplayList(List<ConsoleLogEntry> filteredEntries)
     {
         for (int i = 0; i < filteredEntries.Count; i++)
         {
-            DisplayEntry(filteredEntries[i]);
+            DisplayEntry(filteredEntries[i], i);
         }
     }
     private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries)
@@ -424,7 +481,7 @@ public class ProperConsoleWindow : EditorWindow
 
         for (int i = 0; i < collapsedEntries.Count; i++)
         {
-            DisplayEntry(collapsedEntries[i]);
+            DisplayEntry(collapsedEntries[i], i);
         }
     }
 
