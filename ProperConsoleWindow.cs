@@ -41,6 +41,14 @@ public class ProperConsoleWindow : EditorWindow
     }
 
     [Serializable]
+    private struct PendingContext
+    {
+        public string message;
+        public LogType logType;
+        public UnityEngine.Object context;
+    }
+
+    [Serializable]
     private struct ConsoleLogEntry
     {
         public long date;
@@ -49,6 +57,7 @@ public class ProperConsoleWindow : EditorWindow
         public LogLevel level;
         public string stackTrace;
         public int count;
+        public UnityEngine.Object context;
     }
 
     private static ProperConsoleWindow m_instance = null;
@@ -83,6 +92,10 @@ public class ProperConsoleWindow : EditorWindow
     private GUIStyle m_evenIndexBackground = null;
     private GUIStyle m_selectedIndexBackground = null;
     private GUIStyle m_regularStyle = null;
+
+    private CustomLogHandler m_logHandler = null;
+
+    private List<PendingContext> m_pendingContexts = null;
 
     public static ProperConsoleWindow Instance => m_instance;
 
@@ -121,6 +134,7 @@ public class ProperConsoleWindow : EditorWindow
     {
         Debug.Log("OnEnable");
         m_entries = m_entries ?? new List<ConsoleLogEntry>();
+        m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
         m_listening = false;
         m_entriesLock = new object();
         m_instance = this;
@@ -160,6 +174,7 @@ public class ProperConsoleWindow : EditorWindow
     private void ExitingPlayMode()
     {
         RemoveListener();
+        m_pendingContexts?.Clear();
     }
 
     private void EnteredEditMode()
@@ -167,6 +182,7 @@ public class ProperConsoleWindow : EditorWindow
         InitListener();
         m_evenIndexBackground = null;
         m_selectedIndexBackground = null;
+        m_pendingContexts?.Clear();
     }
 
     private void OnDisable()
@@ -181,14 +197,17 @@ public class ProperConsoleWindow : EditorWindow
     {
         if (!m_listening)
         {
-           Application.logMessageReceivedThreaded += Listener;
-           m_listening = true;
+            m_logHandler = new CustomLogHandler(Debug.unityLogger.logHandler, this);
+            Debug.unityLogger.logHandler = m_logHandler;
+            Application.logMessageReceivedThreaded += Listener;
+            m_listening = true;
         }
     }
 
     public void RemoveListener()
     {
         Application.logMessageReceivedThreaded -= Listener;
+        Debug.unityLogger.logHandler = m_logHandler.OriginalHandler;
         m_listening = false;
     }
 
@@ -196,6 +215,17 @@ public class ProperConsoleWindow : EditorWindow
     {
         lock (m_entriesLock)
         {
+            UnityEngine.Object context = null;
+            for(int i=0;i<m_pendingContexts.Count;i++)
+            {
+                if(m_pendingContexts[i].message.Equals(condition) && m_pendingContexts[i].logType == type)
+                {
+                    context = m_pendingContexts[i].context;
+                    m_pendingContexts.RemoveAt(i);
+                    break;
+                }
+            }
+
             var now = DateTime.Now;
             m_entries.Add(new ConsoleLogEntry()
             {
@@ -205,6 +235,7 @@ public class ProperConsoleWindow : EditorWindow
                 message = condition,
                 stackTrace = stackTrace,
                 count = 1,
+                context = context,
             });
 
             switch (type)
@@ -224,9 +255,24 @@ public class ProperConsoleWindow : EditorWindow
         }
 
         this.Repaint();
+        return;
         if(m_errorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
         {
             Debug.Break();
+        }
+    }
+
+    public void Listener(LogType type, UnityEngine.Object context, string format, params object[] args)
+    {
+        m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
+        if (context != null && args.Length > 0)
+        {
+            m_pendingContexts.Add(new PendingContext()
+            {
+                logType = type,
+                context = context,
+                message = args[0] as string
+            });
         }
     }
 
@@ -236,6 +282,7 @@ public class ProperConsoleWindow : EditorWindow
         m_warningCounter = 0;
         m_errorCounter = 0;
         m_entries.Clear();
+        m_pendingContexts.Clear();
     }
 
     private int GetCounter(LogLevel level)
@@ -360,7 +407,7 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.Space((int)(splitterHeight / 2f));
         GUILayout.EndVertical();
         splitterRect = GUILayoutUtility.GetLastRect();
-        EditorGUIUtility.AddCursorRect(new Rect(splitterRect), MouseCursor.ResizeVertical);
+        EditorGUIUtility.AddCursorRect(new Rect(splitterRect), MouseCursor.ResizeVertical); // TODO Editor
 
         selectedAreaPos = GUILayout.BeginScrollView(selectedAreaPos,
         GUILayout.Height(splitterPos),
@@ -370,13 +417,22 @@ public class ProperConsoleWindow : EditorWindow
         {
             var entry = displayedEntries[m_selectedIndex];
             GUILayout.Label($"{entry.message}");
+            if (entry.context != null)
+            {
+                GUILayout.Label($"{entry.context.name}");
+            }
             GUILayout.Label($"{entry.stackTrace}");
         }
         GUILayout.EndScrollView();
 
         if (GUILayout.Button("Log"))
         {
-            Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+            Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+        }
+        if (GUILayout.Button("Log Double"))
+        {
+            Debug.Log($"Log 1", Camera.main);
+            Debug.Log($"Log 2", Camera.main);
         }
 
         if (GUILayout.Button("LogWarning"))
@@ -499,6 +555,10 @@ public class ProperConsoleWindow : EditorWindow
         if(GUI.RepeatButton(r, GUIContent.none, GUIStyle.none))
         {
             m_selectedIndex = idx;
+            if(entry.context != null)
+            {
+                EditorGUIUtility.PingObject(entry.context); // TODO Editor
+            }
         }
 
         GUI.color = saveColor;
@@ -605,5 +665,31 @@ public class ProperConsoleWindow : EditorWindow
 
     private void Update()
     {
+    }
+}
+
+public class CustomLogHandler : ILogHandler
+{
+    private ILogHandler m_originalHandler;
+    private ProperConsoleWindow m_console;
+
+    public ILogHandler OriginalHandler => m_originalHandler;
+
+    public CustomLogHandler(ILogHandler host, ProperConsoleWindow console)
+    {
+        m_originalHandler = host;
+        m_console = console;
+    }
+
+    public void LogException(Exception exception, UnityEngine.Object context)
+    {
+        m_console.Listener(LogType.Exception, context, "{0}", exception.Message, exception.StackTrace);
+        m_originalHandler.LogException(exception, context);
+    }
+
+    public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+    {
+        m_console.Listener(logType, context, format, args);
+        m_originalHandler.LogFormat(logType, context, format, args);
     }
 }
