@@ -58,12 +58,16 @@ public class ProperConsoleWindow : EditorWindow
     private List<ConsoleLogEntry> m_entries = null;
 
     private Vector2 m_scrollPosition;
+    private Vector2 selectedAreaPos;
     private bool m_autoScroll = true;
     private bool m_clearOnPlay = false;
     private bool m_clearOnBuild = false;
     private bool m_errorPause = false;
     private bool m_collapse = false;
 
+    float splitterPos;
+    Rect splitterRect;
+    private bool dragging = false;
     string searchString = null;
     private LogLevel m_logLevelFilter = LogLevel.All;
     float innerScrollableHeight = 0;
@@ -313,13 +317,14 @@ public class ProperConsoleWindow : EditorWindow
         if(m_entries.Count == 0) GUILayout.Space(10);
 
         var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+        List<ConsoleLogEntry> displayedEntries;
         if (m_collapse)
         {
-            DisplayCollapse(filteredEntries);
+            DisplayCollapse(filteredEntries, out displayedEntries);
         }
         else
         {
-            DisplayList(filteredEntries);
+            DisplayList(filteredEntries, out displayedEntries);
         }
 
         GUILayout.EndVertical();
@@ -343,6 +348,31 @@ public class ProperConsoleWindow : EditorWindow
         {
             m_scrollPosition.y = innerScrollableHeight - outerScrollableHeight + startY;
         }
+
+        float splitterHeight = 10f;
+        GUILayout.BeginVertical();
+        GUILayout.Space((int)(splitterHeight / 2f));
+        GUILayout.Box("",
+             GUILayout.Height(1),
+             GUILayout.MaxHeight(1),
+             GUILayout.MinHeight(1),
+             GUILayout.ExpandWidth(true));
+        GUILayout.Space((int)(splitterHeight / 2f));
+        GUILayout.EndVertical();
+        splitterRect = GUILayoutUtility.GetLastRect();
+        EditorGUIUtility.AddCursorRect(new Rect(splitterRect), MouseCursor.ResizeVertical);
+
+        selectedAreaPos = GUILayout.BeginScrollView(selectedAreaPos,
+        GUILayout.Height(splitterPos),
+        GUILayout.MaxHeight(splitterPos),
+        GUILayout.MinHeight(splitterPos));
+        if (m_selectedIndex != -1)
+        {
+            var entry = displayedEntries[m_selectedIndex];
+            GUILayout.Label($"{entry.message}");
+            GUILayout.Label($"{entry.stackTrace}");
+        }
+        GUILayout.EndScrollView();
 
         if (GUILayout.Button("Log"))
         {
@@ -369,6 +399,43 @@ public class ProperConsoleWindow : EditorWindow
             for (int i = 0; i < 1000; i++)
             {
                 Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+            }
+        }
+
+        if (Event.current != null)
+        {
+            switch (Event.current.rawType)
+            {
+                case EventType.MouseDown:
+                    if (splitterRect.Contains(Event.current.mousePosition))
+                    {
+                        //Debug.Log("Start dragging");
+                        dragging = true;
+                    }
+                    break;
+                case EventType.MouseDrag:
+                    if (dragging)
+                    {
+                        //Debug.Log("moving splitter");
+                        splitterPos -= Event.current.delta.y;
+                        Repaint();
+                    }
+                    break;
+                case EventType.MouseUp:
+                    if (dragging)
+                    {
+                        //Debug.Log("Done dragging");
+                        dragging = false;
+                    }
+                    break;
+                case EventType.MouseMove:
+                    if (splitterRect.Contains(Event.current.mousePosition))
+                    {
+                    } else if(!dragging)
+                    {
+
+                    }
+                    break;
             }
         }
 
@@ -438,14 +505,15 @@ public class ProperConsoleWindow : EditorWindow
         GUI.backgroundColor = saveBGColor;
     }
 
-    private void DisplayList(List<ConsoleLogEntry> filteredEntries)
+    private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries)
     {
         for (int i = 0; i < filteredEntries.Count; i++)
         {
             DisplayEntry(filteredEntries[i], i);
         }
+        displayedEntries = filteredEntries;
     }
-    private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries)
+    private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries)
     {
         List<ConsoleLogEntry> collapsedEntries = new List<ConsoleLogEntry>();
 
@@ -483,6 +551,8 @@ public class ProperConsoleWindow : EditorWindow
         {
             DisplayEntry(collapsedEntries[i], i);
         }
+
+        displayedEntries = collapsedEntries;
     }
 
     private string StackStraceFirstLine(string stack)
