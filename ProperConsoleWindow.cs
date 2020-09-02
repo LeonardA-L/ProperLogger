@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using System.Globalization;
 using UnityEngine.UI;
+using System.Text.RegularExpressions;
 
 public class ProperConsoleWindow : EditorWindow
 {
@@ -54,10 +55,13 @@ public class ProperConsoleWindow : EditorWindow
         public long date;
         public string timestamp;
         public string message;
+        public string messageFirstLine;
         public LogLevel level;
         public string stackTrace;
         public int count;
         public UnityEngine.Object context;
+        public string firstLine;
+        public string firstAsset;
     }
 
     private static ProperConsoleWindow m_instance = null;
@@ -73,6 +77,9 @@ public class ProperConsoleWindow : EditorWindow
     private bool m_clearOnBuild = false;
     private bool m_errorPause = false;
     private bool m_collapse = false;
+
+    private DateTime m_lastClick = default;
+    private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
 
     float splitterPos;
     Rect splitterRect;
@@ -227,15 +234,19 @@ public class ProperConsoleWindow : EditorWindow
             }
 
             var now = DateTime.Now;
+            string newStackTrace = ParseStackTrace(stackTrace, out string firstAsset, out string firstLine);
             m_entries.Add(new ConsoleLogEntry()
             {
                 date = now.Ticks,
                 timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                 level = GetLogLevelFromUnityLogType(type),
                 message = condition,
-                stackTrace = stackTrace,
+                messageFirstLine = condition.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0],
+                stackTrace = newStackTrace,
                 count = 1,
                 context = context,
+                firstAsset = firstAsset,
+                firstLine = firstLine,
             });
 
             switch (type)
@@ -255,11 +266,47 @@ public class ProperConsoleWindow : EditorWindow
         }
 
         this.Repaint();
-        return;
         if(m_errorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
         {
             Debug.Break();
         }
+    }
+
+    private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
+    {
+        firstAsset = null;
+        firstLine = null;
+        if (string.IsNullOrEmpty(stackTrace))
+        {
+            return null;
+        }
+
+        var split = stackTrace.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        string result = "";
+
+        Regex scriptMatch = new Regex("\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
+
+        for (int i = 0; i < split.Length; i++)
+        {
+            Match m = scriptMatch.Match(split[i]);
+            if (m.Success)
+            {
+                result += split[i].Replace(m.Value, $"(at <a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[2].Value }\">{ m.Groups[1].Value }:{ m.Groups[2].Value }</a>)") + "\n";
+
+                if (string.IsNullOrEmpty(firstAsset))
+                {
+                    firstAsset = m.Groups[1].Value;
+                    firstLine = m.Groups[2].Value;
+                }
+            }
+            else
+            {
+                result += $"{split[i]}\n";
+            }
+        }
+
+        return result;
     }
 
     public void Listener(LogType type, UnityEngine.Object context, string format, params object[] args)
@@ -415,13 +462,25 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.MinHeight(splitterPos));
         if (m_selectedIndex != -1)
         {
+            GUIStyle textStyle = GUI.skin.label;
+            textStyle.richText = true;
+            textStyle.normal.textColor = Color.black;
+
             var entry = displayedEntries[m_selectedIndex];
-            GUILayout.Label($"{entry.message}");
+
+            GUILayout.Space(1);
+            float currentX = (GUILayoutUtility.GetLastRect()).xMin;
+
+            EditorSelectableLabel(entry.message, textStyle, currentX); // TODO if editor
+            //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
             if (entry.context != null)
             {
-                GUILayout.Label($"{entry.context.name}");
+                EditorSelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
             }
-            GUILayout.Label($"{entry.stackTrace}");
+            if (!string.IsNullOrEmpty(entry.stackTrace))
+            {
+                EditorSelectableLabel(entry.stackTrace, textStyle, currentX); // TODO if editor// TODO if not editor
+            }
         }
         GUILayout.EndScrollView();
 
@@ -501,6 +560,15 @@ public class ProperConsoleWindow : EditorWindow
         }
     }
 
+    private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
+    {
+        var content = new GUIContent(text);
+        float height = textStyle.CalcHeight(content, EditorGUIUtility.currentViewWidth);
+        var lastRect = GUILayoutUtility.GetLastRect();
+        EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, EditorGUIUtility.currentViewWidth, height), text, textStyle);
+        GUILayout.Space(height);
+    }
+
     private void DisplayEntry(ConsoleLogEntry entry, int idx)
     {
         var saveColor = GUI.color;
@@ -509,6 +577,7 @@ public class ProperConsoleWindow : EditorWindow
         m_regularStyle = m_regularStyle ?? new GUIStyle();
         GUIStyle currentStyle = m_regularStyle;
         GUIStyle textStyle = GUI.skin.label;
+        textStyle.richText = true;
         textStyle.normal.textColor = Color.black;
         if (idx == m_selectedIndex) {
             if (m_selectedIndexBackground == null)
@@ -540,8 +609,11 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.Box("", GUILayout.Width(imageSize), GUILayout.Height(imageSize));
         // Text space
         GUILayout.BeginVertical();
-        GUILayout.Label($"[{entry.timestamp}] {entry.message}", textStyle);
-        GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle); // TODO cache this line
+        GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle);
+        if (!string.IsNullOrEmpty(entry.stackTrace))
+        {
+            GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle); // TODO cache this line
+        }
         GUILayout.EndVertical();
         // Collapse Space
         if (m_collapse)
@@ -552,17 +624,37 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.EndHorizontal();
 
         Rect r = GUILayoutUtility.GetLastRect();
-        if(GUI.RepeatButton(r, GUIContent.none, GUIStyle.none))
+        if(GUI.Button(r, GUIContent.none, GUIStyle.none))
         {
-            m_selectedIndex = idx;
             if(entry.context != null)
             {
                 EditorGUIUtility.PingObject(entry.context); // TODO Editor
             }
+            if(m_selectedIndex == idx && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
+            {
+                HandleDoubleClick(entry);
+            }
+            m_selectedIndex = idx;
+            m_lastClick = DateTime.Now;
         }
 
         GUI.color = saveColor;
         GUI.backgroundColor = saveBGColor;
+    }
+
+    private void HandleDoubleClick(ConsoleLogEntry entry)
+    {
+        if (!string.IsNullOrEmpty(entry.firstAsset))
+        {
+            var asset = AssetDatabase.LoadMainAssetAtPath(entry.firstAsset);
+            if (!string.IsNullOrEmpty(entry.firstLine))
+            {
+                AssetDatabase.OpenAsset(asset, int.Parse(entry.firstLine));
+            }else
+            {
+                AssetDatabase.OpenAsset(asset);
+            }
+        }
     }
 
     private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries)
