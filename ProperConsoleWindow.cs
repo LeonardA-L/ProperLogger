@@ -389,8 +389,10 @@ public class ProperConsoleWindow : EditorWindow
         FlagButton(LogLevel.Error, "E");
 
         GUILayout.EndHorizontal();
+        Rect windowRect = GUILayoutUtility.GetLastRect();
 
         float startY = 0;
+        float totalWidth = Screen.width;
         GUILayout.Space(1);
         if (repaint)
         {
@@ -414,11 +416,11 @@ public class ProperConsoleWindow : EditorWindow
         List<ConsoleLogEntry> displayedEntries;
         if (m_collapse)
         {
-            DisplayCollapse(filteredEntries, out displayedEntries);
+            DisplayCollapse(filteredEntries, out displayedEntries, totalWidth);
         }
         else
         {
-            DisplayList(filteredEntries, out displayedEntries);
+            DisplayList(filteredEntries, out displayedEntries, totalWidth);
         }
 
         GUILayout.EndVertical();
@@ -569,15 +571,18 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.Space(height);
     }
 
-    private void DisplayEntry(ConsoleLogEntry entry, int idx)
+    private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
     {
         var saveColor = GUI.color;
         var saveBGColor = GUI.backgroundColor;
         float imageSize = 35;
+        float collapseBubbleSize = 40;
+        float empiricalPaddings = 20;
         m_regularStyle = m_regularStyle ?? new GUIStyle();
         GUIStyle currentStyle = m_regularStyle;
         GUIStyle textStyle = GUI.skin.label;
         textStyle.richText = true;
+        textStyle.clipping = TextClipping.Clip;
         textStyle.normal.textColor = Color.black;
         if (idx == m_selectedIndex) {
             if (m_selectedIndexBackground == null)
@@ -609,16 +614,18 @@ public class ProperConsoleWindow : EditorWindow
         GUILayout.Box("", GUILayout.Width(imageSize), GUILayout.Height(imageSize));
         // Text space
         GUILayout.BeginVertical();
-        GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle);
+        GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
         if (!string.IsNullOrEmpty(entry.stackTrace))
         {
-            GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle); // TODO cache this line
+            GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
         }
         GUILayout.EndVertical();
+        //GUILayout.Label("", GUILayout.ExpandWidth(true));
+        GUILayout.FlexibleSpace();
         // Collapse Space
         if (m_collapse)
         {
-            GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false)); // TODO style
+            GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize)); // TODO style
         }
         // Category Space
         GUILayout.EndHorizontal();
@@ -657,15 +664,15 @@ public class ProperConsoleWindow : EditorWindow
         }
     }
 
-    private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries)
+    private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
     {
         for (int i = 0; i < filteredEntries.Count; i++)
         {
-            DisplayEntry(filteredEntries[i], i);
+            DisplayEntry(filteredEntries[i], i, totalWidth);
         }
         displayedEntries = filteredEntries;
     }
-    private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries)
+    private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
     {
         List<ConsoleLogEntry> collapsedEntries = new List<ConsoleLogEntry>();
 
@@ -701,7 +708,7 @@ public class ProperConsoleWindow : EditorWindow
 
         for (int i = 0; i < collapsedEntries.Count; i++)
         {
-            DisplayEntry(collapsedEntries[i], i);
+            DisplayEntry(collapsedEntries[i], i, totalWidth);
         }
 
         displayedEntries = collapsedEntries;
