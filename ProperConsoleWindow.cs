@@ -7,6 +7,7 @@ using UnityEditor.PackageManager;
 using System.Globalization;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 public class ProperConsoleWindow : EditorWindow
 {
@@ -64,6 +65,9 @@ public class ProperConsoleWindow : EditorWindow
         public string firstAsset;
     }
 
+    [SerializeField]
+    private GUISkin m_skin = null;
+
     private static ProperConsoleWindow m_instance = null;
     private bool m_listening = false;
     private object m_entriesLock;
@@ -96,13 +100,17 @@ public class ProperConsoleWindow : EditorWindow
 
     private int m_selectedIndex = -1;
 
-    private GUIStyle m_evenIndexBackground = null;
-    private GUIStyle m_selectedIndexBackground = null;
-    private GUIStyle m_regularStyle = null;
-
     private CustomLogHandler m_logHandler = null;
 
     private List<PendingContext> m_pendingContexts = null;
+
+    private static Texture2D m_iconInfo;
+    private static Texture2D m_iconWarning;
+    private static Texture2D m_iconError;
+
+    private static Texture2D m_iconInfoGray;
+    private static Texture2D m_iconWarningGray;
+    private static Texture2D m_iconErrorGray;
 
     public static ProperConsoleWindow Instance => m_instance;
 
@@ -147,8 +155,18 @@ public class ProperConsoleWindow : EditorWindow
         m_instance = this;
         EditorApplication.playModeStateChanged += ModeChanged;
         InitListener();
-        m_evenIndexBackground = null;
-        m_selectedIndexBackground = null;
+
+        Type editorGuiUtility = typeof(EditorGUIUtility);
+        MethodInfo LoadIcon = editorGuiUtility.GetMethod("LoadIcon", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+        string[] parameters = { "blabla" };
+
+        m_iconInfo = (Texture2D) LoadIcon.Invoke(null, new object[] { "console.infoicon" });
+        m_iconWarning = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon" });
+        m_iconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
+
+        m_iconInfoGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon.sml" });
+        m_iconWarningGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon.inactive.sml" });
+        m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
     }
 
     private void ModeChanged(PlayModeStateChange obj)
@@ -174,8 +192,6 @@ public class ProperConsoleWindow : EditorWindow
         {
             Clear();
         }
-        m_evenIndexBackground = null;
-        m_selectedIndexBackground = null;
     }
 
     private void ExitingPlayMode()
@@ -187,8 +203,6 @@ public class ProperConsoleWindow : EditorWindow
     private void EnteredEditMode()
     {
         InitListener();
-        m_evenIndexBackground = null;
-        m_selectedIndexBackground = null;
         m_pendingContexts?.Clear();
     }
 
@@ -339,16 +353,29 @@ public class ProperConsoleWindow : EditorWindow
         return m_errorCounter;
     }
 
-    private string GetCounterString(LogLevel level)
+    private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
     {
-        int count = GetCounter(level);
-        return $"{((count > 999) ? ("999+") : $"{count}")}";
-    }
-
-    private void FlagButton(LogLevel level, string label)
-    {
+        float flagButtonMaxWidth = 60; 
         bool hasFlag = (m_logLevelFilter & level) != 0;
-        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($"{label} {GetCounterString(level)}"), "ToolbarButton", GUILayout.ExpandWidth(false));
+        int counter = GetCounter(level);
+        if(counter >= 1000)
+        {
+            flagButtonMaxWidth = 60;// TODO const
+        } else if(counter >= 100)
+        {
+            flagButtonMaxWidth = 50;
+        }
+        else if (counter >= 10)
+        {
+            flagButtonMaxWidth = 42;
+        } else
+        {
+            flagButtonMaxWidth = 37;
+        }
+        bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : $"{counter}")}", (counter > 0 ? icon : iconGray)),
+            (GUIStyle)"ToolbarButton"
+            , GUILayout.MaxWidth(flagButtonMaxWidth), GUILayout.ExpandWidth(false)
+            );
         if (hasFlag != newFlagValue)
         {
             m_logLevelFilter ^= level;
@@ -384,9 +411,9 @@ public class ProperConsoleWindow : EditorWindow
         }
 
         // Log Level Flags
-        FlagButton(LogLevel.Log, "L");
-        FlagButton(LogLevel.Warning, "W");
-        FlagButton(LogLevel.Error, "E");
+        FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
+        FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray);
+        FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray);
 
         GUILayout.EndHorizontal();
         Rect windowRect = GUILayoutUtility.GetLastRect();
@@ -490,11 +517,6 @@ public class ProperConsoleWindow : EditorWindow
         {
             Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
         }
-        if (GUILayout.Button("Log Double"))
-        {
-            Debug.Log($"Log 1", Camera.main);
-            Debug.Log($"Log 2", Camera.main);
-        }
 
         if (GUILayout.Button("LogWarning"))
         {
@@ -576,42 +598,25 @@ public class ProperConsoleWindow : EditorWindow
         var saveColor = GUI.color;
         var saveBGColor = GUI.backgroundColor;
         float imageSize = 35;
-        float collapseBubbleSize = 40;
+        float collapseBubbleSize = m_collapse ? 40 : 0;
         float empiricalPaddings = 20;
-        m_regularStyle = m_regularStyle ?? new GUIStyle();
-        GUIStyle currentStyle = m_regularStyle;
-        GUIStyle textStyle = GUI.skin.label;
-        textStyle.richText = true;
-        textStyle.clipping = TextClipping.Clip;
-        textStyle.normal.textColor = Color.black;
+        GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
+        GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
         if (idx == m_selectedIndex) {
-            if (m_selectedIndexBackground == null)
-            {
-                m_selectedIndexBackground = new GUIStyle();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.SetPixel(0, 0, new Color(58, 114, 176, 255));
-                m_selectedIndexBackground.normal.background = tex;
-            }
-        GUI.color = Color.white;
-        GUI.backgroundColor = new Color(58, 114, 176, 255);
-            currentStyle = m_selectedIndexBackground;
-            textStyle.normal.textColor = Color.white;
+            currentStyle = m_skin.FindStyle("SelectedEntry");
+            textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
         }
         else if (idx % 2 == 0)
         {
-            if (m_evenIndexBackground == null)
-            {
-                m_evenIndexBackground = new GUIStyle();
-                Texture2D tex = new Texture2D(1, 1);
-                tex.SetPixel(0, 0, GUI.backgroundColor);
-                m_evenIndexBackground.normal.background = tex;
-            }
-            currentStyle = m_evenIndexBackground;
+            currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
         }
-        GUILayout.BeginHorizontal();
-            //GUI.color = saveColor;
+        GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(40));
+        //GUI.color = saveColor;
         // Picto space
-        GUILayout.Box("", GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+        GUILayout.BeginHorizontal(GUILayout.Width(imageSize + 10));
+        GUILayout.FlexibleSpace();
+        GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+        GUILayout.EndHorizontal();
         // Text space
         GUILayout.BeginVertical();
         GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
@@ -647,6 +652,13 @@ public class ProperConsoleWindow : EditorWindow
 
         GUI.color = saveColor;
         GUI.backgroundColor = saveBGColor;
+    }
+
+    private Texture GetEntryIcon(ConsoleLogEntry entry)
+    {
+        if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
+        if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
+        return m_iconError;
     }
 
     private void HandleDoubleClick(ConsoleLogEntry entry)
