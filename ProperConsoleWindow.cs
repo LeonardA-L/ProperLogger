@@ -281,7 +281,7 @@ namespace ProperLogger
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
                     message = condition,
-                    messageFirstLine = condition.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0],
+                    messageFirstLine = GetFirstLine(condition),
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
@@ -604,7 +604,8 @@ namespace ProperLogger
                         message = collapsedEntries[foundIdx].message,
                         level = collapsedEntries[foundIdx].level,
                         stackTrace = collapsedEntries[foundIdx].stackTrace,
-                        timestamp = collapsedEntries[foundIdx].timestamp
+                        timestamp = collapsedEntries[foundIdx].timestamp,
+                        messageFirstLine = collapsedEntries[foundIdx].messageFirstLine,
                     };
                 }
                 else
@@ -630,7 +631,7 @@ namespace ProperLogger
             float imageSize = 35;
             float sidePaddings = 10;
             float collapseBubbleSize = m_collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 20;
+            float empiricalPaddings = 20 + sidePaddings;
             float itemHeight = 40;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
@@ -705,7 +706,7 @@ namespace ProperLogger
                     break;
             }
             GUILayout.Label($"{count}", style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23)); // TODO style
-            GUILayout.Space(sidePaddings - 3);
+            GUILayout.Space(sidePaddings);
         }
 
         private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
