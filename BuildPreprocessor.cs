@@ -5,19 +5,22 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-public class BuildPreprocessor : IPreprocessBuildWithReport
+namespace ProperLogger
 {
-    public int callbackOrder => 0;
-
-    public void OnPreprocessBuild(BuildTarget target, string path)
+    internal class BuildPreprocessor : IPreprocessBuildWithReport
     {
-    }
+        public int callbackOrder => 0;
 
-    public void OnPreprocessBuild(BuildReport report)
-    {
-        if(ProperConsoleWindow.Instance != null)
+        public void OnPreprocessBuild(BuildTarget target, string path)
         {
-            ProperConsoleWindow.Instance.OnBuild();
+        }
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            if (ProperConsoleWindow.Instance != null)
+            {
+                ProperConsoleWindow.Instance.OnBuild();
+            }
         }
     }
 }

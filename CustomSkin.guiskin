@@ -1400,7 +1400,7 @@ MonoBehaviour:
     m_Padding:
       m_Left: 0
       m_Right: 0
-      m_Top: 0
+      m_Top: 4
       m_Bottom: 0
     m_Overflow:
       m_Left: 0
@@ -1410,7 +1410,7 @@ MonoBehaviour:
     m_Font: {fileID: 0}
     m_FontSize: 0
     m_FontStyle: 0
-    m_Alignment: 4
+    m_Alignment: 0
     m_WordWrap: 0
     m_RichText: 1
     m_TextClipping: 0
@@ -1466,7 +1466,7 @@ MonoBehaviour:
     m_Padding:
       m_Left: 0
       m_Right: 0
-      m_Top: 0
+      m_Top: 4
       m_Bottom: 0
     m_Overflow:
       m_Left: 0
@@ -1532,7 +1532,7 @@ MonoBehaviour:
     m_Padding:
       m_Left: 0
       m_Right: 0
-      m_Top: 0
+      m_Top: 4
       m_Bottom: 0
     m_Overflow:
       m_Left: 0
