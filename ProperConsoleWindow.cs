@@ -628,8 +628,10 @@ namespace ProperLogger
             var saveColor = GUI.color;
             var saveBGColor = GUI.backgroundColor;
             float imageSize = 35;
-            float collapseBubbleSize = m_collapse ? 40 : 0;
+            float sidePaddings = 10;
+            float collapseBubbleSize = m_collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
             float empiricalPaddings = 20;
+            float itemHeight = 40;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
@@ -642,10 +644,10 @@ namespace ProperLogger
             {
                 currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
             }
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(40));
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(itemHeight));
             //GUI.color = saveColor;
             // Picto space
-            GUILayout.BeginHorizontal(GUILayout.Width(imageSize + 10));
+            GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
             GUILayout.FlexibleSpace();
             GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
             GUILayout.EndHorizontal();
@@ -657,12 +659,11 @@ namespace ProperLogger
                 GUILayout.Label($"{GetFirstLine(entry.stackTrace)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
             }
             GUILayout.EndVertical();
-            //GUILayout.Label("", GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             // Collapse Space
             if (m_collapse)
             {
-                GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize)); // TODO style
+                DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
             }
             // Category Space
             GUILayout.EndHorizontal();
@@ -684,6 +685,27 @@ namespace ProperLogger
 
             GUI.color = saveColor;
             GUI.backgroundColor = saveBGColor;
+        }
+
+        private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
+        {
+            // TODO cache FindStyle
+            GUIStyle style;
+            switch (level)
+            {
+                case LogLevel.Log:
+                    style = m_skin.FindStyle("CollapseBubble");
+                    break;
+                case LogLevel.Warning:
+                    style = m_skin.FindStyle("CollapseBubbleWarning");
+                    break;
+                case LogLevel.Error:
+                default:
+                    style = m_skin.FindStyle("CollapseBubbleError");
+                    break;
+            }
+            GUILayout.Label($"{count}", style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23)); // TODO style
+            GUILayout.Space(sidePaddings - 3);
         }
 
         private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
