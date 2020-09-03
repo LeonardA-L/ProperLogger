@@ -174,7 +174,7 @@ namespace ProperLogger
             m_iconWarning = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon" });
             m_iconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
 
-            m_iconInfoGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon.sml" });
+            m_iconInfoGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon.inactive.sml" });
             m_iconWarningGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon.inactive.sml" });
             m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
         }
@@ -328,11 +328,15 @@ namespace ProperLogger
 
         private void Clear()
         {
-            m_logCounter = 0;
-            m_warningCounter = 0;
-            m_errorCounter = 0;
-            m_entries.Clear();
-            m_pendingContexts.Clear();
+            lock (m_entriesLock)
+            {
+                m_logCounter = 0;
+                m_warningCounter = 0;
+                m_errorCounter = 0;
+                m_entries.Clear();
+                m_pendingContexts.Clear();
+                m_selectedIndex = -1;
+            }
         }
 
         #endregion Logs
