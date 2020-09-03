@@ -11,6 +11,7 @@ namespace ProperLogger
 {
     internal class ProperConsoleWindow : EditorWindow
     {
+        #region Members
         #region Consts
 
         [SerializeField]
@@ -79,13 +80,34 @@ namespace ProperLogger
 
         #endregion Loaded Textures
 
+        #region Caches
 
-        #region Getters
+        //Reflection
+        MethodInfo _loadIcon = null;
+        MethodInfo LoadIcon
+        {
+            get
+            {
+                if(_loadIcon != null)
+                {
+                    return _loadIcon;
+                }
+                Type editorGuiUtility = typeof(EditorGUIUtility);
+                _loadIcon = editorGuiUtility.GetMethod("LoadIcon", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+                return _loadIcon;
+            }
+        }
+
+        #endregion Caches
+        #endregion Members
+
+        #region Properties
         private static ProperConsoleWindow m_instance = null;
         internal static ProperConsoleWindow Instance => m_instance;
-        #endregion Getters
+        #endregion Properties
 
-        // Add menu named "My Window" to the Window menu
+        #region Editor Window
+
         [MenuItem("Leonard/Console")]
         static void Init()
         {
@@ -127,10 +149,27 @@ namespace ProperLogger
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
 
-            Type editorGuiUtility = typeof(EditorGUIUtility);
-            MethodInfo LoadIcon = editorGuiUtility.GetMethod("LoadIcon", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
-            string[] parameters = { "blabla" };
+            LoadIcons();
+        }
 
+        private void OnDisable()
+        {
+            Debug.Log("OnDisable");
+            RemoveListener();
+            EditorApplication.playModeStateChanged -= ModeChanged;
+            m_instance = null;
+        }
+
+        public void OnBuild()
+        {
+            if (m_clearOnBuild)
+            {
+                Clear();
+            }
+        }
+
+        private void LoadIcons()
+        {
             m_iconInfo = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon" });
             m_iconWarning = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon" });
             m_iconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
@@ -139,6 +178,24 @@ namespace ProperLogger
             m_iconWarningGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon.inactive.sml" });
             m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
         }
+
+        private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
+        {
+            if (!string.IsNullOrEmpty(entry.firstAsset))
+            {
+                var asset = AssetDatabase.LoadMainAssetAtPath(entry.firstAsset);
+                if (!string.IsNullOrEmpty(entry.firstLine))
+                {
+                    AssetDatabase.OpenAsset(asset, int.Parse(entry.firstLine));
+                }
+                else
+                {
+                    AssetDatabase.OpenAsset(asset);
+                }
+            }
+        }
+
+        #region Mode Changes
 
         private void ModeChanged(PlayModeStateChange obj)
         {
@@ -177,13 +234,11 @@ namespace ProperLogger
             m_pendingContexts?.Clear();
         }
 
-        private void OnDisable()
-        {
-            Debug.Log("OnDisable");
-            RemoveListener();
-            EditorApplication.playModeStateChanged -= ModeChanged;
-            m_instance = null;
-        }
+        #endregion Mode Changes
+
+        #endregion Editor Window
+
+        #region Logs
 
         public void InitListener()
         {
@@ -257,44 +312,7 @@ namespace ProperLogger
             }
         }
 
-        private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
-        {
-            firstAsset = null;
-            firstLine = null;
-            if (string.IsNullOrEmpty(stackTrace))
-            {
-                return null;
-            }
-
-            var split = stackTrace.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            string result = "";
-
-            Regex scriptMatch = new Regex("\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
-
-            for (int i = 0; i < split.Length; i++)
-            {
-                Match m = scriptMatch.Match(split[i]);
-                if (m.Success)
-                {
-                    result += split[i].Replace(m.Value, $"(at <a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[2].Value }\">{ m.Groups[1].Value }:{ m.Groups[2].Value }</a>)") + "\n";
-
-                    if (string.IsNullOrEmpty(firstAsset))
-                    {
-                        firstAsset = m.Groups[1].Value;
-                        firstLine = m.Groups[2].Value;
-                    }
-                }
-                else
-                {
-                    result += $"{split[i]}\n";
-                }
-            }
-
-            return result;
-        }
-
-        public void Listener(LogType type, UnityEngine.Object context, string format, params object[] args)
+        public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
         {
             m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
             if (context != null && args.Length > 0)
@@ -317,43 +335,38 @@ namespace ProperLogger
             m_pendingContexts.Clear();
         }
 
-        private int GetCounter(LogLevel level)
+        #endregion Logs
+
+        #region Search
+
+        private bool ValidFilter(ConsoleLogEntry e)
         {
-            if (level.HasFlag(LogLevel.Log)) { return m_logCounter; }
-            if (level.HasFlag(LogLevel.Warning)) { return m_warningCounter; }
-            return m_errorCounter;
+            bool valid = true;
+
+            if (m_logLevelFilter != LogLevel.All)
+            {
+                valid &= (e.level & m_logLevelFilter) == e.level;
+                if (!valid)
+                {
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(m_searchString))
+            {
+                valid &= e.message.IndexOf(m_searchString, System.StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!valid)
+                {
+                    return false;
+                }
+            }
+
+            return valid;
         }
 
-        private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
-        {
-            float flagButtonMaxWidth = 60;
-            bool hasFlag = (m_logLevelFilter & level) != 0;
-            int counter = GetCounter(level);
-            if (counter >= 1000)
-            {
-                flagButtonMaxWidth = 60;// TODO const
-            }
-            else if (counter >= 100)
-            {
-                flagButtonMaxWidth = 50;
-            }
-            else if (counter >= 10)
-            {
-                flagButtonMaxWidth = 42;
-            }
-            else
-            {
-                flagButtonMaxWidth = 37;
-            }
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : $"{counter}")}", (counter > 0 ? icon : iconGray)),
-                (GUIStyle)"ToolbarButton"
-                , GUILayout.MaxWidth(flagButtonMaxWidth), GUILayout.ExpandWidth(false)
-                );
-            if (hasFlag != newFlagValue)
-            {
-                m_logLevelFilter ^= level;
-            }
-        }
+        #endregion Search
+
+        #region GUI
 
         void OnGUI()
         {
@@ -557,102 +570,6 @@ namespace ProperLogger
                 Repaint();
             }
         }
-
-        private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
-        {
-            var content = new GUIContent(text);
-            float height = textStyle.CalcHeight(content, EditorGUIUtility.currentViewWidth);
-            var lastRect = GUILayoutUtility.GetLastRect();
-            EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, EditorGUIUtility.currentViewWidth, height), text, textStyle);
-            GUILayout.Space(height);
-        }
-
-        private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
-        {
-            var saveColor = GUI.color;
-            var saveBGColor = GUI.backgroundColor;
-            float imageSize = 35;
-            float collapseBubbleSize = m_collapse ? 40 : 0;
-            float empiricalPaddings = 20;
-            GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
-            GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
-            textStyle.normal.textColor = GUI.skin.label.normal.textColor;
-            if (idx == m_selectedIndex)
-            {
-                currentStyle = m_skin.FindStyle("SelectedEntry");
-                textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
-            }
-            else if (idx % 2 == 0)
-            {
-                currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
-            }
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(40));
-            //GUI.color = saveColor;
-            // Picto space
-            GUILayout.BeginHorizontal(GUILayout.Width(imageSize + 10));
-            GUILayout.FlexibleSpace();
-            GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
-            GUILayout.EndHorizontal();
-            // Text space
-            GUILayout.BeginVertical();
-            GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
-            if (!string.IsNullOrEmpty(entry.stackTrace))
-            {
-                GUILayout.Label($"{StackStraceFirstLine(entry.stackTrace)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
-            }
-            GUILayout.EndVertical();
-            //GUILayout.Label("", GUILayout.ExpandWidth(true));
-            GUILayout.FlexibleSpace();
-            // Collapse Space
-            if (m_collapse)
-            {
-                GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize)); // TODO style
-            }
-            // Category Space
-            GUILayout.EndHorizontal();
-
-            Rect r = GUILayoutUtility.GetLastRect();
-            if (GUI.Button(r, GUIContent.none, GUIStyle.none))
-            {
-                if (entry.context != null)
-                {
-                    EditorGUIUtility.PingObject(entry.context); // TODO Editor
-                }
-                if (m_selectedIndex == idx && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
-                {
-                    HandleDoubleClick(entry);
-                }
-                m_selectedIndex = idx;
-                m_lastClick = DateTime.Now;
-            }
-
-            GUI.color = saveColor;
-            GUI.backgroundColor = saveBGColor;
-        }
-
-        private Texture GetEntryIcon(ConsoleLogEntry entry)
-        {
-            if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
-            if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
-            return m_iconError;
-        }
-
-        private void HandleDoubleClick(ConsoleLogEntry entry)
-        {
-            if (!string.IsNullOrEmpty(entry.firstAsset))
-            {
-                var asset = AssetDatabase.LoadMainAssetAtPath(entry.firstAsset);
-                if (!string.IsNullOrEmpty(entry.firstLine))
-                {
-                    AssetDatabase.OpenAsset(asset, int.Parse(entry.firstLine));
-                }
-                else
-                {
-                    AssetDatabase.OpenAsset(asset);
-                }
-            }
-        }
-
         private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
         {
             for (int i = 0; i < filteredEntries.Count; i++)
@@ -704,9 +621,139 @@ namespace ProperLogger
             displayedEntries = collapsedEntries;
         }
 
-        private string StackStraceFirstLine(string stack)
+        #region GUI Components
+
+        private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            var split = stack.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var saveColor = GUI.color;
+            var saveBGColor = GUI.backgroundColor;
+            float imageSize = 35;
+            float collapseBubbleSize = m_collapse ? 40 : 0;
+            float empiricalPaddings = 20;
+            GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
+            GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
+            textStyle.normal.textColor = GUI.skin.label.normal.textColor;
+            if (idx == m_selectedIndex)
+            {
+                currentStyle = m_skin.FindStyle("SelectedEntry");
+                textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
+            }
+            else if (idx % 2 == 0)
+            {
+                currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
+            }
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(40));
+            //GUI.color = saveColor;
+            // Picto space
+            GUILayout.BeginHorizontal(GUILayout.Width(imageSize + 10));
+            GUILayout.FlexibleSpace();
+            GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+            GUILayout.EndHorizontal();
+            // Text space
+            GUILayout.BeginVertical();
+            GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
+            if (!string.IsNullOrEmpty(entry.stackTrace))
+            {
+                GUILayout.Label($"{GetFirstLine(entry.stackTrace)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
+            }
+            GUILayout.EndVertical();
+            //GUILayout.Label("", GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            // Collapse Space
+            if (m_collapse)
+            {
+                GUILayout.Label($"{entry.count}", GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize)); // TODO style
+            }
+            // Category Space
+            GUILayout.EndHorizontal();
+
+            Rect r = GUILayoutUtility.GetLastRect();
+            if (GUI.Button(r, GUIContent.none, GUIStyle.none))
+            {
+                if (entry.context != null)
+                {
+                    EditorGUIUtility.PingObject(entry.context); // TODO Editor
+                }
+                if (m_selectedIndex == idx && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
+                {
+                    HandleDoubleClick(entry);
+                }
+                m_selectedIndex = idx;
+                m_lastClick = DateTime.Now;
+            }
+
+            GUI.color = saveColor;
+            GUI.backgroundColor = saveBGColor;
+        }
+
+        private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
+        {
+            var content = new GUIContent(text);
+            float height = textStyle.CalcHeight(content, EditorGUIUtility.currentViewWidth);
+            var lastRect = GUILayoutUtility.GetLastRect();
+            EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, EditorGUIUtility.currentViewWidth, height), text, textStyle);
+            GUILayout.Space(height);
+        }
+        
+        private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
+        {
+            bool hasFlag = (m_logLevelFilter & level) != 0;
+            int counter = GetCounter(level);
+
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : counter.ToString())}", (counter > 0 ? icon : iconGray)),
+                (GUIStyle)"ToolbarButton"
+                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
+                );
+            if (hasFlag != newFlagValue)
+            {
+                m_logLevelFilter ^= level;
+            }
+        }
+
+        #endregion GUI Components
+
+        #endregion GUI
+
+        #region Utilities
+
+        private int GetFlagButtonWidthFromCounter(int counter)
+        {
+            if (counter >= 1000)
+            {
+                return 60;
+            }
+            else if (counter >= 100)
+            {
+                return 52;
+            }
+            else if (counter >= 10)
+            {
+                return 43;
+            }
+            else
+            {
+                return 38;
+            }
+        }
+
+        private int GetCounter(LogLevel level)
+        {
+            if (level.HasFlag(LogLevel.Log)) { return m_logCounter; }
+            if (level.HasFlag(LogLevel.Warning)) { return m_warningCounter; }
+            return m_errorCounter;
+        }
+        private Texture GetEntryIcon(ConsoleLogEntry entry)
+        {
+            if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
+            if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
+            return m_iconError;
+        }
+
+        #region Text Manipulation
+
+        private string GetFirstLine(string text)
+        {
+            var split = text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length == 0)
             {
                 return "";
@@ -717,42 +764,45 @@ namespace ProperLogger
             }
             return split[0];
         }
-
-        private bool ValidFilter(ConsoleLogEntry e)
+        private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
         {
-            bool valid = true;
-
-            if (m_logLevelFilter != LogLevel.All)
+            firstAsset = null;
+            firstLine = null;
+            if (string.IsNullOrEmpty(stackTrace))
             {
-                valid &= (e.level & m_logLevelFilter) == e.level;
-                if (!valid)
+                return null;
+            }
+
+            var split = stackTrace.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            string result = "";
+
+            Regex scriptMatch = new Regex("\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
+
+            for (int i = 0; i < split.Length; i++)
+            {
+                Match m = scriptMatch.Match(split[i]);
+                if (m.Success)
                 {
-                    return false;
+                    result += split[i].Replace(m.Value, $"(at <a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[2].Value }\">{ m.Groups[1].Value }:{ m.Groups[2].Value }</a>)") + "\n";
+
+                    if (string.IsNullOrEmpty(firstAsset))
+                    {
+                        firstAsset = m.Groups[1].Value;
+                        firstLine = m.Groups[2].Value;
+                    }
+                }
+                else
+                {
+                    result += $"{split[i]}\n";
                 }
             }
 
-            if (!string.IsNullOrEmpty(m_searchString))
-            {
-                valid &= e.message.IndexOf(m_searchString, System.StringComparison.OrdinalIgnoreCase) >= 0;
-                if (!valid)
-                {
-                    return false;
-                }
-            }
-
-            return valid;
+            return result;
         }
 
-        public void OnBuild()
-        {
-            if (m_clearOnBuild)
-            {
-                Clear();
-            }
-        }
+        #endregion Text Manipulation
 
-        private void Update()
-        {
-        }
+        #endregion Utilities
     }
 }
