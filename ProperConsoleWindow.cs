@@ -459,6 +459,9 @@ namespace ProperLogger
             }
 
             float splitterHeight = 10f;
+
+            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, Screen.height - 200);
+
             GUILayout.BeginVertical();
             GUILayout.Space((int)(splitterHeight / 2f));
             GUILayout.Box("",
@@ -499,6 +502,7 @@ namespace ProperLogger
             }
             GUILayout.EndScrollView();
 
+            
             if (GUILayout.Button("Log"))
             {
                 Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
@@ -526,7 +530,7 @@ namespace ProperLogger
                     Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
                 }
             }
-
+            
             if (Event.current != null)
             {
                 switch (Event.current.rawType)
@@ -581,7 +585,6 @@ namespace ProperLogger
         private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
         {
             List<ConsoleLogEntry> collapsedEntries = new List<ConsoleLogEntry>();
-
 
             for (int i = 0; i < filteredEntries.Count; i++)
             {
