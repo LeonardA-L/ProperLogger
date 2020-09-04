@@ -876,19 +876,44 @@ namespace ProperLogger
 
             string result = "";
 
-            Regex scriptMatch = new Regex("\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
+            Regex scriptMatch = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
 
             for (int i = 0; i < split.Length; i++)
             {
                 Match m = scriptMatch.Match(split[i]);
                 if (m.Success)
                 {
-                    result += split[i].Replace(m.Value, $"(at <a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[2].Value }\">{ m.Groups[1].Value }:{ m.Groups[2].Value }</a>)") + "\n";
+                    List<string> groups = new List<string>();
+                    for(int k=0;k<m.Groups.Count;k++)
+                    {
+                        groups.Add(m.Groups[k].Value);
+                    }
+
+                    bool isHidden = false;
+                    try
+                    {
+                        /*if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
+                        {
+                            result = "";
+                            continue;
+                        }*/ // TODO uncomment
+
+                        Type type = Type.GetType(m.Groups[2].Value);
+                        MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
+                        isHidden = method.GetCustomAttribute<HideInCallStackAttribute>() != null;
+                    }
+                    catch (Exception) { }
+
+                    if (isHidden)
+                    {
+                        continue;
+                    }
+                    result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + "\n";
 
                     if (string.IsNullOrEmpty(firstAsset))
                     {
-                        firstAsset = m.Groups[1].Value;
-                        firstLine = m.Groups[2].Value;
+                        firstAsset = m.Groups[5].Value;
+                        firstLine = m.Groups[6].Value;
                     }
                 }
                 else
