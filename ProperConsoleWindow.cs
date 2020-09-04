@@ -514,6 +514,8 @@ namespace ProperLogger
                 textStyle.normal.textColor = Color.black;
                 textStyle.fontSize = m_configs.InspectorMessageFontSize;
                 textStyle.wordWrap = true;
+                textStyle.stretchWidth = false;
+                textStyle.clipping = TextClipping.Clip;
 
                 var entry = displayedEntries[m_selectedIndex];
 
@@ -819,10 +821,11 @@ namespace ProperLogger
 
         private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
+            float width = m_configs.InspectorOnTheRight ? m_splitterPosition : EditorGUIUtility.currentViewWidth;
             var content = new GUIContent(text);
-            float height = textStyle.CalcHeight(content, EditorGUIUtility.currentViewWidth);
+            float height = textStyle.CalcHeight(content, width);
             var lastRect = GUILayoutUtility.GetLastRect();
-            EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, EditorGUIUtility.currentViewWidth, height), text, textStyle);
+            EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, width, height), text, textStyle);
             GUILayout.Space(height);
         }
         
