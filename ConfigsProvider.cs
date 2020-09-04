@@ -19,6 +19,54 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal int LogEntryMessageFontSize
+        {
+            get
+            {
+                return GetInt("ProperConsole.LogEntryMessageFontSize", 14);
+            }
+            set
+            {
+                SetInt("ProperConsole.LogEntryMessageFontSize", value);
+            }
+        }
+
+        internal int LogEntryStackTraceFontSize
+        {
+            get
+            {
+                return GetInt("ProperConsole.LogEntryStackTraceFontSize", 12);
+            }
+            set
+            {
+                SetInt("ProperConsole.LogEntryStackTraceFontSize", value);
+            }
+        }
+
+        internal int InspectorMessageFontSize
+        {
+            get
+            {
+                return GetInt("ProperConsole.InspectorMessageFontSize", 12);
+            } set
+            {
+                SetInt("ProperConsole.InspectorMessageFontSize", value);
+            }
+        }
+
+        internal Color ObjectNameColor
+        {
+            get
+            {
+                ColorUtility.TryParseHtmlString($"#{GetString("ProperConsole.ObjectNameColor", "540814FF")}", out Color result);
+                return result;
+            }
+            set
+            {
+                SetString("ProperConsole.ObjectNameColor", ColorUtility.ToHtmlStringRGBA(value));
+            }
+        }
+
         internal LogLevel LogLevelFilter
         {
             get

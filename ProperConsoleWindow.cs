@@ -509,9 +509,11 @@ namespace ProperLogger
             }
             if (m_selectedIndex != -1)
             {
-                GUIStyle textStyle = GUI.skin.label;
+                GUIStyle textStyle = new GUIStyle(GUI.skin.label);
                 textStyle.richText = true;
                 textStyle.normal.textColor = Color.black;
+                textStyle.fontSize = m_configs.InspectorMessageFontSize;
+                textStyle.wordWrap = true;
 
                 var entry = displayedEntries[m_selectedIndex];
 
@@ -731,15 +733,13 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            var saveColor = GUI.color;
-            var saveBGColor = GUI.backgroundColor;
             float imageSize = 35;
             float sidePaddings = 10;
             float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
             float empiricalPaddings = 20 + sidePaddings;
             float itemHeight = 40;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
-            GUIStyle textStyle = m_skin.FindStyle("EntryLabel"); // Cache styles
+            GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
             if (idx == m_selectedIndex)
             {
@@ -759,7 +759,9 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
             // Text space
             GUILayout.BeginVertical();
+            textStyle.fontSize = m_configs.LogEntryMessageFontSize;
             GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
+            textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
             if(m_configs.ShowContextNameInsteadOfStack && entry.context != null)
             {
                 GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
@@ -792,9 +794,6 @@ namespace ProperLogger
                 m_selectedIndex = idx;
                 m_lastClick = DateTime.Now;
             }
-
-            GUI.color = saveColor;
-            GUI.backgroundColor = saveBGColor;
         }
 
         private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
