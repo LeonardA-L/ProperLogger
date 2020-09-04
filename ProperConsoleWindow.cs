@@ -69,6 +69,7 @@ namespace ProperLogger
         #region Layout
 
         private int m_selectedIndex = -1;
+        private int m_displayedEntriesCount = -1;
         private DateTime m_lastClick = default;
 
         private Vector2 m_entryListScrollPosition;
@@ -478,6 +479,12 @@ namespace ProperLogger
             {
                 DisplayList(filteredEntries, out displayedEntries, totalWidth);
             }
+
+            if(displayedEntries.Count != m_displayedEntriesCount)
+            {
+                m_selectedIndex = -1;
+            }
+            m_displayedEntriesCount = displayedEntries.Count;
 
             GUILayout.EndVertical();
 
@@ -916,6 +923,7 @@ namespace ProperLogger
                     m_searchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
                 }
             }
+            // TODO code below will not execute if regex compilation failed
         }
     }
 }
