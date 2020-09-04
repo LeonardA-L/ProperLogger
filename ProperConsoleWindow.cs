@@ -26,6 +26,7 @@ namespace ProperLogger
 
         #region Configs
 
+        private bool m_showContextNameInsteadOfStack = true;
         private bool m_inspectorOnTheRight = true;
         private bool m_autoScroll = true;
         private bool m_clearOnPlay = false;
@@ -767,7 +768,11 @@ namespace ProperLogger
             // Text space
             GUILayout.BeginVertical();
             GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
-            if (!string.IsNullOrEmpty(entry.stackTrace))
+            if(m_showContextNameInsteadOfStack && entry.context != null)
+            {
+                GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
+            }
+            else if (!string.IsNullOrEmpty(entry.stackTrace))
             {
                 GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
             }
