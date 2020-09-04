@@ -364,7 +364,8 @@ namespace ProperLogger
 
             if (!string.IsNullOrEmpty(m_searchString))
             {
-                valid &= e.message.IndexOf(m_searchString, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
+                string searchableText = e.message + (m_searchInStackTrace ? e.stackTrace : "") + ((m_searchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
+                valid &= searchableText.IndexOf(m_searchString, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
                 if (!valid)
                 {
                     return false;
