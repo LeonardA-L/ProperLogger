@@ -13,6 +13,7 @@ namespace ProperLogger
         private ConfigsProvider m_configs = null;
         private GUIStyle m_subtitleStyle = null;
         private int m_currentSelectedTab = 0;
+        private string m_defaultPath = "Assets/LogCategories.asset";
 
         public ProperLoggerCustomSettingsProvider(string path, SettingsScope scope = SettingsScope.User)
             : base(path, scope) { }
@@ -33,7 +34,7 @@ namespace ProperLogger
 
             EditorGUIUtility.labelWidth = 280f;
 
-            m_currentSelectedTab = GUILayout.Toolbar(m_currentSelectedTab, new string[] { "General", "Appearance" });
+            m_currentSelectedTab = GUILayout.Toolbar(m_currentSelectedTab, new string[] { "General", "Categories", "Appearance" });
 
             GUILayout.Space(20);
 
@@ -47,6 +48,10 @@ namespace ProperLogger
                     break;
 
                 case 1:
+                    DisplayCategoriesTab();
+                    break;
+
+                case 2:
                     DisplayAppearanceTab();
                     break;
             }
@@ -56,6 +61,49 @@ namespace ProperLogger
                 ProperConsoleWindow.Instance.Repaint();
             }
 
+        }
+
+        private void DisplayCategoriesTab()
+        {
+            // TODO all texts here were written late at night
+            LogCategoriesConfig asset = m_configs.CurrentCategoriesConfig;
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Assets containing log categories");
+            var newAsset = (LogCategoriesConfig)EditorGUILayout.ObjectField(asset, typeof(LogCategoriesConfig), false);
+            if (newAsset != asset)
+            {
+                m_configs.CurrentCategoriesConfig = newAsset;
+            }
+            GUILayout.EndHorizontal();
+
+            if (asset == null)
+            {
+                GUILayout.Space(10);
+                if(GUILayout.Button("Create Asset", GUILayout.Height(60)))
+                {
+                    asset = ScriptableObject.CreateInstance<LogCategoriesConfig>();
+
+                    asset.Add("Combat");
+                    asset.Add("Dialogue");
+                    asset.Add("Performance");
+
+                    AssetDatabase.CreateAsset(asset, m_defaultPath);
+                    AssetDatabase.SaveAssets();
+                    m_configs.CurrentCategoriesConfig = asset;
+                }
+            }
+            else
+            {
+                EditorGUILayout.LabelField("Please configure categories directly in the dedicated asset.\nThis asset can be versioned along with your project", m_subtitleStyle);
+                GUILayout.Space(22);
+
+                if (GUILayout.Button("Select Categories Asset", GUILayout.Height(60)))
+                {
+                    Selection.activeObject = asset;
+                }
+                GUILayout.Space(10);
+            }
         }
 
         private void DisplayAppearanceTab()

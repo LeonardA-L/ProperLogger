@@ -19,6 +19,50 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal virtual LogCategoriesConfig CurrentCategoriesConfig
+        {
+            get
+            {
+                string guid = GetString("ProperConsole.CategoriesConfigPath", "");
+                if (string.IsNullOrEmpty(guid))
+                {
+                    return AttemptFindingCategoriesAsset();
+                }
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (string.IsNullOrEmpty(path))
+                {
+                    return AttemptFindingCategoriesAsset();
+                }
+                return (LogCategoriesConfig)AssetDatabase.LoadMainAssetAtPath(path);
+            }
+            set
+            {
+                if(value == null)
+                {
+                    SetString("ProperConsole.CategoriesConfigPath", "");
+                    return;
+                }
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(value, out string GUID, out long localId);
+                SetString("ProperConsole.CategoriesConfigPath", GUID);
+                Save();
+            }
+        }
+
+        private LogCategoriesConfig AttemptFindingCategoriesAsset()
+        {
+            string[] guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(LogCategoriesConfig)));
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                LogCategoriesConfig foundAsset = AssetDatabase.LoadAssetAtPath<LogCategoriesConfig>(assetPath);
+                if (foundAsset != null)
+                {
+                    return foundAsset;
+                }
+            }
+            return null;
+        }
+
         internal int LogEntryMessageFontSize
         {
             get
@@ -28,6 +72,7 @@ namespace ProperLogger
             set
             {
                 SetInt("ProperConsole.LogEntryMessageFontSize", value);
+                Save();
             }
         }
 
@@ -40,6 +85,7 @@ namespace ProperLogger
             set
             {
                 SetInt("ProperConsole.LogEntryStackTraceFontSize", value);
+                Save();
             }
         }
 
@@ -51,6 +97,7 @@ namespace ProperLogger
             } set
             {
                 SetInt("ProperConsole.InspectorMessageFontSize", value);
+                Save();
             }
         }
 
@@ -64,6 +111,7 @@ namespace ProperLogger
             set
             {
                 SetString("ProperConsole.ObjectNameColor", ColorUtility.ToHtmlStringRGBA(value));
+                Save();
             }
         }
 
@@ -76,6 +124,7 @@ namespace ProperLogger
             set
             {
                 SetInt("ProperConsole.LogLevelFilter", (int)value);
+                Save();
             }
         }
 
