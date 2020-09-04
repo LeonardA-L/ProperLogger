@@ -19,15 +19,27 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal LogLevel LogLevelFilter
+        {
+            get
+            {
+                return (LogLevel) GetInt("ProperConsole.LogLevelFilter", (int)LogLevel.All);
+            }
+            set
+            {
+                SetInt("ProperConsole.LogLevelFilter", (int)value);
+            }
+        }
+
         internal bool CopyOnSelect
         {
             get
             {
-                return GetBool($"ProperConsole.copyOnSelect", false);
+                return GetBool("ProperConsole.copyOnSelect", false);
             }
             set
             {
-                SetBool($"ProperConsole.copyOnSelect", value);
+                SetBool("ProperConsole.copyOnSelect", value);
                 Save();
             }
         }
@@ -35,11 +47,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.showContextNameInsteadOfStack", true);
+                return GetBool("ProperConsole.showContextNameInsteadOfStack", true);
             }
             set
             {
-                SetBool($"ProperConsole.showContextNameInsteadOfStack", value);
+                SetBool("ProperConsole.showContextNameInsteadOfStack", value);
                 Save();
             }
         }
@@ -47,11 +59,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.inspectorOnTheRight", false);
+                return GetBool("ProperConsole.inspectorOnTheRight", false);
             }
             set
             {
-                SetBool($"ProperConsole.inspectorOnTheRight", value);
+                SetBool("ProperConsole.inspectorOnTheRight", value);
                 Save();
             }
         }
@@ -59,11 +71,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.clearOnPlay", false);
+                return GetBool("ProperConsole.clearOnPlay", false);
             }
             set
             {
-                SetBool($"ProperConsole.clearOnPlay", value);
+                SetBool("ProperConsole.clearOnPlay", value);
                 Save();
             }
         }
@@ -71,11 +83,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.clearOnBuild", false);
+                return GetBool("ProperConsole.clearOnBuild", false);
             }
             set
             {
-                SetBool($"ProperConsole.clearOnBuild", value);
+                SetBool("ProperConsole.clearOnBuild", value);
                 Save();
             }
         }
@@ -83,11 +95,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.errorPause", false);
+                return GetBool("ProperConsole.errorPause", false);
             }
             set
             {
-                SetBool($"ProperConsole.errorPause", value);
+                SetBool("ProperConsole.errorPause", value);
                 Save();
             }
         }
@@ -95,11 +107,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.collapse", false);
+                return GetBool("ProperConsole.collapse", false);
             }
             set
             {
-                SetBool($"ProperConsole.collapse", value);
+                SetBool("ProperConsole.collapse", value);
                 Save();
             }
         }
@@ -107,11 +119,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.advancedSearchToolbar", false);
+                return GetBool("ProperConsole.advancedSearchToolbar", false);
             }
             set
             {
-                SetBool($"ProperConsole.advancedSearchToolbar", value);
+                SetBool("ProperConsole.advancedSearchToolbar", value);
                 Save();
             }
         }
@@ -119,11 +131,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.regexSearch", false);
+                return GetBool("ProperConsole.regexSearch", false);
             }
             set
             {
-                SetBool($"ProperConsole.regexSearch", value);
+                SetBool("ProperConsole.regexSearch", value);
                 Save();
             }
         }
@@ -131,11 +143,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.caseSensitive", false);
+                return GetBool("ProperConsole.caseSensitive", false);
             }
             set
             {
-                SetBool($"ProperConsole.caseSensitive", value);
+                SetBool("ProperConsole.caseSensitive", value);
                 Save();
             }
         }
@@ -143,11 +155,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.searchObjectName", true);
+                return GetBool("ProperConsole.searchObjectName", true);
             }
             set
             {
-                SetBool($"ProperConsole.searchObjectName", value);
+                SetBool("ProperConsole.searchObjectName", value);
                 Save();
             }
         }
@@ -155,11 +167,11 @@ namespace ProperLogger
         {
             get
             {
-                return GetBool($"ProperConsole.searchInStackTrace", false);
+                return GetBool("ProperConsole.searchInStackTrace", false);
             }
             set
             {
-                SetBool($"ProperConsole.searchInStackTrace", value);
+                SetBool("ProperConsole.searchInStackTrace", value);
                 Save();
             }
         }

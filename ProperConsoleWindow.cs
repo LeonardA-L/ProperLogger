@@ -55,7 +55,6 @@ namespace ProperLogger
         #region Filters
 
         private string m_searchString = null;
-        private LogLevel m_logLevelFilter = LogLevel.All;
 
         #endregion Filters
 
@@ -360,9 +359,9 @@ namespace ProperLogger
         {
             bool valid = true;
 
-            if (m_logLevelFilter != LogLevel.All)
+            if (m_configs.LogLevelFilter != LogLevel.All)
             {
-                valid &= (e.level & m_logLevelFilter) == e.level;
+                valid &= (e.level & m_configs.LogLevelFilter) == e.level;
                 if (!valid)
                 {
                     return false;
@@ -830,7 +829,7 @@ namespace ProperLogger
         
         private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
         {
-            bool hasFlag = (m_logLevelFilter & level) != 0;
+            bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
             int counter = GetCounter(level);
 
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : counter.ToString())}", (counter > 0 ? icon : iconGray)),
@@ -839,7 +838,7 @@ namespace ProperLogger
                 );
             if (hasFlag != newFlagValue)
             {
-                m_logLevelFilter ^= level;
+                m_configs.LogLevelFilter ^= level;
             }
         }
 
