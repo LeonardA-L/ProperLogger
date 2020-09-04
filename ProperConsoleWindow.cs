@@ -26,6 +26,7 @@ namespace ProperLogger
 
         #region Configs
 
+        private bool m_inspectorOnTheRight = true;
         private bool m_autoScroll = true;
         private bool m_clearOnPlay = false;
         private bool m_clearOnBuild = false;
@@ -299,7 +300,7 @@ namespace ProperLogger
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
                     message = condition,
-                    messageFirstLine = GetFirstLine(condition),
+                    messageFirstLine = GetFirstLine(condition, false),
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
@@ -407,39 +408,7 @@ namespace ProperLogger
             bool callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
-            GUILayout.BeginHorizontal("Toolbar");
-            if (GUILayout.Button("Clear", "ToolbarButton", GUILayout.ExpandWidth(false)))
-            {
-                Clear();
-                GUIUtility.keyboardControl = 0;
-            }
-            bool lastCollapse = m_collapse;
-            m_collapse = GUILayout.Toggle(m_collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
-            callForRepaint = m_collapse != lastCollapse;
-            if (m_collapse != lastCollapse)
-            {
-                m_selectedIndex = -1;
-            }
-            m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
-
-            string lastSearchTerm = m_searchString;
-            m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
-            if(m_regexSearch && lastSearchTerm != m_searchString)
-            {
-                m_lastRegexRecompile = DateTime.Now;
-                m_needRegexRecompile = true;
-            }
-
-            m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
-
-            // Log Level Flags
-            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
-            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray);
-            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray);
-
-            GUILayout.EndHorizontal();
+            DisplayToolbar(ref callForRepaint);
 
             if (m_advancedSearchToolbar)
             {
@@ -457,6 +426,13 @@ namespace ProperLogger
                 startY = r.yMax;
             }
 
+            if (m_inspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal();
+            }
+
+            #region DisplayList
+            GUILayout.BeginVertical(); // Display list
             m_entryListScrollPosition = GUILayout.BeginScrollView(m_entryListScrollPosition, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
 
             if (repaint)
@@ -480,7 +456,7 @@ namespace ProperLogger
                 DisplayList(filteredEntries, out displayedEntries, totalWidth);
             }
 
-            if(displayedEntries.Count != m_displayedEntriesCount)
+            if (displayedEntries.Count != m_displayedEntriesCount)
             {
                 m_selectedIndex = -1;
             }
@@ -507,27 +483,37 @@ namespace ProperLogger
             {
                 m_entryListScrollPosition.y = m_innerScrollableHeight - m_outerScrollableHeight + startY;
             }
+            GUILayout.EndVertical(); // Display list
+            #endregion DisplayList
 
-            float splitterHeight = 10f;
+            #region Inspector
+            if (m_inspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal(); // Inspector
+            }
+            else
+            {
+                GUILayout.BeginVertical(); // Inspector
+            }
 
-            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, Screen.height - 200);
+            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, (m_inspectorOnTheRight ? Screen.width : Screen.height) - 200);
 
-            GUILayout.BeginVertical();
-            GUILayout.Space((int)(splitterHeight / 2f));
-            GUILayout.Box("",
-                 GUILayout.Height(1),
-                 GUILayout.MaxHeight(1),
-                 GUILayout.MinHeight(1),
-                 GUILayout.ExpandWidth(true));
-            GUILayout.Space((int)(splitterHeight / 2f));
-            GUILayout.EndVertical();
-            m_splitterRect = GUILayoutUtility.GetLastRect();
-            EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), MouseCursor.ResizeVertical); // TODO Editor
+            Splitter();
 
-            m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition,
-            GUILayout.Height(m_splitterPosition),
-            GUILayout.MaxHeight(m_splitterPosition),
-            GUILayout.MinHeight(m_splitterPosition));
+            if (m_inspectorOnTheRight)
+            {
+                GUILayout.BeginVertical(GUILayout.Width(m_splitterPosition),
+                GUILayout.MaxWidth(m_splitterPosition),
+                GUILayout.MinWidth(m_splitterPosition));
+                m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
+            }
+            else
+            {
+                GUILayout.BeginVertical(GUILayout.Height(m_splitterPosition),
+                GUILayout.MaxHeight(m_splitterPosition),
+                GUILayout.MinHeight(m_splitterPosition));
+                m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
+            }
             if (m_selectedIndex != -1)
             {
                 GUIStyle textStyle = GUI.skin.label;
@@ -551,8 +537,20 @@ namespace ProperLogger
                 }
             }
             GUILayout.EndScrollView();
+            GUILayout.EndVertical();
 
-            
+            if (m_inspectorOnTheRight)
+            {
+                GUILayout.EndHorizontal(); // Inspector
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                GUILayout.EndVertical(); // Inspector
+            }
+            #endregion Inspector
+
+            #region Debug Buttons
             if (GUILayout.Button("Log"))
             {
                 Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
@@ -580,7 +578,8 @@ namespace ProperLogger
                     Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
                 }
             }
-            
+            #endregion Debug Buttons
+
             if (Event.current != null)
             {
                 switch (Event.current.rawType)
@@ -596,7 +595,7 @@ namespace ProperLogger
                         if (m_splitterDragging)
                         {
                             //Debug.Log("moving splitter");
-                            m_splitterPosition -= Event.current.delta.y;
+                            m_splitterPosition -= m_inspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
                             Repaint();
                         }
                         break;
@@ -678,6 +677,43 @@ namespace ProperLogger
 
         #region GUI Components
 
+        private void DisplayToolbar(ref bool callForRepaint)
+        {
+            GUILayout.BeginHorizontal("Toolbar");
+            if (GUILayout.Button("Clear", "ToolbarButton", GUILayout.ExpandWidth(false)))
+            {
+                Clear();
+                GUIUtility.keyboardControl = 0;
+            }
+            bool lastCollapse = m_collapse;
+            m_collapse = GUILayout.Toggle(m_collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
+            callForRepaint = m_collapse != lastCollapse;
+            if (m_collapse != lastCollapse)
+            {
+                m_selectedIndex = -1;
+            }
+            m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
+
+            string lastSearchTerm = m_searchString;
+            m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
+            if (m_regexSearch && lastSearchTerm != m_searchString)
+            {
+                m_lastRegexRecompile = DateTime.Now;
+                m_needRegexRecompile = true;
+            }
+
+            m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
+
+            // Log Level Flags
+            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
+            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray);
+            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray);
+
+            GUILayout.EndHorizontal();
+        }
+
         private void DisplaySearchToolbar()
         {
             GUILayout.BeginHorizontal("Toolbar");
@@ -733,7 +769,7 @@ namespace ProperLogger
             GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
             if (!string.IsNullOrEmpty(entry.stackTrace))
             {
-                GUILayout.Label($"{GetFirstLine(entry.stackTrace)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
+                GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
             }
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
@@ -809,6 +845,38 @@ namespace ProperLogger
             }
         }
 
+        private void Splitter()
+        {
+            float splitterSize = 10f;
+            if (m_inspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Box("",
+                     GUILayout.Width(1),
+                     GUILayout.MaxWidth(1),
+                     GUILayout.MinWidth(1),
+                     GUILayout.ExpandHeight(true));
+                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                GUILayout.BeginVertical();
+                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Box("",
+                     GUILayout.Height(1),
+                     GUILayout.MaxHeight(1),
+                     GUILayout.MinHeight(1),
+                     GUILayout.ExpandWidth(true));
+                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.EndVertical();
+            }
+
+            m_splitterRect = GUILayoutUtility.GetLastRect();
+            EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_inspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
+        }
+
         #endregion GUI Components
 
         #endregion GUI
@@ -850,14 +918,14 @@ namespace ProperLogger
 
         #region Text Manipulation
 
-        private string GetFirstLine(string text)
+        private string GetFirstLine(string text, bool isCallStack)
         {
             var split = text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length == 0)
             {
                 return "";
             }
-            if (split.Length > 1)
+            if (isCallStack && split.Length > 1)
             {
                 return split[1];
             }
