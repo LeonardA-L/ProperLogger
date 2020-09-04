@@ -17,7 +17,10 @@ namespace ProperLogger
 
         [SerializeField]
         private GUISkin m_skin = null;
+        [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
+        [NonSerialized]
+        private float m_regexCompileDebounce = 200 * 10000;
 
         #endregion Consts
 
@@ -32,10 +35,14 @@ namespace ProperLogger
         private bool m_advancedSearchToolbar = false;
         private bool m_regexSearch = false;
         private bool m_caseSensitive = false;
+        private bool m_searchMessage = true;
         private bool m_searchObjectName = true;
         private bool m_searchInStackTrace = false;
 
         #endregion Configs
+
+        private bool m_needRegexRecompile = false; // TODO find region
+        private DateTime m_lastRegexRecompile;
 
         #region Logs
 
@@ -105,6 +112,8 @@ namespace ProperLogger
             }
         }
 
+        private Regex m_searchRegex = null;
+
         #endregion Caches
         #endregion Members
 
@@ -155,8 +164,9 @@ namespace ProperLogger
             m_instance = this;
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
-
             LoadIcons();
+
+            m_needRegexRecompile = true;
         }
 
         private void OnDisable()
@@ -363,18 +373,27 @@ namespace ProperLogger
                 }
             }
 
-            if (!string.IsNullOrEmpty(m_searchString))
+            string searchableText = (m_searchMessage ? e.message : "") + (m_searchInStackTrace ? e.stackTrace : "") + ((m_searchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
+            if (m_regexSearch)
             {
-                string searchableText = e.message + (m_searchInStackTrace ? e.stackTrace : "") + ((m_searchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
-                string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); // TODO opti
-                valid &= searchWords.All(p => searchableText.IndexOf(p, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
-                //valid &= searchableText.IndexOf(m_searchString.Trim(), m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
-                if (!valid)
+                if(m_searchRegex != null)
                 {
-                    return false;
+                    valid &= m_searchRegex.IsMatch(searchableText);
                 }
             }
-
+            else
+            {
+                if (!string.IsNullOrEmpty(m_searchString))
+                {
+                    string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); // TODO opti
+                    valid &= searchWords.All(p => searchableText.IndexOf(p, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (!valid)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
             return valid;
         }
 
@@ -404,7 +423,13 @@ namespace ProperLogger
             m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
             m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
 
+            string lastSearchTerm = m_searchString;
             m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
+            if(m_regexSearch && lastSearchTerm != m_searchString)
+            {
+                m_lastRegexRecompile = DateTime.Now;
+                m_needRegexRecompile = true;
+            }
 
             m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
 
@@ -649,8 +674,19 @@ namespace ProperLogger
         private void DisplaySearchToolbar()
         {
             GUILayout.BeginHorizontal("Toolbar");
+            bool lastRegexSearch = m_regexSearch;
             m_regexSearch = GUILayout.Toggle(m_regexSearch, "Regex Search", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if(lastRegexSearch != m_regexSearch)
+            {
+                m_needRegexRecompile = true;
+            }
+            bool lastCaseSensitive = m_caseSensitive;
             m_caseSensitive = GUILayout.Toggle(m_caseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if (lastCaseSensitive != m_caseSensitive)
+            {
+                m_needRegexRecompile = true;
+            }
+            m_searchMessage = GUILayout.Toggle(m_searchMessage, "Search in Log Message", "ToolbarButton", GUILayout.ExpandWidth(false));
             m_searchObjectName = GUILayout.Toggle(m_searchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
             m_searchInStackTrace = GUILayout.Toggle(m_searchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
@@ -860,5 +896,26 @@ namespace ProperLogger
         #endregion Text Manipulation
 
         #endregion Utilities
+
+        private void Update()
+        {
+            if (m_regexSearch && string.IsNullOrEmpty(m_searchString))
+            {
+                m_searchRegex = null;
+            }
+            else if (m_regexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
+            {
+                m_needRegexRecompile = false;
+                m_lastRegexRecompile = DateTime.Now;
+                if (m_caseSensitive)
+                {
+                    m_searchRegex = new Regex(m_searchString.Trim());
+                }
+                else
+                {
+                    m_searchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
+                }
+            }
+        }
     }
 }
