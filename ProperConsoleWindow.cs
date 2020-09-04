@@ -28,6 +28,12 @@ namespace ProperLogger
         private bool m_errorPause = false;
         private bool m_collapse = false;
 
+        private bool m_advancedSearchToolbar = false;
+        private bool m_regexSearch = false;
+        private bool m_caseSensitive = false;
+        private bool m_searchObjectName = true;
+        private bool m_searchInStackTrace = false;
+
         #endregion Configs
 
         #region Logs
@@ -358,7 +364,7 @@ namespace ProperLogger
 
             if (!string.IsNullOrEmpty(m_searchString))
             {
-                valid &= e.message.IndexOf(m_searchString, System.StringComparison.OrdinalIgnoreCase) >= 0;
+                valid &= e.message.IndexOf(m_searchString, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
                 if (!valid)
                 {
                     return false;
@@ -400,12 +406,20 @@ namespace ProperLogger
                 m_searchString = m_searchString.Trim();
             }
 
+            m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
+
             // Log Level Flags
             FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
             FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray);
             FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray);
 
             GUILayout.EndHorizontal();
+
+            if (m_advancedSearchToolbar)
+            {
+                DisplaySearchToolbar();
+            }
+
             Rect windowRect = GUILayoutUtility.GetLastRect();
 
             float startY = 0;
@@ -578,6 +592,7 @@ namespace ProperLogger
                 Repaint();
             }
         }
+
         private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
         {
             for (int i = 0; i < filteredEntries.Count; i++)
@@ -630,6 +645,17 @@ namespace ProperLogger
         }
 
         #region GUI Components
+
+        private void DisplaySearchToolbar()
+        {
+            GUILayout.BeginHorizontal("Toolbar");
+            m_regexSearch = GUILayout.Toggle(m_regexSearch, "Regex Search", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_caseSensitive = GUILayout.Toggle(m_caseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_searchObjectName = GUILayout.Toggle(m_searchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_searchInStackTrace = GUILayout.Toggle(m_searchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
