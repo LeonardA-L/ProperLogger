@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Linq;
 
 namespace ProperLogger
 {
@@ -365,7 +366,9 @@ namespace ProperLogger
             if (!string.IsNullOrEmpty(m_searchString))
             {
                 string searchableText = e.message + (m_searchInStackTrace ? e.stackTrace : "") + ((m_searchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
-                valid &= searchableText.IndexOf(m_searchString, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
+                string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); // TODO opti
+                valid &= searchWords.All(p => searchableText.IndexOf(p, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
+                //valid &= searchableText.IndexOf(m_searchString.Trim(), m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0;
                 if (!valid)
                 {
                     return false;
@@ -402,10 +405,6 @@ namespace ProperLogger
             m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
 
             m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
-            if (!string.IsNullOrEmpty(m_searchString))
-            {
-                m_searchString = m_searchString.Trim();
-            }
 
             m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
 
