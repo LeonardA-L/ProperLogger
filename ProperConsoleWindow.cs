@@ -26,20 +26,13 @@ namespace ProperLogger
 
         #region Configs
 
-        private bool m_showContextNameInsteadOfStack = true;
-        private bool m_inspectorOnTheRight = true;
-        private bool m_autoScroll = true;
-        private bool m_clearOnPlay = false;
-        private bool m_clearOnBuild = false;
-        private bool m_errorPause = false;
-        private bool m_collapse = false;
+        private ConfigsProvider m_configs = new EditorConfigs();
 
-        private bool m_advancedSearchToolbar = false;
-        private bool m_regexSearch = false;
-        private bool m_caseSensitive = false;
+        private bool m_autoScroll = true;
+        
+
+        
         private bool m_searchMessage = true;
-        private bool m_searchObjectName = true;
-        private bool m_searchInStackTrace = false;
 
         #endregion Configs
 
@@ -182,7 +175,7 @@ namespace ProperLogger
 
         public void OnBuild()
         {
-            if (m_clearOnBuild)
+            if (m_configs.ClearOnBuild)
             {
                 Clear();
             }
@@ -236,7 +229,7 @@ namespace ProperLogger
 
         private void ExitingEditMode()
         {
-            if (m_clearOnPlay)
+            if (m_configs.ClearOnPlay)
             {
                 Clear();
             }
@@ -326,7 +319,7 @@ namespace ProperLogger
             }
 
             this.Repaint();
-            if (m_errorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+            if (m_configs.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
             {
                 Debug.Break();
             }
@@ -376,8 +369,8 @@ namespace ProperLogger
                 }
             }
 
-            string searchableText = (m_searchMessage ? e.message : "") + (m_searchInStackTrace ? e.stackTrace : "") + ((m_searchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
-            if (m_regexSearch)
+            string searchableText = (m_searchMessage ? e.message : "") + (m_configs.SearchInStackTrace ? e.stackTrace : "") + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
+            if (m_configs.RegexSearch)
             {
                 if(m_searchRegex != null)
                 {
@@ -389,7 +382,7 @@ namespace ProperLogger
                 if (!string.IsNullOrEmpty(m_searchString))
                 {
                     string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); // TODO opti
-                    valid &= searchWords.All(p => searchableText.IndexOf(p, m_caseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
+                    valid &= searchWords.All(p => searchableText.IndexOf(p, m_configs.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
                     if (!valid)
                     {
                         return false;
@@ -411,7 +404,7 @@ namespace ProperLogger
 
             DisplayToolbar(ref callForRepaint);
 
-            if (m_advancedSearchToolbar)
+            if (m_configs.AdvancedSearchToolbar)
             {
                 DisplaySearchToolbar();
             }
@@ -427,7 +420,7 @@ namespace ProperLogger
                 startY = r.yMax;
             }
 
-            if (m_inspectorOnTheRight)
+            if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.BeginHorizontal();
             }
@@ -448,7 +441,7 @@ namespace ProperLogger
 
             var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
             List<ConsoleLogEntry> displayedEntries;
-            if (m_collapse)
+            if (m_configs.Collapse)
             {
                 DisplayCollapse(filteredEntries, out displayedEntries, totalWidth);
             }
@@ -488,7 +481,7 @@ namespace ProperLogger
             #endregion DisplayList
 
             #region Inspector
-            if (m_inspectorOnTheRight)
+            if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.BeginHorizontal(); // Inspector
             }
@@ -497,11 +490,11 @@ namespace ProperLogger
                 GUILayout.BeginVertical(); // Inspector
             }
 
-            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, (m_inspectorOnTheRight ? Screen.width : Screen.height) - 200);
+            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, (m_configs.InspectorOnTheRight ? Screen.width : Screen.height) - 200);
 
             Splitter();
 
-            if (m_inspectorOnTheRight)
+            if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.BeginVertical(GUILayout.Width(m_splitterPosition),
                 GUILayout.MaxWidth(m_splitterPosition),
@@ -540,7 +533,7 @@ namespace ProperLogger
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
 
-            if (m_inspectorOnTheRight)
+            if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.EndHorizontal(); // Inspector
                 GUILayout.EndHorizontal();
@@ -596,7 +589,7 @@ namespace ProperLogger
                         if (m_splitterDragging)
                         {
                             //Debug.Log("moving splitter");
-                            m_splitterPosition -= m_inspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
+                            m_splitterPosition -= m_configs.InspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
                             Repaint();
                         }
                         break;
@@ -686,26 +679,26 @@ namespace ProperLogger
                 Clear();
                 GUIUtility.keyboardControl = 0;
             }
-            bool lastCollapse = m_collapse;
-            m_collapse = GUILayout.Toggle(m_collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
-            callForRepaint = m_collapse != lastCollapse;
-            if (m_collapse != lastCollapse)
+            bool lastCollapse = m_configs.Collapse;
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
+            callForRepaint = m_configs.Collapse != lastCollapse;
+            if (m_configs.Collapse != lastCollapse)
             {
                 m_selectedIndex = -1;
             }
-            m_clearOnPlay = GUILayout.Toggle(m_clearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_clearOnBuild = GUILayout.Toggle(m_clearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_errorPause = GUILayout.Toggle(m_errorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
             m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
-            if (m_regexSearch && lastSearchTerm != m_searchString)
+            if (m_configs.RegexSearch && lastSearchTerm != m_searchString)
             {
                 m_lastRegexRecompile = DateTime.Now;
                 m_needRegexRecompile = true;
             }
 
-            m_advancedSearchToolbar = GUILayout.Toggle(m_advancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
 
             // Log Level Flags
             FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
@@ -718,21 +711,21 @@ namespace ProperLogger
         private void DisplaySearchToolbar()
         {
             GUILayout.BeginHorizontal("Toolbar");
-            bool lastRegexSearch = m_regexSearch;
-            m_regexSearch = GUILayout.Toggle(m_regexSearch, "Regex Search", "ToolbarButton", GUILayout.ExpandWidth(false));
-            if(lastRegexSearch != m_regexSearch)
+            bool lastRegexSearch = m_configs.RegexSearch;
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, "Regex Search", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if(lastRegexSearch != m_configs.RegexSearch)
             {
                 m_needRegexRecompile = true;
             }
-            bool lastCaseSensitive = m_caseSensitive;
-            m_caseSensitive = GUILayout.Toggle(m_caseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
-            if (lastCaseSensitive != m_caseSensitive)
+            bool lastCaseSensitive = m_configs.CaseSensitive;
+            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if (lastCaseSensitive != m_configs.CaseSensitive)
             {
                 m_needRegexRecompile = true;
             }
             m_searchMessage = GUILayout.Toggle(m_searchMessage, "Search in Log Message", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_searchObjectName = GUILayout.Toggle(m_searchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_searchInStackTrace = GUILayout.Toggle(m_searchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
@@ -743,7 +736,7 @@ namespace ProperLogger
             var saveBGColor = GUI.backgroundColor;
             float imageSize = 35;
             float sidePaddings = 10;
-            float collapseBubbleSize = m_collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
+            float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
             float empiricalPaddings = 20 + sidePaddings;
             float itemHeight = 40;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
@@ -768,7 +761,7 @@ namespace ProperLogger
             // Text space
             GUILayout.BeginVertical();
             GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
-            if(m_showContextNameInsteadOfStack && entry.context != null)
+            if(m_configs.ShowContextNameInsteadOfStack && entry.context != null)
             {
                 GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
             }
@@ -779,7 +772,7 @@ namespace ProperLogger
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             // Collapse Space
-            if (m_collapse)
+            if (m_configs.Collapse)
             {
                 DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
             }
@@ -853,7 +846,7 @@ namespace ProperLogger
         private void Splitter()
         {
             float splitterSize = 10f;
-            if (m_inspectorOnTheRight)
+            if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space((int)(splitterSize / 2f));
@@ -879,7 +872,7 @@ namespace ProperLogger
             }
 
             m_splitterRect = GUILayoutUtility.GetLastRect();
-            EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_inspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
+            EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_configs.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
         }
 
         #endregion GUI Components
@@ -1004,15 +997,15 @@ namespace ProperLogger
 
         private void Update()
         {
-            if (m_regexSearch && string.IsNullOrEmpty(m_searchString))
+            if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
                 m_searchRegex = null;
             }
-            else if (m_regexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
+            else if (m_configs.RegexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
             {
                 m_needRegexRecompile = false;
                 m_lastRegexRecompile = DateTime.Now;
-                if (m_caseSensitive)
+                if (m_configs.CaseSensitive)
                 {
                     m_searchRegex = new Regex(m_searchString.Trim());
                 }
