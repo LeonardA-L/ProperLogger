@@ -583,9 +583,9 @@ namespace ProperLogger
                 Debug.Log($"[Combat] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
-            if (GUILayout.Button("Log Combat Performance"))
+            if (GUILayout.Button("Log Performance"))
             {
-                Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"[Performance] [Combat] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
             if (GUILayout.Button("LogWarning"))
@@ -691,6 +691,7 @@ namespace ProperLogger
                         stackTrace = collapsedEntries[foundIdx].stackTrace,
                         timestamp = collapsedEntries[foundIdx].timestamp,
                         messageFirstLine = collapsedEntries[foundIdx].messageFirstLine,
+                        categories = collapsedEntries[foundIdx].categories,
                     };
                 }
                 else
@@ -790,18 +791,55 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            float imageSize = 35;
-            float sidePaddings = 10;
-            float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 20 + sidePaddings;
-            float itemHeight = 40;
+            bool repaint = Event.current.type == EventType.Repaint;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
+
+            float imageSize = 35;
+            float sidePaddings = 10;
+            float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
+            float empiricalPaddings = 30 + sidePaddings;
+            float itemHeight = 40;
+
+            bool displayCategoryNameInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
+            bool displayCategoryIconInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
+            bool displayCategoryStrips = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.ColorStrip);
+            bool categoryColumn = displayCategoryNameInColumn || displayCategoryIconInColumn;
+            float categoryColumnWidth = 0;
+
+            float categoryStripWidth = 8;
+            float categoriesStripsTotalWidth = 0;
+
+            float rightSplitterWidth = m_configs.InspectorOnTheRight ? m_splitterPosition : 0;
+
+            GUIStyle categoryNameStyle = new GUIStyle(textStyle);
+            categoryNameStyle.alignment = TextAnchor.MiddleCenter;
+            categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
+            categoryNameStyle.padding.top = (int)((itemHeight / 2f) - categoryNameStyle.fontSize);
+            categoryNameStyle.fontStyle = FontStyle.Bold;
+
+            if (entry.categories != null && entry.categories.Count > 0)
+            {
+                if (categoryColumn)
+                {
+                    var category = entry.categories[0];
+                    categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(category.Name)).x + 10;
+                }
+                if (displayCategoryStrips)
+                {
+                    categoriesStripsTotalWidth = entry.categories.Count * categoryStripWidth;
+                }
+            }
+
+            float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
+
+            
             if (idx == m_selectedIndex)
             {
                 currentStyle = m_skin.FindStyle("SelectedEntry");
                 textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
+                categoryNameStyle.normal.textColor = textStyle.normal.textColor;
             }
             else if (idx % 2 == 0)
             {
@@ -817,24 +855,62 @@ namespace ProperLogger
             // Text space
             GUILayout.BeginVertical();
             textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-            GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings));
+            GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
             textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
             if(m_configs.ShowContextNameInsteadOfStack && entry.context != null)
             {
-                GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
+                GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
             }
             else if (!string.IsNullOrEmpty(entry.stackTrace))
             {
-                GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(totalWidth - imageSize - collapseBubbleSize - empiricalPaddings)); // TODO cache this line
+                GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
             }
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
+            // First Category space
+            if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
+            {
+                var category = entry.categories[0];
+                if (displayCategoryNameInColumn)
+                {
+                    GUILayout.Label($"{category.Name}", categoryNameStyle, GUILayout.Width(categoryColumnWidth));
+                }
+                /*
+                if (displayCategoryIconInColumn && category.Icon != null)
+                {
+                    //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
+                }
+                */
+            }
             // Collapse Space
             if (m_configs.Collapse)
             {
                 DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
             }
-            // Category Space
+            // Category strips space
+            if (displayCategoryStrips && entry.categories != null && entry.categories.Count > 0)
+            {
+                Rect lastRect = GUILayoutUtility.GetLastRect();
+                Color saveColor = GUI.color;
+                Color saveContentColor = GUI.contentColor;
+                Color saveBGColor = GUI.backgroundColor;
+                int i = 0;
+                GUIStyle boxStyle = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
+                foreach (var category in entry.categories)
+                {
+                    GUI.color = category.Color;
+                    GUI.backgroundColor = Color.white;
+                    GUI.contentColor = Color.white;
+                    //GUILayout.Box("", GUILayout.Width(categoryStripWidth), GUILayout.ExpandHeight(true));
+                    GUI.Box(new Rect(lastRect.xMax + i* categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, itemHeight), "", boxStyle);
+                    GUILayout.Space(categoryStripWidth);
+                    i++;
+                }
+                GUI.contentColor = saveContentColor;
+                GUI.backgroundColor = saveBGColor;
+                GUI.color = saveColor;
+            }
+
             GUILayout.EndHorizontal();
 
             Rect r = GUILayoutUtility.GetLastRect();

@@ -103,6 +103,26 @@ namespace ProperLogger
                     Selection.activeObject = asset;
                 }
                 GUILayout.Space(10);
+                GUILayout.Label("Display", EditorStyles.boldLabel);
+                GUILayout.Space(10);
+
+                CategoryDisplayToggle("Show Category Color in Log List", ECategoryDisplay.ColorStrip);
+                CategoryDisplayToggle("Show Category Name in column in Log List", ECategoryDisplay.NameColumn);
+                //CategoryDisplayToggle("Show Category Icon in Log List", ECategoryDisplay.Icon);
+                EditorGUILayout.LabelField("If the log entry is in multiple categories,\nonly the name of the first category will be displayed", m_subtitleStyle);
+                GUILayout.Space(12);
+                CategoryDisplayToggle("Show [CategoryName] in Message", ECategoryDisplay.InMessage);
+                CategoryDisplayToggle("Show categories in inspector", ECategoryDisplay.InInspector);
+            }
+        }
+
+        private void CategoryDisplayToggle(string label, ECategoryDisplay flag)
+        {
+            bool hasFlag = m_configs.CategoryDisplay.HasFlag(flag);
+            bool newFlag = EditorGUILayout.Toggle(label, hasFlag);
+            if (hasFlag != newFlag)
+            {
+                m_configs.CategoryDisplay ^= flag;
             }
         }
 

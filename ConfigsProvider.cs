@@ -20,6 +20,19 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal ECategoryDisplay CategoryDisplay
+        {
+            get
+            {
+                return (ECategoryDisplay)GetInt("ProperConsole.CategoryDisplay", (int)(ECategoryDisplay.NameColumn | ECategoryDisplay.ColorStrip | ECategoryDisplay.InInspector));
+            }
+            set
+            {
+                SetInt("ProperConsole.CategoryDisplay", (int)value);
+                Save();
+            }
+        }
+
         internal List<string> InactiveCategoryStrings
         {
             get
