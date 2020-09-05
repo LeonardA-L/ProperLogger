@@ -60,7 +60,8 @@ namespace ProperLogger
 
         #region Layout
 
-        private int m_selectedIndex = -1;
+        //private int m_selectedIndex = -1;
+        private ConsoleLogEntry m_selectedEntry = null;
         private int m_displayedEntriesCount = -1;
         private DateTime m_lastClick = default;
 
@@ -366,7 +367,7 @@ namespace ProperLogger
                 m_errorCounter = 0;
                 m_entries.Clear();
                 m_pendingContexts.Clear();
-                m_selectedIndex = -1;
+                m_selectedEntry = null;
             }
         }
 
@@ -476,7 +477,7 @@ namespace ProperLogger
 
             if (displayedEntries.Count < m_displayedEntriesCount)
             {
-                m_selectedIndex = -1;
+                m_selectedEntry = null;
             }
             m_displayedEntriesCount = displayedEntries.Count;
 
@@ -532,7 +533,7 @@ namespace ProperLogger
                 GUILayout.MinHeight(m_splitterPosition));
                 m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
             }
-            if (m_selectedIndex != -1)
+            if (m_selectedEntry != null)
             {
                 GUIStyle textStyle = new GUIStyle(GUI.skin.label);
                 textStyle.richText = true;
@@ -542,7 +543,7 @@ namespace ProperLogger
                 textStyle.stretchWidth = false;
                 textStyle.clipping = TextClipping.Clip;
 
-                var entry = displayedEntries[m_selectedIndex];
+                var entry = m_selectedEntry;
 
                 GUILayout.Space(1);
                 float currentX = (GUILayoutUtility.GetLastRect()).xMin;
@@ -733,7 +734,7 @@ namespace ProperLogger
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
-                m_selectedIndex = -1;
+                m_selectedEntry = null;
             }
             m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
             m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -852,7 +853,7 @@ namespace ProperLogger
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
 
             
-            if (idx == m_selectedIndex)
+            if (entry == m_selectedEntry)
             {
                 currentStyle = m_skin.FindStyle("SelectedEntry");
                 textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
@@ -938,11 +939,11 @@ namespace ProperLogger
                 {
                     EditorGUIUtility.PingObject(entry.context); // TODO Editor
                 }
-                if (m_selectedIndex == idx && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
+                if (m_selectedEntry == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
                 {
                     HandleDoubleClick(entry);
                 }
-                m_selectedIndex = idx;
+                m_selectedEntry = entry;
                 m_lastClick = DateTime.Now;
             }
         }
