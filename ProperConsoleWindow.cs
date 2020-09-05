@@ -916,71 +916,76 @@ namespace ProperLogger
             }
 
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(m_itemHeight));
-            //GUI.color = saveColor;
-            // Picto space
-            GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
-            GUILayout.FlexibleSpace();
-            GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
-            GUILayout.EndHorizontal();
-            // Text space
-            GUILayout.BeginVertical();
-            textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-            GUILayout.Label($"[{entry.timestamp}] {categoriesString}{entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
-            textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            if(m_configs.ShowContextNameInsteadOfStack && entry.context != null)
             {
-                GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
-            }
-            else if (!string.IsNullOrEmpty(entry.stackTrace))
-            {
-                GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
-            }
-            GUILayout.EndVertical();
-            GUILayout.FlexibleSpace();
-            // First Category space
-            if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
-            {
-                var category = entry.categories[0];
-                if (displayCategoryNameInColumn)
+                //GUI.color = saveColor;
+                // Picto space
+                GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
                 {
-                    categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
-                    GUILayout.Label($"{category.Name}", categoryNameStyle, GUILayout.Width(categoryColumnWidth));
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
                 }
-                /*
-                if (displayCategoryIconInColumn && category.Icon != null)
+                GUILayout.EndHorizontal();
+                // Text space
+                GUILayout.BeginVertical();
                 {
-                    //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
+                    textStyle.fontSize = m_configs.LogEntryMessageFontSize;
+                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
+                    textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
+                    if (m_configs.ShowContextNameInsteadOfStack && entry.context != null)
+                    {
+                        GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
+                    }
+                    else if (!string.IsNullOrEmpty(entry.stackTrace))
+                    {
+                        GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                    }
                 }
-                */
-            }
-            // Collapse Space
-            if (m_configs.Collapse)
-            {
-                DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
-            }
-            // Category strips space
-            if (displayCategoryStrips && entry.categories != null && entry.categories.Count > 0)
-            {
-                Rect lastRect = GUILayoutUtility.GetLastRect();
-                Color saveColor = GUI.color;
-                Color saveContentColor = GUI.contentColor;
-                Color saveBGColor = GUI.backgroundColor;
-                int i = 0;
-                GUIStyle boxStyle = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
-                foreach (var category in entry.categories)
+                GUILayout.EndVertical();
+                GUILayout.FlexibleSpace();
+                // First Category space
+                if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
                 {
-                    GUI.color = category.Color;
-                    GUI.backgroundColor = Color.white;
-                    GUI.contentColor = Color.white;
-                    GUI.Box(new Rect(lastRect.xMax + i* categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, m_itemHeight), "", boxStyle);
-                    GUILayout.Space(categoryStripWidth);
-                    i++;
+                    var category = entry.categories[0];
+                    if (displayCategoryNameInColumn)
+                    {
+                        categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
+                        GUILayout.Label($"{category.Name}", categoryNameStyle, GUILayout.Width(categoryColumnWidth));
+                    }
+                    /*
+                    if (displayCategoryIconInColumn && category.Icon != null)
+                    {
+                        //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
+                    }
+                    */
                 }
-                GUI.contentColor = saveContentColor;
-                GUI.backgroundColor = saveBGColor;
-                GUI.color = saveColor;
+                // Collapse Space
+                if (m_configs.Collapse)
+                {
+                    DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
+                }
+                // Category strips space
+                if (displayCategoryStrips && entry.categories != null && entry.categories.Count > 0)
+                {
+                    Rect lastRect = GUILayoutUtility.GetLastRect();
+                    Color saveColor = GUI.color;
+                    Color saveContentColor = GUI.contentColor;
+                    Color saveBGColor = GUI.backgroundColor;
+                    int i = 0;
+                    GUIStyle boxStyle = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
+                    foreach (var category in entry.categories)
+                    {
+                        GUI.color = category.Color;
+                        GUI.backgroundColor = Color.white;
+                        GUI.contentColor = Color.white;
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, m_itemHeight), "", boxStyle);
+                        GUILayout.Space(categoryStripWidth);
+                        i++;
+                    }
+                    GUI.contentColor = saveContentColor;
+                    GUI.backgroundColor = saveBGColor;
+                    GUI.color = saveColor;
+                }
             }
-
             GUILayout.EndHorizontal();
 
             Rect r = GUILayoutUtility.GetLastRect();
