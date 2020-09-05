@@ -13,7 +13,7 @@ namespace ProperLogger
     }
 
     [System.Serializable]
-    internal struct ConsoleLogEntry
+    internal class ConsoleLogEntry
     {
         public long date;
         public string timestamp;

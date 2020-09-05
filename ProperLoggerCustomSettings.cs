@@ -103,16 +103,8 @@ namespace ProperLogger
                     Selection.activeObject = asset;
                 }
                 GUILayout.Space(10);
-                GUILayout.Label("Display", EditorStyles.boldLabel);
-                GUILayout.Space(10);
 
-                CategoryDisplayToggle("Show Category Color in Log List", ECategoryDisplay.ColorStrip);
-                CategoryDisplayToggle("Show Category Name in column in Log List", ECategoryDisplay.NameColumn);
-                //CategoryDisplayToggle("Show Category Icon in Log List", ECategoryDisplay.Icon);
-                EditorGUILayout.LabelField("If the log entry is in multiple categories,\nonly the name of the first category will be displayed", m_subtitleStyle);
-                GUILayout.Space(12);
-                CategoryDisplayToggle("Show [CategoryName] in Message", ECategoryDisplay.InMessage);
-                CategoryDisplayToggle("Show categories in inspector", ECategoryDisplay.InInspector);
+                
             }
         }
 
@@ -124,6 +116,7 @@ namespace ProperLogger
             {
                 m_configs.CategoryDisplay ^= flag;
             }
+            GUILayout.Space(10);
         }
 
         private void DisplayAppearanceTab()
@@ -159,6 +152,25 @@ namespace ProperLogger
             {
                 m_configs.ObjectNameColor = color;
             }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(10);
+            GUILayout.Label("Categories", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            CategoryDisplayToggle("Show [CategoryName] in inspector", ECategoryDisplay.InInspector);
+            CategoryDisplayToggle("Show [CategoryName] in Message", ECategoryDisplay.InMessage);
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("[CategoryName] Colorization");
+            m_configs.CategoryNameColorize = EditorGUILayout.Slider(m_configs.CategoryNameColorize, 0, 1);
+            GUILayout.EndHorizontal();
+            CategoryDisplayToggle("Show Category Color in Log List", ECategoryDisplay.ColorStrip);
+            CategoryDisplayToggle("Show Category Name in column in Log List", ECategoryDisplay.NameColumn);
+            //CategoryDisplayToggle("Show Category Icon in Log List", ECategoryDisplay.Icon);
+            EditorGUILayout.LabelField("If the log entry is in multiple categories,\nonly the name of the first category will be displayed", m_subtitleStyle);
+            GUILayout.Space(12);
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Category Name column Colorization");
+            m_configs.CategoryNameInLogListColorize = EditorGUILayout.Slider(m_configs.CategoryNameInLogListColorize, 0, 1);
             GUILayout.EndHorizontal();
         }
 

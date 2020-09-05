@@ -20,6 +20,32 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal float CategoryNameColorize
+        {
+            get
+            {
+                return GetFloat("ProperConsole.CategoryNameColorize", 0.4f);
+            }
+            set
+            {
+                SetFloat("ProperConsole.CategoryNameColorize", value);
+                Save();
+            }
+        }
+
+        internal float CategoryNameInLogListColorize
+        {
+            get
+            {
+                return GetFloat("ProperConsole.CategoryNameInLogListColorize", 0.4f);
+            }
+            set
+            {
+                SetFloat("ProperConsole.CategoryNameInLogListColorize", value);
+                Save();
+            }
+        }
+
         internal ECategoryDisplay CategoryDisplay
         {
             get
@@ -69,6 +95,7 @@ namespace ProperLogger
             set
             {
                 SetString("ProperConsole.InactiveCategories", string.Join("|", value.Select(c=>c.Name)));
+                Save();
             }
         }
         internal virtual LogCategoriesConfig CurrentCategoriesConfig

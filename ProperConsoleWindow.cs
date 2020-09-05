@@ -547,7 +547,17 @@ namespace ProperLogger
                 GUILayout.Space(1);
                 float currentX = (GUILayoutUtility.GetLastRect()).xMin;
 
-                EditorSelectableLabel(entry.message, textStyle, currentX); // TODO if editor
+                string categoriesString = "";
+                if (entry.categories != null && entry.categories.Count > 0)
+                {
+                    if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
+                    {
+                        string format = "<color=#{1}>[{0}]</color> ";
+                        categoriesString = string.Join("", entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                    }
+                }
+
+                EditorSelectableLabel($"{categoriesString}{entry.message}", textStyle, currentX); // TODO if editor
                                                                            //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
                 if (entry.context != null)
                 {
@@ -819,6 +829,8 @@ namespace ProperLogger
             categoryNameStyle.padding.top = (int)((itemHeight / 2f) - categoryNameStyle.fontSize);
             categoryNameStyle.fontStyle = FontStyle.Bold;
 
+            string categoriesString = "";
+
             if (entry.categories != null && entry.categories.Count > 0)
             {
                 if (categoryColumn)
@@ -829,6 +841,11 @@ namespace ProperLogger
                 if (displayCategoryStrips)
                 {
                     categoriesStripsTotalWidth = entry.categories.Count * categoryStripWidth;
+                }
+                if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InMessage))
+                {
+                    string format = "<color=#{1}>[{0}]</color> ";
+                    categoriesString = string.Join("", entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                 }
             }
 
@@ -845,6 +862,7 @@ namespace ProperLogger
             {
                 currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
             }
+
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(itemHeight));
             //GUI.color = saveColor;
             // Picto space
@@ -855,7 +873,7 @@ namespace ProperLogger
             // Text space
             GUILayout.BeginVertical();
             textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-            GUILayout.Label($"[{entry.timestamp}] {entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
+            GUILayout.Label($"[{entry.timestamp}] {categoriesString}{entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
             textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
             if(m_configs.ShowContextNameInsteadOfStack && entry.context != null)
             {
@@ -873,6 +891,7 @@ namespace ProperLogger
                 var category = entry.categories[0];
                 if (displayCategoryNameInColumn)
                 {
+                    categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
                     GUILayout.Label($"{category.Name}", categoryNameStyle, GUILayout.Width(categoryColumnWidth));
                 }
                 /*
@@ -901,7 +920,6 @@ namespace ProperLogger
                     GUI.color = category.Color;
                     GUI.backgroundColor = Color.white;
                     GUI.contentColor = Color.white;
-                    //GUILayout.Box("", GUILayout.Width(categoryStripWidth), GUILayout.ExpandHeight(true));
                     GUI.Box(new Rect(lastRect.xMax + i* categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, itemHeight), "", boxStyle);
                     GUILayout.Space(categoryStripWidth);
                     i++;
