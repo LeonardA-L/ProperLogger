@@ -42,6 +42,8 @@ namespace ProperLogger
         #region Logs
 
         private List<ConsoleLogEntry> m_entries = null;
+        private List<ConsoleLogEntry> m_filteredEntries = null;
+        private bool m_triggerFilteredEntryComputation = false;
         private CustomLogHandler m_logHandler = null;
         private List<PendingContext> m_pendingContexts = null;
         private object m_entriesLock = null;
@@ -55,6 +57,7 @@ namespace ProperLogger
         #region Filters
 
         private string m_searchString = null;
+        private string[] m_searchWords = null;
         private List<LogCategory> m_inactiveCategories = null;
 
         #endregion Filters
@@ -161,6 +164,7 @@ namespace ProperLogger
             m_listening = false;
             m_entriesLock = new object();
             m_instance = this;
+            m_triggerFilteredEntryComputation = true;
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
             LoadIcons();
@@ -340,6 +344,8 @@ namespace ProperLogger
                 }
             }
 
+            m_triggerFilteredEntryComputation = true;
+
             this.Repaint();
             if (m_configs.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
             {
@@ -372,13 +378,14 @@ namespace ProperLogger
                 m_pendingContexts.Clear();
                 m_selectedEntry = null;
             }
+            m_triggerFilteredEntryComputation = true;
         }
 
         #endregion Logs
 
         #region Search
 
-        private bool ValidFilter(ConsoleLogEntry e, string[] searchWords)
+        private bool ValidFilter(ConsoleLogEntry e)
         {
             bool valid = true;
 
@@ -403,9 +410,9 @@ namespace ProperLogger
             }
             else
             {
-                if (!string.IsNullOrEmpty(m_searchString))
+                if (m_searchWords != null && m_searchWords.Length > 0)
                 {
-                    valid &= searchWords.All(p => searchableText.IndexOf(p, m_configs.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
+                    valid &= m_searchWords.All(p => searchableText.IndexOf(p, m_configs.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
                     if (!valid)
                     {
                         return false;
@@ -475,17 +482,20 @@ namespace ProperLogger
 
             if (m_entries.Count == 0) GUILayout.Space(10);
 
-            string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (m_triggerFilteredEntryComputation)
+            {
+                m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+                m_triggerFilteredEntryComputation = false;
+            }
 
-            var filteredEntries = m_entries.FindAll(e => ValidFilter(e, searchWords));
             List<ConsoleLogEntry> displayedEntries;
             if (m_configs.Collapse)
             {
-                DisplayCollapse(filteredEntries, out displayedEntries, totalWidth);
+                DisplayCollapse(m_filteredEntries, out displayedEntries, totalWidth);
             }
             else
             {
-                DisplayList(filteredEntries, out displayedEntries, totalWidth);
+                DisplayList(m_filteredEntries, out displayedEntries, totalWidth);
             }
 
             if (displayedEntries.Count < m_displayedEntriesCount)
@@ -755,10 +765,15 @@ namespace ProperLogger
 
             string lastSearchTerm = m_searchString;
             m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
-            if (m_configs.RegexSearch && lastSearchTerm != m_searchString)
+            if (lastSearchTerm != m_searchString)
             {
-                m_lastRegexRecompile = DateTime.Now;
-                m_needRegexRecompile = true;
+                m_triggerFilteredEntryComputation = true;
+                if (m_configs.RegexSearch)
+                {
+                    m_lastRegexRecompile = DateTime.Now;
+                    m_needRegexRecompile = true;
+                }
+                m_searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
 
             m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -804,11 +819,27 @@ namespace ProperLogger
             m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
             if (lastCaseSensitive != m_configs.CaseSensitive)
             {
+                m_triggerFilteredEntryComputation = true;
                 m_needRegexRecompile = true;
             }
+            bool lastSearchMessage = m_searchMessage;
             m_searchMessage = GUILayout.Toggle(m_searchMessage, "Search in Log Message", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if (lastSearchMessage != m_searchMessage)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
+            bool lastSearchObjectName = m_configs.SearchObjectName;
             m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if (lastSearchObjectName != m_configs.SearchObjectName)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
+            bool lastSearchStackTRace = m_configs.SearchInStackTrace;
             m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
+            if (lastSearchStackTRace != m_configs.SearchInStackTrace)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
@@ -1011,6 +1042,7 @@ namespace ProperLogger
             if (hasFlag != newFlagValue)
             {
                 m_configs.LogLevelFilter ^= level;
+                m_triggerFilteredEntryComputation = true;
             }
         }
 
@@ -1176,6 +1208,7 @@ namespace ProperLogger
             {
                 m_needRegexRecompile = false;
                 m_lastRegexRecompile = DateTime.Now;
+                m_triggerFilteredEntryComputation = true;
                 if (m_configs.CaseSensitive)
                 {
                     m_searchRegex = new Regex(m_searchString.Trim());
