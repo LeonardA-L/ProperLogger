@@ -43,6 +43,7 @@ namespace ProperLogger
 
         private List<ConsoleLogEntry> m_entries = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
+        private List<ConsoleLogEntry> m_collapsedEntries = null;
         private bool m_triggerFilteredEntryComputation = false;
         private CustomLogHandler m_logHandler = null;
         private List<PendingContext> m_pendingContexts = null;
@@ -485,20 +486,16 @@ namespace ProperLogger
             if (m_triggerFilteredEntryComputation)
             {
                 m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+                if (m_configs.Collapse)
+                {
+                    ComputeCollapsedEntries(m_filteredEntries);
+                }
                 m_triggerFilteredEntryComputation = false;
             }
 
-            List<ConsoleLogEntry> displayedEntries;
-            if (m_configs.Collapse)
-            {
-                DisplayCollapse(m_filteredEntries, out displayedEntries, totalWidth);
-            }
-            else
-            {
-                DisplayList(m_filteredEntries, out displayedEntries, totalWidth);
-            }
+            DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);
 
-            if (displayedEntries.Count < m_displayedEntriesCount)
+            if (displayedEntries.Count != m_displayedEntriesCount)
             {
                 m_selectedEntry = null;
             }
@@ -716,49 +713,6 @@ namespace ProperLogger
             }
             displayedEntries = filteredEntries;
         }
-        private void DisplayCollapse(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
-        {
-            List<ConsoleLogEntry> collapsedEntries = new List<ConsoleLogEntry>();
-
-            for (int i = 0; i < filteredEntries.Count; i++)
-            {
-                bool found = false;
-                int foundIdx = 0;
-                for (int j = 0; j < collapsedEntries.Count; j++)
-                {
-                    if (collapsedEntries[j].message == filteredEntries[i].message)
-                    {
-                        foundIdx = j;
-                        found = true;
-                    }
-                }
-                if (found)
-                {
-                    collapsedEntries[foundIdx] = new ConsoleLogEntry()
-                    {
-                        count = collapsedEntries[foundIdx].count + 1,
-                        date = collapsedEntries[foundIdx].date,
-                        message = collapsedEntries[foundIdx].message,
-                        level = collapsedEntries[foundIdx].level,
-                        stackTrace = collapsedEntries[foundIdx].stackTrace,
-                        timestamp = collapsedEntries[foundIdx].timestamp,
-                        messageFirstLine = collapsedEntries[foundIdx].messageFirstLine,
-                        categories = collapsedEntries[foundIdx].categories,
-                    };
-                }
-                else
-                {
-                    collapsedEntries.Add(filteredEntries[i]);
-                }
-            }
-
-            for (int i = 0; i < collapsedEntries.Count; i++)
-            {
-                DisplayEntry(collapsedEntries[i], i, totalWidth);
-            }
-
-            displayedEntries = collapsedEntries;
-        }
 
         #region GUI Components
 
@@ -775,6 +729,7 @@ namespace ProperLogger
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
+                m_triggerFilteredEntryComputation = true;
                 m_selectedEntry = null;
             }
             m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -1098,6 +1053,43 @@ namespace ProperLogger
         #endregion GUI
 
         #region Utilities
+
+        private void ComputeCollapsedEntries(List<ConsoleLogEntry> filteredEntries)
+        {
+            m_collapsedEntries = new List<ConsoleLogEntry>();
+
+            for (int i = 0; i < filteredEntries.Count; i++)
+            {
+                bool found = false;
+                int foundIdx = 0;
+                for (int j = 0; j < m_collapsedEntries.Count; j++)
+                {
+                    if (m_collapsedEntries[j].message == filteredEntries[i].message)
+                    {
+                        foundIdx = j;
+                        found = true;
+                    }
+                }
+                if (found)
+                {
+                    m_collapsedEntries[foundIdx] = new ConsoleLogEntry()
+                    {
+                        count = m_collapsedEntries[foundIdx].count + 1,
+                        date = m_collapsedEntries[foundIdx].date,
+                        message = m_collapsedEntries[foundIdx].message,
+                        level = m_collapsedEntries[foundIdx].level,
+                        stackTrace = m_collapsedEntries[foundIdx].stackTrace,
+                        timestamp = m_collapsedEntries[foundIdx].timestamp,
+                        messageFirstLine = m_collapsedEntries[foundIdx].messageFirstLine,
+                        categories = m_collapsedEntries[foundIdx].categories,
+                    };
+                }
+                else
+                {
+                    m_collapsedEntries.Add(filteredEntries[i]);
+                }
+            }
+        }
 
         private int GetFlagButtonWidthFromCounter(int counter)
         {
