@@ -692,9 +692,27 @@ namespace ProperLogger
 
         private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
         {
-            for (int i = 0; i < filteredEntries.Count; i++)
+            int startI = 0;
+            int endI = filteredEntries.Count;
+            int lastVisibleIdx = 0;
+            // Only display elements that are in view
+            if (m_outerScrollableHeight + 100 <= m_innerScrollableHeight)
+            {
+                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / m_itemHeight) - 1, 0, filteredEntries.Count);
+                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / m_itemHeight) + 1, 0, filteredEntries.Count);
+                GUILayout.Space(firstVisibleIdx * m_itemHeight);
+                startI = firstVisibleIdx;
+                endI = lastVisibleIdx;
+            }
+
+            for (int i = startI; i < endI; i++)
             {
                 DisplayEntry(filteredEntries[i], i, totalWidth);
+            }
+
+            if (lastVisibleIdx != 0)
+            {
+                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * m_itemHeight);
             }
             displayedEntries = filteredEntries;
         }
@@ -846,14 +864,6 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            // Only show entries that are in view
-            if ((idx < (m_entryListScrollPosition.y / m_itemHeight) - 1)
-              || idx > ((m_entryListScrollPosition.y + m_outerScrollableHeight) / m_itemHeight))
-            {
-                GUILayout.Space(m_itemHeight);
-                return;
-            }
-
             bool repaint = Event.current.type == EventType.Repaint;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
@@ -1053,29 +1063,29 @@ namespace ProperLogger
 
         private void Splitter()
         {
-            float splitterSize = 10f;
+            int splitterSize = 5;
             if (m_configs.InspectorOnTheRight)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Space(splitterSize);
                 GUILayout.Box("",
                      GUILayout.Width(1),
                      GUILayout.MaxWidth(1),
                      GUILayout.MinWidth(1),
                      GUILayout.ExpandHeight(true));
-                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Space(splitterSize);
                 GUILayout.EndHorizontal();
             }
             else
             {
                 GUILayout.BeginVertical();
-                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Space(splitterSize);
                 GUILayout.Box("",
                      GUILayout.Height(1),
                      GUILayout.MaxHeight(1),
                      GUILayout.MinHeight(1),
                      GUILayout.ExpandWidth(true));
-                GUILayout.Space((int)(splitterSize / 2f));
+                GUILayout.Space(splitterSize);
                 GUILayout.EndVertical();
             }
 
