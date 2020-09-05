@@ -30,8 +30,6 @@ namespace ProperLogger
 
         private bool m_autoScroll = true;
         
-
-        
         private bool m_searchMessage = true;
 
         #endregion Configs
@@ -74,6 +72,8 @@ namespace ProperLogger
         private bool m_splitterDragging = false;
         private float m_innerScrollableHeight = 0;
         private float m_outerScrollableHeight = 0;
+
+        private Rect m_showCategoriesButtonRect = default;
 
         #endregion Layout
 
@@ -285,6 +285,24 @@ namespace ProperLogger
                     }
                 }
 
+                Regex categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"); // TODO cache
+                List<LogCategory> categories = new List<LogCategory>();
+                var categoryAsset = m_configs.CurrentCategoriesConfig;
+                if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
+                {
+                    foreach (Match match in categoryParse.Matches(condition))
+                    {
+                        foreach (var category in categoryAsset.Categories)
+                        {
+                            if(category.Name == match.Groups[1].Value && !categories.Contains(category))
+                            {
+                                categories.Add(category);
+                                condition = condition.Replace($"[{category.Name}] ", "");
+                            }
+                        }
+                    }
+                }
+
                 var now = DateTime.Now;
                 string newStackTrace = ParseStackTrace(stackTrace, out string firstAsset, out string firstLine);
                 m_entries.Add(new ConsoleLogEntry()
@@ -299,6 +317,7 @@ namespace ProperLogger
                     context = context,
                     firstAsset = firstAsset,
                     firstLine = firstLine,
+                    categories = categories,
                 });
 
                 switch (type)
@@ -359,6 +378,7 @@ namespace ProperLogger
         {
             bool valid = true;
 
+            // Log Level
             if (m_configs.LogLevelFilter != LogLevel.All)
             {
                 valid &= (e.level & m_configs.LogLevelFilter) == e.level;
@@ -368,6 +388,7 @@ namespace ProperLogger
                 }
             }
 
+            // Text Search
             string searchableText = (m_searchMessage ? e.message : "") + (m_configs.SearchInStackTrace ? e.stackTrace : "") + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
             if (m_configs.RegexSearch)
             {
@@ -388,7 +409,11 @@ namespace ProperLogger
                     }
                 }
             }
-            
+
+            // Categories
+            var inactiveCategories = m_configs.InactiveCategories; // TODO cache
+            valid &= inactiveCategories.Intersect(e.categories).Count() == 0;
+
             return valid;
         }
 
@@ -449,7 +474,7 @@ namespace ProperLogger
                 DisplayList(filteredEntries, out displayedEntries, totalWidth);
             }
 
-            if (displayedEntries.Count != m_displayedEntriesCount)
+            if (displayedEntries.Count < m_displayedEntriesCount)
             {
                 m_selectedIndex = -1;
             }
@@ -551,6 +576,16 @@ namespace ProperLogger
             if (GUILayout.Button("Log"))
             {
                 Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+            }
+
+            if (GUILayout.Button("Log Combat"))
+            {
+                Debug.Log($"[Combat] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+            }
+
+            if (GUILayout.Button("Log Combat Performance"))
+            {
+                Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
             if (GUILayout.Button("LogWarning"))
@@ -702,6 +737,26 @@ namespace ProperLogger
             }
 
             m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
+
+            if(GUILayout.Button("Categories", "ToolbarButton", GUILayout.ExpandWidth(false)))
+            {
+                Vector2 dropdownOffset = new Vector2(10, 10);
+                Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
+
+                var categoriesAsset = m_configs.CurrentCategoriesConfig;
+                Vector2 size = new Vector2(250, 150);
+                if (categoriesAsset != null)
+                {
+                    int categoriesCount = m_configs.CurrentCategoriesConfig.Categories == null ? 0 : m_configs.CurrentCategoriesConfig.Categories.Count;
+                    size.y = (categoriesCount) * 20; // TODO put this somewhere in a style
+                }
+                Debug.Log("Open dropdown");
+                // Get existing open window or if none, make a new one:
+                var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
+                window.ShowAsDropDown(dropDownPosition, size);
+                window.Repaint();
+            }
+            if (Event.current.type == EventType.Repaint) m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
 
             // Log Level Flags
             FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);

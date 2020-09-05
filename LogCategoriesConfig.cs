@@ -15,30 +15,35 @@ namespace ProperLogger
         [SerializeField]
         protected List<LogCategory> m_categories = null;
 
-        [System.NonSerialized]
-        protected Dictionary<string, LogCategory> m_categoriesByName = null;
+        //[System.NonSerialized]
+        //protected Dictionary<string, LogCategory> m_categoriesByName = null;
+
+        public List<LogCategory> Categories => m_categories;
+        //public Dictionary<string, LogCategory> CategoriesByName => m_categoriesByName ?? (m_categoriesByName = RebuildCategories());
 
         protected virtual void OnEnable()
         {
             m_instance = this;
-            RebuildCategories();
+            //RebuildCategories();
         }
-
-        private void RebuildCategories()
+        /*
+        internal Dictionary<string, LogCategory> RebuildCategories()
         {
-            m_categoriesByName?.Clear();
-            m_categoriesByName = new Dictionary<string, LogCategory>();
-
             if(m_categories == null || m_categories.Count == 0)
             {
-                return;
+                return null;
             }
+
+            m_categoriesByName?.Clear();
+            m_categoriesByName = new Dictionary<string, LogCategory>();
 
             foreach (var category in m_categories)
             {
                 m_categoriesByName.Add(category.Name, category);
             }
-        }
+
+            return m_categoriesByName;
+        }*/
 
         public virtual void Add(string name)
         {

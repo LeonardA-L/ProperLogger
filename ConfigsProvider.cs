@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,6 +20,44 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal List<string> InactiveCategoryStrings
+        {
+            get
+            {
+                string inactiveCategories = GetString("ProperConsole.InactiveCategories", "");
+                return inactiveCategories.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries).ToList();
+            }
+        }
+
+        internal List<LogCategory> InactiveCategories
+        {
+            get
+            {
+                if(CurrentCategoriesConfig == null)
+                {
+                    return new List<LogCategory>();
+                }
+                string inactiveCategories = GetString("ProperConsole.InactiveCategories", "");
+                string[] inactiveCategoriesArray = inactiveCategories.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries);
+                List<LogCategory> inactiveCategoryObjects = new List<LogCategory>();
+                foreach (var activeStr in inactiveCategoriesArray)
+                {
+                    foreach (var category in CurrentCategoriesConfig.Categories)
+                    {
+                        if(category.Name == activeStr)
+                        {
+                            inactiveCategoryObjects.Add(category);
+                            break;
+                        }
+                    }
+                }
+                return inactiveCategoryObjects;
+            }
+            set
+            {
+                SetString("ProperConsole.InactiveCategories", string.Join("|", value.Select(c=>c.Name)));
+            }
+        }
         internal virtual LogCategoriesConfig CurrentCategoriesConfig
         {
             get

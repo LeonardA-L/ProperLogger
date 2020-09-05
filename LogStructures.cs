@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace ProperLogger
 {
@@ -24,5 +25,6 @@ namespace ProperLogger
         public UnityEngine.Object context;
         public string firstLine;
         public string firstAsset;
+        public List<LogCategory> categories;
     }
 }
