@@ -20,6 +20,19 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        internal int ColorStripWidth
+        {
+            get
+            {
+                return GetInt("ProperConsole.ColorStripWidth", 5);
+            }
+            set
+            {
+                SetInt("ProperConsole.ColorStripWidth", value);
+                Save();
+            }
+        }
+
         internal float CategoryNameColorize
         {
             get

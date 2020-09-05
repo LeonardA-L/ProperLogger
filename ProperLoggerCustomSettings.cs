@@ -164,6 +164,10 @@ namespace ProperLogger
             m_configs.CategoryNameColorize = EditorGUILayout.Slider(m_configs.CategoryNameColorize, 0, 1);
             GUILayout.EndHorizontal();
             CategoryDisplayToggle("Show Category Color in Log List", ECategoryDisplay.ColorStrip);
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Color Strip Width");
+            m_configs.ColorStripWidth = EditorGUILayout.IntSlider(m_configs.ColorStripWidth, 3, 15);
+            GUILayout.EndHorizontal();
             CategoryDisplayToggle("Show Category Name in column in Log List", ECategoryDisplay.NameColumn);
             //CategoryDisplayToggle("Show Category Icon in Log List", ECategoryDisplay.Icon);
             EditorGUILayout.LabelField("If the log entry is in multiple categories,\nonly the name of the first category will be displayed", m_subtitleStyle);

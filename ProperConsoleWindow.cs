@@ -22,6 +22,8 @@ namespace ProperLogger
         [NonSerialized]
         private float m_regexCompileDebounce = 200 * 10000;
 
+        float m_itemHeight = 40;
+
         #endregion Consts
 
         #region Configs
@@ -53,6 +55,7 @@ namespace ProperLogger
         #region Filters
 
         private string m_searchString = null;
+        private List<LogCategory> m_inactiveCategories = null;
 
         #endregion Filters
 
@@ -375,7 +378,7 @@ namespace ProperLogger
 
         #region Search
 
-        private bool ValidFilter(ConsoleLogEntry e)
+        private bool ValidFilter(ConsoleLogEntry e, string[] searchWords)
         {
             bool valid = true;
 
@@ -402,7 +405,6 @@ namespace ProperLogger
             {
                 if (!string.IsNullOrEmpty(m_searchString))
                 {
-                    string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); // TODO opti
                     valid &= searchWords.All(p => searchableText.IndexOf(p, m_configs.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
                     if (!valid)
                     {
@@ -412,8 +414,14 @@ namespace ProperLogger
             }
 
             // Categories
-            var inactiveCategories = m_configs.InactiveCategories; // TODO cache
-            valid &= inactiveCategories.Intersect(e.categories).Count() == 0;
+            if (m_inactiveCategories.Count > 0)
+            {
+                valid &= m_inactiveCategories.Intersect(e.categories).Count() == 0;
+                if (!valid)
+                {
+                    return false;
+                }
+            }
 
             return valid;
         }
@@ -426,6 +434,9 @@ namespace ProperLogger
         {
             bool callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
+
+            m_inactiveCategories?.Clear();
+            m_inactiveCategories = m_configs.InactiveCategories;
 
             DisplayToolbar(ref callForRepaint);
 
@@ -464,7 +475,9 @@ namespace ProperLogger
 
             if (m_entries.Count == 0) GUILayout.Space(10);
 
-            var filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+            string[] searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var filteredEntries = m_entries.FindAll(e => ValidFilter(e, searchWords));
             List<ConsoleLogEntry> displayedEntries;
             if (m_configs.Collapse)
             {
@@ -802,6 +815,14 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
+            // Only show entries that are in view
+            if ((idx < (m_entryListScrollPosition.y / m_itemHeight) - 1)
+              || idx > ((m_entryListScrollPosition.y + m_outerScrollableHeight) / m_itemHeight))
+            {
+                GUILayout.Space(m_itemHeight);
+                return;
+            }
+
             bool repaint = Event.current.type == EventType.Repaint;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
@@ -811,7 +832,6 @@ namespace ProperLogger
             float sidePaddings = 10;
             float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
             float empiricalPaddings = 30 + sidePaddings;
-            float itemHeight = 40;
 
             bool displayCategoryNameInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
             bool displayCategoryIconInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
@@ -819,7 +839,7 @@ namespace ProperLogger
             bool categoryColumn = displayCategoryNameInColumn || displayCategoryIconInColumn;
             float categoryColumnWidth = 0;
 
-            float categoryStripWidth = 8;
+            float categoryStripWidth = m_configs.ColorStripWidth;
             float categoriesStripsTotalWidth = 0;
 
             float rightSplitterWidth = m_configs.InspectorOnTheRight ? m_splitterPosition : 0;
@@ -827,7 +847,7 @@ namespace ProperLogger
             GUIStyle categoryNameStyle = new GUIStyle(textStyle);
             categoryNameStyle.alignment = TextAnchor.MiddleCenter;
             categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            categoryNameStyle.padding.top = (int)((itemHeight / 2f) - categoryNameStyle.fontSize);
+            categoryNameStyle.padding.top = (int)((m_itemHeight / 2f) - categoryNameStyle.fontSize);
             categoryNameStyle.fontStyle = FontStyle.Bold;
 
             string categoriesString = "";
@@ -864,7 +884,7 @@ namespace ProperLogger
                 currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
             }
 
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(itemHeight));
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(m_itemHeight));
             //GUI.color = saveColor;
             // Picto space
             GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
@@ -921,7 +941,7 @@ namespace ProperLogger
                     GUI.color = category.Color;
                     GUI.backgroundColor = Color.white;
                     GUI.contentColor = Color.white;
-                    GUI.Box(new Rect(lastRect.xMax + i* categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, itemHeight), "", boxStyle);
+                    GUI.Box(new Rect(lastRect.xMax + i* categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, m_itemHeight), "", boxStyle);
                     GUILayout.Space(categoryStripWidth);
                     i++;
                 }
