@@ -368,7 +368,7 @@ namespace ProperLogger
             }
         }
 
-        private void Clear()
+        internal void Clear()
         {
             lock (m_entriesLock)
             {
@@ -631,7 +631,7 @@ namespace ProperLogger
 
             if (GUILayout.Button("LogAssert"))
             {
-                Debug.Assert(false);
+                DDebug.Assert(false);
             }
 
             if (GUILayout.Button("Add 1000 Log"))
