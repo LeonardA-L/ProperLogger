@@ -44,6 +44,7 @@ namespace ProperLogger
         private List<ConsoleLogEntry> m_entries = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
         private List<ConsoleLogEntry> m_collapsedEntries = null;
+        private List<ConsoleLogEntry> m_displayedEntries = null;
         private bool m_triggerFilteredEntryComputation = false;
         private CustomLogHandler m_logHandler = null;
         private List<PendingContext> m_pendingContexts = null;
@@ -539,13 +540,13 @@ namespace ProperLogger
                 m_triggerFilteredEntryComputation = false;
             }
 
-            DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);
+            DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
 
-            if (displayedEntries.Count < m_displayedEntriesCount)
+            if (m_displayedEntries.Count < m_displayedEntriesCount)
             {
                 m_selectedEntries.Clear();
             }
-            m_displayedEntriesCount = displayedEntries.Count;
+            m_displayedEntriesCount = m_displayedEntries.Count;
 
             GUILayout.EndVertical();
 
@@ -1005,9 +1006,29 @@ namespace ProperLogger
                     HandleDoubleClick(entry);
                 }
                 m_lastClick = DateTime.Now;
-                if (Event.current.shift)
+
+                if (Event.current.shift && m_selectedEntries != null && m_selectedEntries.Count > 0)
                 {
-                    m_selectedEntries.Add(entry);
+                    int startIdx = m_displayedEntries.IndexOf(m_selectedEntries[m_selectedEntries.Count - 1]);
+                    int thisIdx = idx;
+                    for(int i = startIdx; i <= thisIdx; i++)
+                    {
+                        if (!m_selectedEntries.Contains(m_displayedEntries[i]))
+                        {
+                            m_selectedEntries.Add(m_displayedEntries[i]);
+                        }
+                    }
+                }
+                else if (Event.current.control)
+                {
+                    if (m_selectedEntries.Contains(entry))
+                    {
+                        m_selectedEntries.Remove(entry);
+                    }
+                    else
+                    {
+                        m_selectedEntries.Add(entry);
+                    }
                 }
                 else
                 {
