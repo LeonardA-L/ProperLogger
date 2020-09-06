@@ -68,7 +68,7 @@ namespace ProperLogger
         #region Layout
 
         //private int m_selectedIndex = -1;
-        private ConsoleLogEntry m_selectedEntry = null;
+        private List<ConsoleLogEntry> m_selectedEntries = null;
         private int m_displayedEntriesCount = -1;
         private DateTime m_lastClick = default;
 
@@ -82,6 +82,9 @@ namespace ProperLogger
         private float m_outerScrollableHeight = 0;
 
         private Rect m_showCategoriesButtonRect = default;
+        private Rect m_listDisplay = default;
+
+        private bool m_lastCLickIsDisplayList = false;
 
         #endregion Layout
 
@@ -140,6 +143,7 @@ namespace ProperLogger
             {
                 ShowWindow();
             }
+            ProperConsoleWindow.m_instance.Focus();
         }
 
         public static void ShowWindow()
@@ -162,6 +166,7 @@ namespace ProperLogger
             Debug.Log("OnEnable");
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
             m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
+            m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
             m_listening = false;
             m_entriesLock = new object();
             m_instance = this;
@@ -212,6 +217,36 @@ namespace ProperLogger
                 else
                 {
                     AssetDatabase.OpenAsset(asset);
+                }
+            }
+        }
+
+        public void HandleCopyToClipboard()
+        {
+            if (m_lastCLickIsDisplayList && m_selectedEntries != null && m_selectedEntries.Count > 0)
+            {
+                if (Event.current.type == EventType.ValidateCommand && Event.current.commandName == "Copy")
+                {
+                    Event.current.Use();
+                }
+                else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == "Copy")
+                {
+                    string result = "";
+
+                    foreach (var entry in m_selectedEntries)
+                    {
+                        result += entry.originalMessage+"\n";
+                        result += entry.originalStackTrace+"\n\n";
+                    }
+
+                    GUIUtility.systemCopyBuffer = result;
+                }
+            }
+            if (Event.current.type == EventType.MouseDown)
+            {
+                if (!m_listDisplay.Contains(Event.current.mousePosition))
+                {
+                    m_lastCLickIsDisplayList = false;
                 }
             }
         }
@@ -297,16 +332,17 @@ namespace ProperLogger
                 Regex categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"); // TODO cache
                 List<LogCategory> categories = new List<LogCategory>();
                 var categoryAsset = m_configs.CurrentCategoriesConfig;
+                string categoryLessMessage = condition;
                 if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
                 {
-                    foreach (Match match in categoryParse.Matches(condition))
+                    foreach (Match match in categoryParse.Matches(categoryLessMessage))
                     {
                         foreach (var category in categoryAsset.Categories)
                         {
                             if(category.Name == match.Groups[1].Value && !categories.Contains(category))
                             {
                                 categories.Add(category);
-                                condition = condition.Replace($"[{category.Name}] ", "");
+                                categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", "");
                             }
                         }
                     }
@@ -319,14 +355,16 @@ namespace ProperLogger
                     date = now.Ticks,
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
-                    message = condition,
-                    messageFirstLine = GetFirstLine(condition, false),
+                    message = categoryLessMessage,
+                    messageFirstLine = GetFirstLine(categoryLessMessage, false),
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
                     firstAsset = firstAsset,
                     firstLine = firstLine,
                     categories = categories,
+                    originalMessage = condition,
+                    originalStackTrace = stackTrace,
                 });
 
                 switch (type)
@@ -377,7 +415,7 @@ namespace ProperLogger
                 m_errorCounter = 0;
                 m_entries.Clear();
                 m_pendingContexts.Clear();
-                m_selectedEntry = null;
+                m_selectedEntries.Clear();
             }
             m_triggerFilteredEntryComputation = true;
         }
@@ -440,6 +478,9 @@ namespace ProperLogger
 
         void OnGUI()
         {
+            HandleCopyToClipboard();
+            EditorSelectableLabelInvisible();
+
             bool callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
@@ -495,9 +536,9 @@ namespace ProperLogger
 
             DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);
 
-            if (displayedEntries.Count != m_displayedEntriesCount)
+            if (displayedEntries.Count < m_displayedEntriesCount)
             {
-                m_selectedEntry = null;
+                m_selectedEntries.Clear();
             }
             m_displayedEntriesCount = displayedEntries.Count;
 
@@ -523,6 +564,10 @@ namespace ProperLogger
                 m_entryListScrollPosition.y = m_innerScrollableHeight - m_outerScrollableHeight + startY;
             }
             GUILayout.EndVertical(); // Display list
+            if (repaint)
+            {
+                m_listDisplay = GUILayoutUtility.GetLastRect();
+            }
             #endregion DisplayList
 
             #region Inspector
@@ -553,7 +598,7 @@ namespace ProperLogger
                 GUILayout.MinHeight(m_splitterPosition));
                 m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
             }
-            if (m_selectedEntry != null)
+            if (m_selectedEntries.Count > 0)
             {
                 GUIStyle textStyle = new GUIStyle(GUI.skin.label);
                 textStyle.richText = true;
@@ -563,7 +608,7 @@ namespace ProperLogger
                 textStyle.stretchWidth = false;
                 textStyle.clipping = TextClipping.Clip;
 
-                var entry = m_selectedEntry;
+                var entry = m_selectedEntries[0];
 
                 GUILayout.Space(1);
                 float currentX = (GUILayoutUtility.GetLastRect()).xMin;
@@ -669,15 +714,6 @@ namespace ProperLogger
                             m_splitterDragging = false;
                         }
                         break;
-                    case EventType.MouseMove:
-                        if (m_splitterRect.Contains(Event.current.mousePosition))
-                        {
-                        }
-                        else if (!m_splitterDragging)
-                        {
-
-                        }
-                        break;
                 }
             }
 
@@ -730,7 +766,7 @@ namespace ProperLogger
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
-                m_selectedEntry = null;
+                m_selectedEntries.Clear();
             }
             m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
             m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
@@ -819,7 +855,6 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            bool repaint = Event.current.type == EventType.Repaint;
             GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
             GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
@@ -869,7 +904,7 @@ namespace ProperLogger
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
 
             
-            if (entry == m_selectedEntry)
+            if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
             {
                 currentStyle = m_skin.FindStyle("SelectedEntry");
                 textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
@@ -960,12 +995,21 @@ namespace ProperLogger
                 {
                     EditorGUIUtility.PingObject(entry.context); // TODO Editor
                 }
-                if (m_selectedEntry == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
+                if (m_selectedEntries.Count > 0 && m_selectedEntries[0] == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
                 {
                     HandleDoubleClick(entry);
                 }
-                m_selectedEntry = entry;
                 m_lastClick = DateTime.Now;
+                if (Event.current.shift)
+                {
+                    m_selectedEntries.Add(entry);
+                }
+                else
+                {
+                    m_selectedEntries.Clear();
+                    m_selectedEntries.Add(entry);
+                }
+                m_lastCLickIsDisplayList = true;
             }
         }
 
@@ -999,7 +1043,11 @@ namespace ProperLogger
             EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, width, height), text, textStyle);
             GUILayout.Space(height);
         }
-        
+        private void EditorSelectableLabelInvisible()
+        {
+            EditorGUI.SelectableLabel(new Rect(0,0,0,0), "");
+        }
+
         private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
@@ -1082,6 +1130,11 @@ namespace ProperLogger
                         timestamp = m_collapsedEntries[foundIdx].timestamp,
                         messageFirstLine = m_collapsedEntries[foundIdx].messageFirstLine,
                         categories = m_collapsedEntries[foundIdx].categories,
+                        context = m_collapsedEntries[foundIdx].context,
+                        firstAsset = m_collapsedEntries[foundIdx].firstAsset,
+                        firstLine = m_collapsedEntries[foundIdx].firstLine,
+                        originalStackTrace = m_collapsedEntries[foundIdx].originalStackTrace,
+                        originalMessage = m_collapsedEntries[foundIdx].originalMessage,
                     };
                 }
                 else

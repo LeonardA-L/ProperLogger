@@ -26,5 +26,7 @@ namespace ProperLogger
         public string firstLine;
         public string firstAsset;
         public List<LogCategory> categories;
+        public string originalMessage;
+        public string originalStackTrace;
     }
 }
