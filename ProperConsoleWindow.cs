@@ -1021,7 +1021,7 @@ namespace ProperLogger
             int splitterSize = 5;
             if (m_configs.InspectorOnTheRight)
             {
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box("",
                      GUILayout.Width(1),
@@ -1033,7 +1033,7 @@ namespace ProperLogger
             }
             else
             {
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box("",
                      GUILayout.Height(1),
