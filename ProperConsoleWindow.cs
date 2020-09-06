@@ -231,15 +231,7 @@ namespace ProperLogger
                 }
                 else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == "Copy")
                 {
-                    string result = "";
-
-                    foreach (var entry in m_selectedEntries)
-                    {
-                        result += entry.originalMessage+"\n";
-                        result += entry.originalStackTrace+"\n\n";
-                    }
-
-                    GUIUtility.systemCopyBuffer = result;
+                    CopySelection();
                 }
             }
             if (Event.current.type == EventType.MouseDown)
@@ -249,6 +241,19 @@ namespace ProperLogger
                     m_lastCLickIsDisplayList = false;
                 }
             }
+        }
+
+        private void CopySelection()
+        {
+            string result = "";
+
+            foreach (var entry in m_selectedEntries)
+            {
+                result += entry.originalMessage + "\n";
+                result += entry.originalStackTrace + "\n\n";
+            }
+
+            GUIUtility.systemCopyBuffer = result;
         }
 
         #region Mode Changes
@@ -1010,6 +1015,11 @@ namespace ProperLogger
                     m_selectedEntries.Add(entry);
                 }
                 m_lastCLickIsDisplayList = true;
+
+                if (m_configs.CopyOnSelect)
+                {
+                    CopySelection();
+                }
             }
         }
 
