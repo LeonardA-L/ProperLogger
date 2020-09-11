@@ -121,6 +121,18 @@ namespace ProperLogger
 
         private Regex m_searchRegex = null;
 
+
+        private Assembly assembly = null;
+        private Type logEntries = null;
+        private Type logEntry = null;
+        private MethodInfo startGettingEntries = null;
+        private MethodInfo endGettingEntries = null;
+        private MethodInfo getEntryInternal = null;
+        private FieldInfo messageField = null;
+        private FieldInfo fileField = null;
+        private FieldInfo lineField = null;
+        private FieldInfo modeField = null;
+
         #endregion Caches
         #endregion Members
 
@@ -318,6 +330,135 @@ namespace ProperLogger
             Application.logMessageReceivedThreaded -= Listener;
             Debug.unityLogger.logHandler = m_logHandler.OriginalHandler;
             m_listening = false;
+        }
+
+        private static bool IsError(int mode)
+        {
+            return HasMode(mode, UnityLogMode.Error | UnityLogMode.Fatal | UnityLogMode.Assert | UnityLogMode.AssetImportError | UnityLogMode.GraphCompileError | UnityLogMode.ScriptCompileError | UnityLogMode.ScriptingError | UnityLogMode.StickyError | UnityLogMode.ScriptingAssertion);
+        }
+
+        private static bool IsWarning(int mode)
+        {
+            return HasMode(mode, UnityLogMode.AssetImportWarning | UnityLogMode.ScriptCompileWarning | UnityLogMode.ScriptingWarning);
+        }
+
+        private static bool IsLog(int mode)
+        {
+            return HasMode(mode, UnityLogMode.Log | UnityLogMode.ScriptingLog);
+        }
+
+        private static bool CompareModes(int unityMode, LogLevel loglevel)
+        {
+            if ((loglevel == LogLevel.Error || loglevel == LogLevel.Assert || loglevel == LogLevel.Exception) && IsError(unityMode))
+            {
+                return true;
+            }
+            if ((loglevel == LogLevel.Warning) && IsWarning(unityMode))
+            {
+                return true;
+            }
+            if ((loglevel == LogLevel.Log) && IsLog(unityMode))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private static bool HasMode(int mode, UnityLogMode modeToCheck) => ((UnityLogMode)mode & modeToCheck) != (UnityLogMode)0;
+
+        private static bool CompareEntries(CustomLogEntry unityEntry, ConsoleLogEntry consoleEntry)
+        {
+            return unityEntry.message.IndexOf(consoleEntry.originalMessage, StringComparison.Ordinal) == 0 && CompareModes(unityEntry.mode, consoleEntry.level);
+        }
+
+        private void PopulateLogEntryFields(Type type)
+        {
+            if (messageField == null || fileField == null || lineField == null || modeField == null)
+            {
+                var props = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance);
+                foreach (var prop in props)
+                {
+                    if (prop.Name == "message") // TODO no string, cache properties directly instead of array
+                    {
+                        messageField = prop;
+                    }
+                    if (prop.Name == "file")
+                    {
+                        fileField = prop;
+                    }
+                    if (prop.Name == "line")
+                    {
+                        lineField = prop;
+                    }
+                    if (prop.Name == "mode")
+                    {
+                        modeField = prop;
+                    }
+                }
+            }
+        }
+
+        public CustomLogEntry ConvertUnityLogEntryToCustomLogEntry(object unityLogEntry, Type type)
+        {
+            PopulateLogEntryFields(type);
+
+            var ret = new CustomLogEntry();
+
+            ret.line = (int)lineField.GetValue(unityLogEntry); // TODO only call when needed ?
+            ret.message = (string)messageField.GetValue(unityLogEntry);
+            ret.file = (string)fileField.GetValue(unityLogEntry); // TODO only call when needed ?
+            ret.mode = (int)modeField.GetValue(unityLogEntry);
+
+            return ret;
+        }
+
+        private void SyncWithUnityEntries()
+        {
+            List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
+            assembly = assembly ?? Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)); // TODO better cache
+            logEntries = logEntries ?? assembly.GetType("UnityEditor.LogEntries");
+            logEntry = logEntry ?? assembly.GetType("UnityEditor.LogEntry");
+            startGettingEntries = startGettingEntries ?? logEntries.GetMethod("StartGettingEntries");
+            endGettingEntries = endGettingEntries ?? logEntries.GetMethod("EndGettingEntries");
+            getEntryInternal = getEntryInternal ?? logEntries.GetMethod("GetEntryInternal");
+            int count = (int)logEntries.GetMethod("GetCount").Invoke(null, null);
+
+            startGettingEntries.Invoke(null, null);
+
+            for (int i = 0; i < count; i++)
+            {
+                object entry = Activator.CreateInstance(logEntry);
+                object[] objparameters = new object[] { i, entry };
+                bool result = (bool)getEntryInternal.Invoke(null, objparameters);
+                if (result)
+                {
+                    CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, logEntry);
+                    bool found = false;
+                    for(int j = 0; j < m_entries.Count; j++) // TODO index optimize
+                    {
+                        var consoleEntry = m_entries[j];
+                        if (CompareEntries(unityEntry, consoleEntry))
+                        {
+                            found = true;
+                            consoleEntry.firstAsset = unityEntry.file;
+                            consoleEntry.firstLine = unityEntry.line.ToString();
+                            consoleEntry.unityMode = unityEntry.mode;
+                            newConsoleEntries.Add(consoleEntry);
+                            break;
+                        }
+                    }
+                    //Debug.Assert(found);
+                    // TODO create? Do nothing?
+                }
+            }
+
+            endGettingEntries.Invoke(null, null);
+
+            //lock (m_entries)
+            {
+                m_entries.Clear();
+                m_entries.AddRange(newConsoleEntries);
+            }
         }
 
         private void Listener(string condition, string stackTrace, LogType type)
@@ -530,6 +671,12 @@ namespace ProperLogger
 
             if (m_entries.Count == 0) GUILayout.Space(10);
 
+            lock (m_entries)
+            {
+                SyncWithUnityEntries();
+            }
+            m_triggerFilteredEntryComputation = true; // TODO
+
             if (m_triggerFilteredEntryComputation)
             {
                 m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
@@ -690,6 +837,16 @@ namespace ProperLogger
                 for (int i = 0; i < 1000; i++)
                 {
                     Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+                }
+            }
+            if (GUILayout.Button("1000 syncs"))
+            {
+                lock (m_entriesLock)
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        SyncWithUnityEntries();
+                    }
                 }
             }
             #endregion Debug Buttons
