@@ -23,8 +23,8 @@ namespace ProperLogger
         public string stackTrace;
         public int count;
         public UnityEngine.Object context;
-        public string firstLine;
-        public string firstAsset;
+        public string assetLine;
+        public string assetPath;
         public List<LogCategory> categories;
         public string originalMessage;
         public string originalStackTrace;

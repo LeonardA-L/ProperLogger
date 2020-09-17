@@ -220,12 +220,13 @@ namespace ProperLogger
 
         private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
         {
-            if (!string.IsNullOrEmpty(entry.firstAsset))
+            // TODO use Unity's RowGotDoubleClicked when possible
+            if (!string.IsNullOrEmpty(entry.assetPath))
             {
-                var asset = AssetDatabase.LoadMainAssetAtPath(entry.firstAsset);
-                if (!string.IsNullOrEmpty(entry.firstLine))
+                var asset = AssetDatabase.LoadMainAssetAtPath(entry.assetPath);
+                if (!string.IsNullOrEmpty(entry.assetLine))
                 {
-                    AssetDatabase.OpenAsset(asset, int.Parse(entry.firstLine));
+                    AssetDatabase.OpenAsset(asset, int.Parse(entry.assetLine));
                 }
                 else
                 {
@@ -347,21 +348,51 @@ namespace ProperLogger
             return HasMode(mode, UnityLogMode.Log | UnityLogMode.ScriptingLog);
         }
 
+        private static UnityEngine.LogType GetLogTypeFromUnityMode(int unityMode)
+        {
+            if (HasMode(unityMode, UnityLogMode.Assert | UnityLogMode.ScriptingAssertion))
+            {
+                return LogType.Assert;
+            }
+            if (HasMode(unityMode, UnityLogMode.ScriptingException))
+            {
+                return LogType.Exception;
+            }
+            if (IsError(unityMode))
+            {
+                return LogType.Error;
+            }
+            if (IsWarning(unityMode))
+            {
+                return LogType.Warning;
+            }
+            return LogType.Log;
+        }
+
+        private static LogLevel GetLogLevelFromUnityMode(int unityMode)
+        {
+            if (HasMode(unityMode, UnityLogMode.Assert | UnityLogMode.ScriptingAssertion))
+            {
+                return LogLevel.Assert;
+            }
+            if (HasMode(unityMode, UnityLogMode.ScriptingException))
+            {
+                return LogLevel.Exception;
+            }
+            if (IsError(unityMode))
+            {
+                return LogLevel.Error;
+            }
+            if (IsWarning(unityMode))
+            {
+                return LogLevel.Warning;
+            }
+            return LogLevel.Log;
+        }
+
         private static bool CompareModes(int unityMode, LogLevel loglevel)
         {
-            if ((loglevel == LogLevel.Error || loglevel == LogLevel.Assert || loglevel == LogLevel.Exception) && IsError(unityMode))
-            {
-                return true;
-            }
-            if ((loglevel == LogLevel.Warning) && IsWarning(unityMode))
-            {
-                return true;
-            }
-            if ((loglevel == LogLevel.Log) && IsLog(unityMode))
-            {
-                return true;
-            }
-            return false;
+            return GetLogLevelFromUnityMode(unityMode) == loglevel;
         }
 
         private static bool HasMode(int mode, UnityLogMode modeToCheck) => ((UnityLogMode)mode & modeToCheck) != (UnityLogMode)0;
@@ -412,6 +443,7 @@ namespace ProperLogger
             return ret;
         }
 
+        // TODO I Probably don't even to listen to Unity's log handlers if I have this (but watch out for context objects)
         private void SyncWithUnityEntries()
         {
             List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
@@ -423,8 +455,9 @@ namespace ProperLogger
             getEntryInternal = getEntryInternal ?? logEntries.GetMethod("GetEntryInternal");
             int count = (int)logEntries.GetMethod("GetCount").Invoke(null, null);
 
-            startGettingEntries.Invoke(null, null);
+            List<int> foundEntries = new List<int>(); // TODO this is dirty. The goal is to make sure similar ConsoleEntries don't find the same (first) UnityEntry
 
+            startGettingEntries.Invoke(null, null);
             for (int i = 0; i < count; i++)
             {
                 object entry = Activator.CreateInstance(logEntry);
@@ -436,19 +469,31 @@ namespace ProperLogger
                     bool found = false;
                     for(int j = 0; j < m_entries.Count; j++) // TODO index optimize
                     {
+                        if (foundEntries.Contains(j))
+                        {
+                            continue;
+                        }
+
                         var consoleEntry = m_entries[j];
                         if (CompareEntries(unityEntry, consoleEntry))
                         {
                             found = true;
-                            consoleEntry.firstAsset = unityEntry.file;
-                            consoleEntry.firstLine = unityEntry.line.ToString();
+                            foundEntries.Add(j);
+                            consoleEntry.assetPath = unityEntry.file;
+                            consoleEntry.assetLine = unityEntry.line.ToString();
                             consoleEntry.unityMode = unityEntry.mode;
                             newConsoleEntries.Add(consoleEntry);
                             break;
                         }
                     }
                     //Debug.Assert(found);
-                    // TODO create? Do nothing?
+                    if (!found)
+                    {
+                        var consoleEntry = Listener(unityEntry.message, null, GetLogTypeFromUnityMode(unityEntry.mode), unityEntry.file, unityEntry.line.ToString());
+                        consoleEntry.unityMode = unityEntry.mode;
+                        consoleEntry.message = ParseStackTrace(consoleEntry.originalMessage, out _, out _);
+                        newConsoleEntries.Add(consoleEntry);
+                    }
                 }
             }
 
@@ -463,6 +508,12 @@ namespace ProperLogger
 
         private void Listener(string condition, string stackTrace, LogType type)
         {
+            Listener(condition, stackTrace, type, null, null);
+        }
+
+        private ConsoleLogEntry Listener(string condition, string stackTrace, LogType type, string assetPath, string assetLine)
+        {
+            ConsoleLogEntry newConsoleEntry = null;
             lock (m_entriesLock)
             {
                 UnityEngine.Object context = null;
@@ -496,8 +547,11 @@ namespace ProperLogger
                 }
 
                 var now = DateTime.Now;
-                string newStackTrace = ParseStackTrace(stackTrace, out string firstAsset, out string firstLine);
-                m_entries.Add(new ConsoleLogEntry()
+                string tempAssetPath = null;
+                string tempAssetLine = null;
+                string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
+
+                newConsoleEntry = new ConsoleLogEntry()
                 {
                     date = now.Ticks,
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
@@ -507,12 +561,14 @@ namespace ProperLogger
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
-                    firstAsset = firstAsset,
-                    firstLine = firstLine,
+                    assetPath = string.IsNullOrEmpty(assetPath) ? tempAssetPath : assetPath,
+                    assetLine = string.IsNullOrEmpty(assetLine) ? tempAssetLine : assetLine,
                     categories = categories,
                     originalMessage = condition,
                     originalStackTrace = stackTrace,
-                });
+                };
+
+                m_entries.Add(newConsoleEntry);
 
                 switch (type)
                 {
@@ -533,10 +589,13 @@ namespace ProperLogger
             m_triggerFilteredEntryComputation = true;
 
             this.Repaint();
-            if (m_configs.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying && m_configs.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
             {
                 Debug.Break();
             }
+#endif //UNITY_EDITOR
+            return newConsoleEntry;
         }
 
         public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
@@ -557,12 +616,17 @@ namespace ProperLogger
         {
             lock (m_entriesLock)
             {
-                m_logCounter = 0;
-                m_warningCounter = 0;
-                m_errorCounter = 0;
-                m_entries.Clear();
+                //m_logCounter = 0;
+                //m_warningCounter = 0;
+                //m_errorCounter = 0;
+                //m_entries.Clear();
                 m_pendingContexts.Clear();
                 m_selectedEntries.Clear();
+
+                var clearConsole = logEntries.GetMethod("Clear"); // TODO cache
+                clearConsole.Invoke(null, null); // TODO check if this works in game
+
+                SyncWithUnityEntries();
             }
             m_triggerFilteredEntryComputation = true;
         }
@@ -1319,8 +1383,8 @@ namespace ProperLogger
                         messageFirstLine = m_collapsedEntries[foundIdx].messageFirstLine,
                         categories = m_collapsedEntries[foundIdx].categories,
                         context = m_collapsedEntries[foundIdx].context,
-                        firstAsset = m_collapsedEntries[foundIdx].firstAsset,
-                        firstLine = m_collapsedEntries[foundIdx].firstLine,
+                        assetPath = m_collapsedEntries[foundIdx].assetPath,
+                        assetLine = m_collapsedEntries[foundIdx].assetLine,
                         originalStackTrace = m_collapsedEntries[foundIdx].originalStackTrace,
                         originalMessage = m_collapsedEntries[foundIdx].originalMessage,
                     };
