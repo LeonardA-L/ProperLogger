@@ -51,11 +51,6 @@ namespace ProperLogger
         private object m_entriesLock = null;
         private bool m_listening = false;
 
-        // This could be a dictionnary, but Dictionnaries are not Unity-serializable which causes problems when switching Modes
-        private int m_logCounter = 0;
-        private int m_warningCounter = 0;
-        private int m_errorCounter = 0;
-
         #region Filters
 
         private string m_searchString = null;
@@ -569,21 +564,6 @@ namespace ProperLogger
                 };
 
                 m_entries.Add(newConsoleEntry);
-
-                switch (type)
-                {
-                    case LogType.Log:
-                        m_logCounter++;
-                        break;
-                    case LogType.Warning:
-                        m_warningCounter++;
-                        break;
-                    case LogType.Error:
-                    case LogType.Exception:
-                    case LogType.Assert:
-                        m_errorCounter++;
-                        break;
-                }
             }
 
             m_triggerFilteredEntryComputation = true;
@@ -737,9 +717,9 @@ namespace ProperLogger
 
             lock (m_entries)
             {
-                SyncWithUnityEntries();
+                SyncWithUnityEntries(); // TODO Should we call this every time?
             }
-            m_triggerFilteredEntryComputation = true; // TODO
+            m_triggerFilteredEntryComputation = true; // TODO Temporary trigger every time
 
             if (m_triggerFilteredEntryComputation)
             {
@@ -1034,10 +1014,12 @@ namespace ProperLogger
             }
             if (Event.current.type == EventType.Repaint) m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
 
+            GetCounters(m_displayedEntries, out int logCounter, out int warnCounter, out int errCounter);
+
             // Log Level Flags
-            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray);
-            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray);
-            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray);
+            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray, logCounter);
+            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray, warnCounter);
+            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray, errCounter);
 
             GUILayout.EndHorizontal();
         }
@@ -1300,11 +1282,10 @@ namespace ProperLogger
             EditorGUI.SelectableLabel(new Rect(0,0,0,0), "");
         }
 
-        private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray)
+        private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
-            int counter = GetCounter(level);
-
+            sdfsdf
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : counter.ToString())}", (counter > 0 ? icon : iconGray)),
                 (GUIStyle)"ToolbarButton"
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
@@ -1416,12 +1397,28 @@ namespace ProperLogger
             }
         }
 
-        private int GetCounter(LogLevel level)
+        private void GetCounters(List<ConsoleLogEntry> entries, out int logCounter, out int warnCounter, out int errCounter)
         {
-            if (level.HasFlag(LogLevel.Log)) { return m_logCounter; }
-            if (level.HasFlag(LogLevel.Warning)) { return m_warningCounter; }
-            return m_errorCounter;
+            logCounter = warnCounter = errCounter = 0;
+            foreach (var entry in entries)
+            {
+                switch (entry.level)
+                {
+                    case LogLevel.Log:
+                        logCounter++;
+                        break;
+                    case LogLevel.Warning:
+                        warnCounter++;
+                        break;
+                    case LogLevel.Error:
+                    case LogLevel.Exception:
+                    case LogLevel.Assert:
+                        errCounter++;
+                        break;
+                }
+            }
         }
+
         private Texture GetEntryIcon(ConsoleLogEntry entry)
         {
             if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
