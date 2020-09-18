@@ -1285,7 +1285,6 @@ namespace ProperLogger
         private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
-            sdfsdf
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : counter.ToString())}", (counter > 0 ? icon : iconGray)),
                 (GUIStyle)"ToolbarButton"
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
@@ -1399,6 +1398,13 @@ namespace ProperLogger
 
         private void GetCounters(List<ConsoleLogEntry> entries, out int logCounter, out int warnCounter, out int errCounter)
         {
+            if(entries == null || entries.Count == 0)
+            {
+                logCounter = 0;
+                warnCounter = 0;
+                errCounter = 0;
+                return;
+            }
             logCounter = warnCounter = errCounter = 0;
             foreach (var entry in entries)
             {
