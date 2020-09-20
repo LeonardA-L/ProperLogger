@@ -124,6 +124,10 @@ namespace ProperLogger
         private MethodInfo startGettingEntries = null;
         private MethodInfo endGettingEntries = null;
         private MethodInfo getEntryInternal = null;
+        private MethodInfo getCountsByType = null;
+        private MethodInfo getCount = null;
+        private MethodInfo rowGotDoubleClicked = null;
+        private MethodInfo clearEntries = null;
         private FieldInfo messageField = null;
         private FieldInfo fileField = null;
         private FieldInfo lineField = null;
@@ -137,10 +141,15 @@ namespace ProperLogger
         #endregion Members
 
         #region Properties
+
         private static ProperConsoleWindow m_instance = null;
         internal static ProperConsoleWindow Instance => m_instance;
         private Type LogEntries => logEntries ?? (logEntries = UnityAssembly.GetType("UnityEditor.LogEntries"));
         private Assembly UnityAssembly => assembly ?? (assembly = Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)));
+        private MethodInfo GetCountsByType => getCountsByType ?? (getCountsByType = LogEntries.GetMethod("GetCountsByType"));
+        private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod("GetCount"));
+        private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod("RowGotDoubleClicked"));
+        private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod("Clear"));
 
         #endregion Properties
 
@@ -224,11 +233,9 @@ namespace ProperLogger
         private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
         {
 #if UNITY_EDITOR
-            // TODO use Unity's RowGotDoubleClicked when possible
             if (entry.unityIndex >= 0)
             {
-                var rowGotDoubleClick = LogEntries.GetMethod("RowGotDoubleClicked"); // TODO cache
-                rowGotDoubleClick.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
+                RowGotDoubleClicked.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
                 return;
             }
 
@@ -455,7 +462,6 @@ namespace ProperLogger
             return ret;
         }
 
-        // TODO I Probably don't even to listen to Unity's log handlers if I have this (but watch out for context objects)
         private void SyncWithUnityEntries()
         {
             List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
@@ -463,7 +469,7 @@ namespace ProperLogger
             startGettingEntries = startGettingEntries ?? LogEntries.GetMethod("StartGettingEntries"); // TODO better caches
             endGettingEntries = endGettingEntries ?? LogEntries.GetMethod("EndGettingEntries"); // TODO better caches
             getEntryInternal = getEntryInternal ?? LogEntries.GetMethod("GetEntryInternal"); // TODO better caches
-            int count = (int)LogEntries.GetMethod("GetCount").Invoke(null, null); // TODO cache
+            int count = (int)GetCount.Invoke(null, null);
 
             List<int> foundEntries = new List<int>(); // TODO this is dirty. The goal is to make sure similar ConsoleEntries don't find the same (first) UnityEntry
 
@@ -624,8 +630,7 @@ namespace ProperLogger
                 m_pendingContexts.Clear();
                 m_selectedEntries.Clear();
 
-                var clearConsole = LogEntries.GetMethod("Clear"); // TODO cache
-                clearConsole.Invoke(null, null); // TODO check if this works in game
+                ClearEntries.Invoke(null, null); // TODO check if this works in game
 
                 SyncWithUnityEntries();
             }
@@ -1543,22 +1548,21 @@ namespace ProperLogger
         private void CheckForUnitySync()
         {
             int logLogRef = 0, warnLogRef = 0, errLogRef = 0;
-            object[] objparameters = new object[] { logLogRef, warnLogRef, errLogRef };
-            var countByType = LogEntries.GetMethod("GetCountsByType"); // TODO cache // TODO make sur logEntries is set
-            countByType.Invoke(null, objparameters); // TODO check if this works in game
+            object[] counters = new object[] { logLogRef, warnLogRef, errLogRef };
+            GetCountsByType.Invoke(null, counters); // TODO check if this works in game
 
-            int logLog  = (int)objparameters[0];
-            int warnLog = (int)objparameters[1];
-            int errLog  = (int)objparameters[2];
+            int logLog  = (int)counters[0];
+            int warnLog = (int)counters[1];
+            int errLog  = (int)counters[2];
 
             if (m_logLog != logLog || m_warnLog != warnLog || m_errLog != errLog)
             {
                 m_triggerSyncWithUnityComputation = true;
-            }
 
-            m_logLog  = logLog;
-            m_warnLog = warnLog;
-            m_errLog  = errLog;
+                m_logLog = logLog;
+                m_warnLog = warnLog;
+                m_errLog = errLog;
+            }
         }
 
         private void Update()
