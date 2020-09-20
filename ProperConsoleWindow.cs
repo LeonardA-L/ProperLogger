@@ -468,6 +468,7 @@ namespace ProperLogger
             List<int> foundEntries = new List<int>(); // TODO this is dirty. The goal is to make sure similar ConsoleEntries don't find the same (first) UnityEntry
 
             startGettingEntries.Invoke(null, null);
+            int firstIndex = 0;
             for (int i = 0; i < count; i++)
             {
                 object entry = Activator.CreateInstance(logEntry);
@@ -477,7 +478,7 @@ namespace ProperLogger
                 {
                     CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, logEntry);
                     bool found = false;
-                    for(int j = 0; j < m_entries.Count; j++) // TODO index optimize
+                    for(int j = firstIndex; j < m_entries.Count; j++) // TODO index optimize
                     {
                         if (foundEntries.Contains(j))
                         {
@@ -494,6 +495,10 @@ namespace ProperLogger
                             consoleEntry.unityMode = unityEntry.mode;
                             consoleEntry.unityIndex = i;
                             newConsoleEntries.Add(consoleEntry);
+                            if(j == firstIndex)
+                            {
+                                firstIndex++;
+                            }
                             break;
                         }
                     }
