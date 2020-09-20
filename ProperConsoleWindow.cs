@@ -145,12 +145,12 @@ namespace ProperLogger
 
         private static ProperConsoleWindow m_instance = null;
         internal static ProperConsoleWindow Instance => m_instance;
-        private Type LogEntries => logEntries ?? (logEntries = UnityAssembly.GetType("UnityEditor.LogEntries"));
+        private Type LogEntries => logEntries ?? (logEntries = UnityAssembly.GetType(Strings.LogEntries));
         private Assembly UnityAssembly => assembly ?? (assembly = Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)));
-        private MethodInfo GetCountsByType => getCountsByType ?? (getCountsByType = LogEntries.GetMethod("GetCountsByType"));
-        private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod("GetCount"));
-        private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod("RowGotDoubleClicked"));
-        private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod("Clear"));
+        private MethodInfo GetCountsByType => getCountsByType ?? (getCountsByType = LogEntries.GetMethod(Strings.GetCountsByType));
+        private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod(Strings.GetCount));
+        private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod(Strings.RowGotDoubleClicked));
+        private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod(Strings.Clear));
 
         private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
                                   + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
@@ -163,7 +163,6 @@ namespace ProperLogger
         [MenuItem("Leonard/Console")]
         static void Init()
         {
-            Debug.Log("Open window");
             // Get existing open window or if none, make a new one:
             if (ProperConsoleWindow.m_instance != null)
             {
@@ -193,7 +192,6 @@ namespace ProperLogger
 
         private void OnEnable()
         {
-            Debug.Log("OnEnable");
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
             m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
             m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
@@ -204,13 +202,13 @@ namespace ProperLogger
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
             LoadIcons();
+            ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle);
 
             m_needRegexRecompile = true;
         }
 
         private void OnDisable()
         {
-            Debug.Log("OnDisable");
             RemoveListener();
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
@@ -263,11 +261,11 @@ namespace ProperLogger
         {
             if (m_lastCLickIsDisplayList && m_selectedEntries != null && m_selectedEntries.Count > 0)
             {
-                if (Event.current.type == EventType.ValidateCommand && Event.current.commandName == "Copy")
+                if (Event.current.type == EventType.ValidateCommand && Event.current.commandName == Strings.CopyCommandName)
                 {
                     Event.current.Use();
                 }
-                else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == "Copy")
+                else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == Strings.CopyCommandName)
                 {
                     CopySelection();
                 }
@@ -283,12 +281,12 @@ namespace ProperLogger
 
         private void CopySelection()
         {
-            string result = "";
+            string result = string.Empty;
 
             foreach (var entry in m_selectedEntries)
             {
-                result += entry.originalMessage + "\n";
-                result += entry.originalStackTrace + "\n\n";
+                result += entry.originalMessage + Environment.NewLine;
+                result += entry.originalStackTrace + Environment.NewLine + Environment.NewLine;
             }
 
             GUIUtility.systemCopyBuffer = result;
@@ -470,10 +468,10 @@ namespace ProperLogger
         private void SyncWithUnityEntries()
         {
             List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
-            logEntry = logEntry ?? UnityAssembly.GetType("UnityEditor.LogEntry"); // TODO better caches
-            startGettingEntries = startGettingEntries ?? LogEntries.GetMethod("StartGettingEntries"); // TODO better caches
-            endGettingEntries = endGettingEntries ?? LogEntries.GetMethod("EndGettingEntries"); // TODO better caches
-            getEntryInternal = getEntryInternal ?? LogEntries.GetMethod("GetEntryInternal"); // TODO better caches
+            logEntry = logEntry ?? UnityAssembly.GetType(Strings.LogEntry); // TODO better caches
+            startGettingEntries = startGettingEntries ?? LogEntries.GetMethod(Strings.StartGettingEntries); // TODO better caches
+            endGettingEntries = endGettingEntries ?? LogEntries.GetMethod(Strings.EndGettingEntries); // TODO better caches
+            getEntryInternal = getEntryInternal ?? LogEntries.GetMethod(Strings.GetEntryInternal); // TODO better caches
             int count = (int)GetCount.Invoke(null, null);
 
             List<int> foundEntries = new List<int>(); // TODO this is dirty. The goal is to make sure similar ConsoleEntries don't find the same (first) UnityEntry
@@ -567,7 +565,7 @@ namespace ProperLogger
                             if(category.Name == match.Groups[1].Value && !categories.Contains(category))
                             {
                                 categories.Add(category);
-                                categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", "");
+                                categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", string.Empty);
                             }
                         }
                     }
@@ -662,7 +660,7 @@ namespace ProperLogger
             }
 
             // Text Search
-            string searchableText = (m_searchMessage ? e.message : "") + (m_configs.SearchInStackTrace ? e.stackTrace : "") + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : ""); // TODO opti
+            string searchableText = (m_searchMessage ? e.message : string.Empty) + (m_configs.SearchInStackTrace ? e.stackTrace : string.Empty) + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
             if (m_configs.RegexSearch)
             {
                 if(m_searchRegex != null)
@@ -846,13 +844,13 @@ namespace ProperLogger
                 GUILayout.Space(1);
                 float currentX = (GUILayoutUtility.GetLastRect()).xMin;
 
-                string categoriesString = "";
+                string categoriesString = string.Empty;
                 if (entry.categories != null && entry.categories.Count > 0)
                 {
                     if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
                     {
                         string format = "<color=#{1}>[{0}]</color> ";
-                        categoriesString = string.Join("", entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                        categoriesString = string.Join(string.Empty, entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                     }
                 }
 
@@ -884,7 +882,7 @@ namespace ProperLogger
             #region Debug Buttons
             if (GUILayout.Button("Log"))
             {
-                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}\nA\nB\nC\nD", Camera.main);
+                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}\r\nA\nB\nC\nD", Camera.main);
             }
 
             if (GUILayout.Button("Log Combat"))
@@ -997,26 +995,26 @@ namespace ProperLogger
 
         private void DisplayToolbar(ref bool callForRepaint)
         {
-            GUILayout.BeginHorizontal("Toolbar");
-            if (GUILayout.Button("Clear", "ToolbarButton", GUILayout.ExpandWidth(false)))
+            GUILayout.BeginHorizontal(Strings.Toolbar);
+            if (GUILayout.Button("Clear", Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
                 Clear();
                 GUIUtility.keyboardControl = 0;
             }
             bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, "Collapse", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, "Collapse", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_selectedEntries.Clear();
             }
-            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, "Clear on Build", "ToolbarButton", GUILayout.ExpandWidth(false));
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, "Error Pause", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, "Clear on Play", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, "Clear on Build", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, "Error Pause", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
-            m_searchString = GUILayout.TextField(m_searchString, "ToolbarSeachTextField");
+            m_searchString = GUILayout.TextField(m_searchString, Strings.ToolbarSeachTextField);
             if (lastSearchTerm != m_searchString)
             {
                 m_triggerFilteredEntryComputation = true;
@@ -1028,9 +1026,9 @@ namespace ProperLogger
                 m_searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
 
-            if(GUILayout.Button("Categories", "ToolbarButton", GUILayout.ExpandWidth(false)))
+            if(GUILayout.Button("Categories", Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
                 Vector2 dropdownOffset = new Vector2(10, 10);
                 Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
@@ -1042,7 +1040,6 @@ namespace ProperLogger
                     int categoriesCount = m_configs.CurrentCategoriesConfig.Categories == null ? 0 : m_configs.CurrentCategoriesConfig.Categories.Count;
                     size.y = (categoriesCount) * 20; // TODO put this somewhere in a style
                 }
-                Debug.Log("Open dropdown");
                 // Get existing open window or if none, make a new one:
                 var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
                 window.ShowAsDropDown(dropDownPosition, size);
@@ -1062,34 +1059,34 @@ namespace ProperLogger
 
         private void DisplaySearchToolbar()
         {
-            GUILayout.BeginHorizontal("Toolbar");
+            GUILayout.BeginHorizontal(Strings.Toolbar);
             bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, "Regex Search", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, "Regex Search", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if(lastRegexSearch != m_configs.RegexSearch)
             {
                 m_needRegexRecompile = true;
             }
             bool lastCaseSensitive = m_configs.CaseSensitive;
-            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, "Case Sensitive", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, "Case Sensitive", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastCaseSensitive != m_configs.CaseSensitive)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_needRegexRecompile = true;
             }
             bool lastSearchMessage = m_searchMessage;
-            m_searchMessage = GUILayout.Toggle(m_searchMessage, "Search in Log Message", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_searchMessage = GUILayout.Toggle(m_searchMessage, "Search in Log Message", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchMessage != m_searchMessage)
             {
                 m_triggerFilteredEntryComputation = true;
             }
             bool lastSearchObjectName = m_configs.SearchObjectName;
-            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, "Search in Object Name", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, "Search in Object Name", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchObjectName != m_configs.SearchObjectName)
             {
                 m_triggerFilteredEntryComputation = true;
             }
             bool lastSearchStackTRace = m_configs.SearchInStackTrace;
-            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, "Search in Stack Trace", "ToolbarButton", GUILayout.ExpandWidth(false));
+            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, "Search in Stack Trace", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchStackTRace != m_configs.SearchInStackTrace)
             {
                 m_triggerFilteredEntryComputation = true;
@@ -1100,8 +1097,8 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            GUIStyle currentStyle = m_skin.FindStyle("OddEntry");
-            GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
+            GUIStyle currentStyle = m_skin.FindStyle("OddEntry"); // TODO Cache styles
+            GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // TODO Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
 
             float imageSize = Math.Min(ItemHeight - (2 * 3), 40); // We clamp it in case we display 3+ lines
@@ -1126,8 +1123,9 @@ namespace ProperLogger
             categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
             categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - categoryNameStyle.fontSize);
             categoryNameStyle.fontStyle = FontStyle.Bold;
+            categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
 
-            string categoriesString = "";
+            string categoriesString = string.Empty;
 
             if (entry.categories != null && entry.categories.Count > 0)
             {
@@ -1143,7 +1141,7 @@ namespace ProperLogger
                 if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InMessage))
                 {
                     string format = "<color=#{1}>[{0}]</color> ";
-                    categoriesString = string.Join("", entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                    categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                 }
             }
 
@@ -1152,13 +1150,13 @@ namespace ProperLogger
             
             if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
             {
-                currentStyle = m_skin.FindStyle("SelectedEntry");
-                textStyle = m_skin.FindStyle("EntryLabelSelected"); // Cache styles
+                currentStyle = m_skin.FindStyle("SelectedEntry"); // TODO Cache styles
+                textStyle = m_skin.FindStyle("EntryLabelSelected"); // TODO Cache styles
                 categoryNameStyle.normal.textColor = textStyle.normal.textColor;
             }
             else if (idx % 2 == 0)
             {
-                currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
+                currentStyle = m_skin.FindStyle("EvenEntry"); // TODO Cache styles
             }
 
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
@@ -1175,7 +1173,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical();
                 {
                     textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
+                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{GetFirstLines(entry.messageLines, 0, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
                     textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
                     if (m_configs.LogEntryStackTraceLineCount > 0)
                     {
@@ -1185,7 +1183,11 @@ namespace ProperLogger
                         }
                         else if (!string.IsNullOrEmpty(entry.stackTrace))
                         {
-                            GUILayout.Label($"{GetFirstLines(entry.traceLines, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                            GUILayout.Label($"{GetFirstLines(entry.traceLines, 0, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                        }
+                        else
+                        {
+                            GUILayout.Label($"{GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, m_configs.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
                         }
                     }
                 }
@@ -1226,7 +1228,7 @@ namespace ProperLogger
                         GUI.color = category.Color;
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), "", boxStyle);
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, boxStyle);
                         GUILayout.Space(categoryStripWidth);
                         i++;
                     }
@@ -1311,22 +1313,22 @@ namespace ProperLogger
         private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
             float width = m_configs.InspectorOnTheRight ? m_splitterPosition : EditorGUIUtility.currentViewWidth;
-            var content = new GUIContent(text);
-            float height = textStyle.CalcHeight(content, width);
+            float height = textStyle.CalcHeight(new GUIContent(text), width);
             var lastRect = GUILayoutUtility.GetLastRect();
             EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, width, height), text, textStyle);
             GUILayout.Space(height);
         }
+
         private void EditorSelectableLabelInvisible()
         {
-            EditorGUI.SelectableLabel(new Rect(0,0,0,0), "");
+            EditorGUI.SelectableLabel(new Rect(0,0,0,0), string.Empty);
         }
 
         private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? "999+" : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                (GUIStyle)"ToolbarButton"
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
+                (GUIStyle)Strings.ToolbarButton
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
                 );
             if (hasFlag != newFlagValue)
@@ -1343,7 +1345,7 @@ namespace ProperLogger
             {
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
-                GUILayout.Box("",
+                GUILayout.Box(string.Empty,
                      GUILayout.Width(1),
                      GUILayout.MaxWidth(1),
                      GUILayout.MinWidth(1),
@@ -1355,7 +1357,7 @@ namespace ProperLogger
             {
                 GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
-                GUILayout.Box("",
+                GUILayout.Box(string.Empty,
                      GUILayout.Height(1),
                      GUILayout.MaxHeight(1),
                      GUILayout.MinHeight(1),
@@ -1477,22 +1479,21 @@ namespace ProperLogger
 
         #region Text Manipulation
 
-        private string GetFirstLines(string[] lines, int count, bool isCallStack)
+        private string GetFirstLines(string[] lines, int skip, int count, bool isCallStack)
         {
             if(lines == null)
             {
-                return "";
+                return string.Empty;
             }
             if (lines.Length == 0)
             {
-                return "";
+                return string.Empty;
             }
-            int skip = 0;
             if (isCallStack && lines.Length > 1)
             {
-                skip = 1;
+                skip += 1;
             }
-            return string.Join("\n", lines.Skip(skip).Take(count));
+            return string.Join(Environment.NewLine, lines.Skip(skip).Take(count));
         }
         private string[] GetLines(string text)
         {
@@ -1513,7 +1514,7 @@ namespace ProperLogger
 
             var split = stackTrace.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            string result = "";
+            string result = string.Empty;
 
             Regex scriptMatch = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
 
@@ -1533,7 +1534,7 @@ namespace ProperLogger
                     {
                         /*if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
                         {
-                            result = "";
+                            result = string.Empty;
                             continue;
                         }*/ // TODO uncomment
 
@@ -1547,7 +1548,7 @@ namespace ProperLogger
                     {
                         continue;
                     }
-                    result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + "\n";
+                    result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + Environment.NewLine;
 
                     if (string.IsNullOrEmpty(firstAsset))
                     {
@@ -1557,7 +1558,7 @@ namespace ProperLogger
                 }
                 else
                 {
-                    result += $"{split[i]}\n";
+                    result += split[i].ToString() + Environment.NewLine;
                 }
             }
 
