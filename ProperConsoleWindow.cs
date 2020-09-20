@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Linq;
+using System.IO;
 
 namespace ProperLogger
 {
@@ -1624,6 +1625,44 @@ namespace ProperLogger
         {
             //menu.AddItem(EditorGUIUtility.TrTextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
             menu.AddItem(EditorGUIUtility.TrTextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Export All Logs to File"), false, ExportAllToFile);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Export Filtered Logs to File"), false, ExportFilteredToFile);
+        }
+
+        private void ExportFilteredToFile()
+        {
+            ExportToFile(m_filteredEntries, "FilteredLog.txt");
+        }
+
+        private void ExportAllToFile()
+        {
+            ExportToFile(m_entries, "ConsoleLog");
+        }
+
+        private void ExportToFile(List<ConsoleLogEntry> list, string title)
+        {
+            var path = EditorUtility.SaveFilePanel(
+            "Save Logs",
+            "",
+            title,
+            "txt");
+
+            if (path.Length != 0 && list != null)
+            {
+                if(list.Count == 0)
+                {
+                    Debug.LogWarning("No entries to export.");
+                    return;
+                }
+                string result = string.Empty;
+
+                foreach (var entry in list)
+                {
+                    result += entry.originalMessage + Environment.NewLine;
+                    result += entry.originalStackTrace + Environment.NewLine + Environment.NewLine;
+                }
+                File.WriteAllBytes(path, System.Text.Encoding.ASCII.GetBytes(result));
+            }
         }
     }
 }
