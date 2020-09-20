@@ -18,9 +18,10 @@ namespace ProperLogger
         public long date;
         public string timestamp;
         public string message;
-        public string messageFirstLine;
+        public string[] messageLines;
         public LogLevel level;
         public string stackTrace;
+        public string[] traceLines;
         public int count;
         public UnityEngine.Object context;
         public string assetLine;

@@ -584,7 +584,8 @@ namespace ProperLogger
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
                     message = categoryLessMessage,
-                    messageFirstLine = GetFirstLine(categoryLessMessage, false),
+                    messageLines = GetLines(categoryLessMessage),
+                    traceLines = GetLines(newStackTrace),
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
@@ -883,7 +884,7 @@ namespace ProperLogger
             #region Debug Buttons
             if (GUILayout.Button("Log"))
             {
-                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}\nA\nB\nC\nD", Camera.main);
             }
 
             if (GUILayout.Button("Log Combat"))
@@ -1174,7 +1175,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical();
                 {
                     textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
+                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
                     textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
                     if (m_configs.LogEntryStackTraceLineCount > 0)
                     {
@@ -1184,7 +1185,7 @@ namespace ProperLogger
                         }
                         else if (!string.IsNullOrEmpty(entry.stackTrace))
                         {
-                            GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                            GUILayout.Label($"{GetFirstLines(entry.traceLines, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
                         }
                     }
                 }
@@ -1399,7 +1400,8 @@ namespace ProperLogger
                         level = m_collapsedEntries[foundIdx].level,
                         stackTrace = m_collapsedEntries[foundIdx].stackTrace,
                         timestamp = m_collapsedEntries[foundIdx].timestamp,
-                        messageFirstLine = m_collapsedEntries[foundIdx].messageFirstLine,
+                        messageLines = m_collapsedEntries[foundIdx].messageLines,
+                        traceLines = m_collapsedEntries[foundIdx].traceLines,
                         categories = m_collapsedEntries[foundIdx].categories,
                         context = m_collapsedEntries[foundIdx].context,
                         assetPath = m_collapsedEntries[foundIdx].assetPath,
@@ -1475,18 +1477,30 @@ namespace ProperLogger
 
         #region Text Manipulation
 
-        private string GetFirstLine(string text, bool isCallStack)
+        private string GetFirstLines(string[] lines, int count, bool isCallStack)
         {
-            var split = text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length == 0)
+            if(lines == null)
             {
                 return "";
             }
-            if (isCallStack && split.Length > 1)
+            if (lines.Length == 0)
             {
-                return split[1];
+                return "";
             }
-            return split[0];
+            int skip = 0;
+            if (isCallStack && lines.Length > 1)
+            {
+                skip = 1;
+            }
+            return string.Join("\n", lines.Skip(skip).Take(count));
+        }
+        private string[] GetLines(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
+            return text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
         private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
         {
