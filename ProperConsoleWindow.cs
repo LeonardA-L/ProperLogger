@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace ProperLogger
 {
-    internal class ProperConsoleWindow : EditorWindow
+    internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu
     {
         #region Members
         #region Consts
@@ -1092,6 +1092,12 @@ namespace ProperLogger
                 m_triggerFilteredEntryComputation = true;
             }
             GUILayout.FlexibleSpace();
+#if UNITY_EDITOR
+            if (GUILayout.Button("Plugin Settings"))
+            {
+                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
+            }
+#endif // UNITY_EDITOR
             GUILayout.EndHorizontal();
         }
 
@@ -1612,6 +1618,12 @@ namespace ProperLogger
                 }
             }
             // TODO code below will not execute if regex compilation failed
+        }
+
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            //menu.AddItem(EditorGUIUtility.TrTextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
         }
     }
 }

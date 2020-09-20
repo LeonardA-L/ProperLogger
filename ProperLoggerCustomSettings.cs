@@ -10,13 +10,26 @@ namespace ProperLogger
 {
     class ProperLoggerCustomSettingsProvider : SettingsProvider
     {
+        public static string s_pathToPreferences = "Preferences/Proper Logger";
+
         private ConfigsProvider m_configs = null;
         private GUIStyle m_subtitleStyle = null;
         private int m_currentSelectedTab = 0;
         private string m_defaultPath = "Assets/LogCategories.asset";
 
+        private static ProperLoggerCustomSettingsProvider m_instance = null;
+        public static ProperLoggerCustomSettingsProvider Instance => m_instance;
+
         public ProperLoggerCustomSettingsProvider(string path, SettingsScope scope = SettingsScope.User)
-            : base(path, scope) { }
+            : base(path, scope)
+        {
+            m_instance = this;
+        }
+
+        public void SetCurrentSelectedTab(int idx)
+        {
+            m_currentSelectedTab = idx;
+        }
 
         public override void OnGUI(string searchContext)
         {
@@ -206,7 +219,7 @@ namespace ProperLogger
         [SettingsProvider]
         public static SettingsProvider CreateMyCustomSettingsProvider()
         {
-            var provider = new ProperLoggerCustomSettingsProvider("Preferences/Proper Logger", SettingsScope.User);
+            var provider = new ProperLoggerCustomSettingsProvider(s_pathToPreferences, SettingsScope.User);
 
             // Automatically extract all keywords from the Styles.
             //provider.keywords = GetSearchKeywordsFromGUIContentProperties<Styles>();
