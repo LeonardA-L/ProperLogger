@@ -29,6 +29,7 @@ namespace ProperLogger
         public string originalMessage;
         public string originalStackTrace;
         public int unityMode;
+        public int unityIndex = -1;
     }
 
     public class CustomLogEntry

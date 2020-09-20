@@ -215,7 +215,15 @@ namespace ProperLogger
 
         private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
         {
+#if UNITY_EDITOR
             // TODO use Unity's RowGotDoubleClicked when possible
+            if (entry.unityIndex >= 0)
+            {
+                var rowGotDoubleClick = logEntries.GetMethod("RowGotDoubleClicked"); // TODO cache // TODO make sur logEntries is set
+                rowGotDoubleClick.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
+                return;
+            }
+
             if (!string.IsNullOrEmpty(entry.assetPath))
             {
                 var asset = AssetDatabase.LoadMainAssetAtPath(entry.assetPath);
@@ -228,6 +236,7 @@ namespace ProperLogger
                     AssetDatabase.OpenAsset(asset);
                 }
             }
+#endif // UNITY_EDITOR
         }
 
         public void HandleCopyToClipboard()
@@ -477,6 +486,7 @@ namespace ProperLogger
                             consoleEntry.assetPath = unityEntry.file;
                             consoleEntry.assetLine = unityEntry.line.ToString();
                             consoleEntry.unityMode = unityEntry.mode;
+                            consoleEntry.unityIndex = i;
                             newConsoleEntries.Add(consoleEntry);
                             break;
                         }
@@ -603,7 +613,7 @@ namespace ProperLogger
                 m_pendingContexts.Clear();
                 m_selectedEntries.Clear();
 
-                var clearConsole = logEntries.GetMethod("Clear"); // TODO cache
+                var clearConsole = logEntries.GetMethod("Clear"); // TODO cache // TODO make sur logEntries is set
                 clearConsole.Invoke(null, null); // TODO check if this works in game
 
                 SyncWithUnityEntries();
@@ -1367,6 +1377,8 @@ namespace ProperLogger
                         assetLine = m_collapsedEntries[foundIdx].assetLine,
                         originalStackTrace = m_collapsedEntries[foundIdx].originalStackTrace,
                         originalMessage = m_collapsedEntries[foundIdx].originalMessage,
+                        unityIndex = m_collapsedEntries[foundIdx].unityIndex,
+                        unityMode = m_collapsedEntries[foundIdx].unityMode,
                     };
                 }
                 else
