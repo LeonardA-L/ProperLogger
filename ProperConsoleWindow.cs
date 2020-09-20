@@ -46,6 +46,7 @@ namespace ProperLogger
         private List<ConsoleLogEntry> m_collapsedEntries = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
         private bool m_triggerFilteredEntryComputation = false;
+        private bool m_triggerSyncWithUnityComputation = false;
         private CustomLogHandler m_logHandler = null;
         private List<PendingContext> m_pendingContexts = null;
         private object m_entriesLock = null;
@@ -128,12 +129,19 @@ namespace ProperLogger
         private FieldInfo lineField = null;
         private FieldInfo modeField = null;
 
+        private int m_logLog = 0;
+        private int m_warnLog = 0;
+        private int m_errLog = 0;
+
         #endregion Caches
         #endregion Members
 
         #region Properties
         private static ProperConsoleWindow m_instance = null;
         internal static ProperConsoleWindow Instance => m_instance;
+        private Type LogEntries => logEntries ?? (logEntries = UnityAssembly.GetType("UnityEditor.LogEntries"));
+        private Assembly UnityAssembly => assembly ?? (assembly = Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)));
+
         #endregion Properties
 
         #region Editor Window
@@ -219,7 +227,7 @@ namespace ProperLogger
             // TODO use Unity's RowGotDoubleClicked when possible
             if (entry.unityIndex >= 0)
             {
-                var rowGotDoubleClick = logEntries.GetMethod("RowGotDoubleClicked"); // TODO cache // TODO make sur logEntries is set
+                var rowGotDoubleClick = LogEntries.GetMethod("RowGotDoubleClicked"); // TODO cache
                 rowGotDoubleClick.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
                 return;
             }
@@ -451,13 +459,11 @@ namespace ProperLogger
         private void SyncWithUnityEntries()
         {
             List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
-            assembly = assembly ?? Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)); // TODO better cache
-            logEntries = logEntries ?? assembly.GetType("UnityEditor.LogEntries");
-            logEntry = logEntry ?? assembly.GetType("UnityEditor.LogEntry");
-            startGettingEntries = startGettingEntries ?? logEntries.GetMethod("StartGettingEntries");
-            endGettingEntries = endGettingEntries ?? logEntries.GetMethod("EndGettingEntries");
-            getEntryInternal = getEntryInternal ?? logEntries.GetMethod("GetEntryInternal");
-            int count = (int)logEntries.GetMethod("GetCount").Invoke(null, null);
+            logEntry = logEntry ?? UnityAssembly.GetType("UnityEditor.LogEntry"); // TODO better caches
+            startGettingEntries = startGettingEntries ?? LogEntries.GetMethod("StartGettingEntries"); // TODO better caches
+            endGettingEntries = endGettingEntries ?? LogEntries.GetMethod("EndGettingEntries"); // TODO better caches
+            getEntryInternal = getEntryInternal ?? LogEntries.GetMethod("GetEntryInternal"); // TODO better caches
+            int count = (int)LogEntries.GetMethod("GetCount").Invoke(null, null); // TODO cache
 
             List<int> foundEntries = new List<int>(); // TODO this is dirty. The goal is to make sure similar ConsoleEntries don't find the same (first) UnityEntry
 
@@ -613,7 +619,7 @@ namespace ProperLogger
                 m_pendingContexts.Clear();
                 m_selectedEntries.Clear();
 
-                var clearConsole = logEntries.GetMethod("Clear"); // TODO cache // TODO make sur logEntries is set
+                var clearConsole = LogEntries.GetMethod("Clear"); // TODO cache
                 clearConsole.Invoke(null, null); // TODO check if this works in game
 
                 SyncWithUnityEntries();
@@ -725,11 +731,15 @@ namespace ProperLogger
 
             if (m_entries.Count == 0) GUILayout.Space(10);
 
-            lock (m_entries)
+            if (m_triggerSyncWithUnityComputation)
             {
-                SyncWithUnityEntries(); // TODO Should we call this every time?
+                lock (m_entries)
+                {
+                    SyncWithUnityEntries(); // TODO Should we call this every time?
+                }
+                m_triggerFilteredEntryComputation = true; // TODO Temporary trigger every time
+                m_triggerSyncWithUnityComputation = false;
             }
-            m_triggerFilteredEntryComputation = true; // TODO Temporary trigger every time
 
             if (m_triggerFilteredEntryComputation)
             {
@@ -1525,8 +1535,31 @@ namespace ProperLogger
 
         #endregion Utilities
 
+        private void CheckForUnitySync()
+        {
+            int logLogRef = 0, warnLogRef = 0, errLogRef = 0;
+            object[] objparameters = new object[] { logLogRef, warnLogRef, errLogRef };
+            var countByType = LogEntries.GetMethod("GetCountsByType"); // TODO cache // TODO make sur logEntries is set
+            countByType.Invoke(null, objparameters); // TODO check if this works in game
+
+            int logLog  = (int)objparameters[0];
+            int warnLog = (int)objparameters[1];
+            int errLog  = (int)objparameters[2];
+
+            if (m_logLog != logLog || m_warnLog != warnLog || m_errLog != errLog)
+            {
+                m_triggerSyncWithUnityComputation = true;
+            }
+
+            m_logLog  = logLog;
+            m_warnLog = warnLog;
+            m_errLog  = errLog;
+        }
+
         private void Update()
         {
+            CheckForUnitySync();
+
             if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
                 m_searchRegex = null;
