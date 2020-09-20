@@ -155,6 +155,32 @@ namespace ProperLogger
             return null;
         }
 
+        internal int LogEntryMessageLineCount
+        {
+            get
+            {
+                return GetInt("ProperConsole.LogEntryMessageLineCount", 1);
+            }
+            set
+            {
+                SetInt("ProperConsole.LogEntryMessageLineCount", value);
+                Save();
+            }
+        }
+
+        internal int LogEntryStackTraceLineCount
+        {
+            get
+            {
+                return GetInt("ProperConsole.LogEntryStackTraceLineCount", 1);
+            }
+            set
+            {
+                SetInt("ProperConsole.LogEntryStackTraceLineCount", value);
+                Save();
+            }
+        }
+
         internal int LogEntryMessageFontSize
         {
             get

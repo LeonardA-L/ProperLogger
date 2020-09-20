@@ -125,16 +125,32 @@ namespace ProperLogger
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Log Entry First Line Font Size");
-            m_configs.LogEntryMessageFontSize = EditorGUILayout.IntField(m_configs.LogEntryMessageFontSize);
+            EditorGUILayout.PrefixLabel("Log Entry Message Font Size");
+            m_configs.LogEntryMessageFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryMessageFontSize, 8, 20);
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Log Entry Second Line Font Size");
-            m_configs.LogEntryStackTraceFontSize = EditorGUILayout.IntField(m_configs.LogEntryStackTraceFontSize);
+            EditorGUILayout.PrefixLabel("Log Entry Message Line Count");
+            m_configs.LogEntryMessageLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryMessageLineCount, 1, 5);
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Log Entry Stack Trace Font Size");
+            m_configs.LogEntryStackTraceFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceFontSize, 8, 20);
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Log Entry Stack Trace Line Count");
+            m_configs.LogEntryStackTraceLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceLineCount, 0, 5);
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+
+            m_configs.ShowContextNameInsteadOfStack = EditorGUILayout.Toggle("Show name of context object in log list", m_configs.ShowContextNameInsteadOfStack);
+            EditorGUILayout.LabelField("If applicable, will show the name of the\ncontext objectin the log list, instead of\nthe first line of the stack trace", m_subtitleStyle);
+            GUILayout.Space(28);
 
             GUILayout.Label("Log Inspector", EditorStyles.boldLabel);
             GUILayout.Space(10);
@@ -184,9 +200,6 @@ namespace ProperLogger
             GUILayout.Space(10);
             m_configs.CopyOnSelect = EditorGUILayout.Toggle("Copy on Select", m_configs.CopyOnSelect);
             EditorGUILayout.LabelField("Selecting a log will automatically copy\nits content to your clipboard", m_subtitleStyle);
-            GUILayout.Space(12);
-            m_configs.ShowContextNameInsteadOfStack = EditorGUILayout.Toggle("Show name of context object in log list", m_configs.ShowContextNameInsteadOfStack);
-            EditorGUILayout.LabelField("If applicable, will show the name of the\ncontext objectin the log list, instead of\nthe first line of the stack trace", m_subtitleStyle);
             GUILayout.Space(12);
         }
 

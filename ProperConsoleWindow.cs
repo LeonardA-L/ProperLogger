@@ -22,6 +22,7 @@ namespace ProperLogger
         [NonSerialized]
         private float m_regexCompileDebounce = 200 * 10000;
 
+        [NonSerialized]
         float m_itemHeight = 40;
 
         #endregion Consts
@@ -150,6 +151,10 @@ namespace ProperLogger
         private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod("GetCount"));
         private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod("RowGotDoubleClicked"));
         private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod("Clear"));
+
+        private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
+                                  + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
+                                  + 8; // padding
 
         #endregion Properties
 
@@ -484,7 +489,7 @@ namespace ProperLogger
                 {
                     CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, logEntry);
                     bool found = false;
-                    for(int j = firstIndex; j < m_entries.Count; j++) // TODO index optimize
+                    for(int j = firstIndex; j < m_entries.Count; j++)
                     {
                         if (foundEntries.Contains(j))
                         {
@@ -745,9 +750,9 @@ namespace ProperLogger
             {
                 lock (m_entries)
                 {
-                    SyncWithUnityEntries(); // TODO Should we call this every time?
+                    SyncWithUnityEntries();
                 }
-                m_triggerFilteredEntryComputation = true; // TODO Temporary trigger every time
+                m_triggerFilteredEntryComputation = true;
                 m_triggerSyncWithUnityComputation = false;
             }
 
@@ -968,9 +973,9 @@ namespace ProperLogger
             // Only display elements that are in view
             if (m_outerScrollableHeight + 100 <= m_innerScrollableHeight)
             {
-                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / m_itemHeight) - 1, 0, filteredEntries.Count);
-                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / m_itemHeight) + 1, 0, filteredEntries.Count);
-                GUILayout.Space(firstVisibleIdx * m_itemHeight);
+                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / ItemHeight) - 1, 0, filteredEntries.Count);
+                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / ItemHeight) + 1, 0, filteredEntries.Count);
+                GUILayout.Space(firstVisibleIdx * ItemHeight);
                 startI = firstVisibleIdx;
                 endI = lastVisibleIdx;
             }
@@ -982,7 +987,7 @@ namespace ProperLogger
 
             if (lastVisibleIdx != 0)
             {
-                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * m_itemHeight);
+                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * ItemHeight);
             }
             displayedEntries = filteredEntries;
         }
@@ -1098,7 +1103,8 @@ namespace ProperLogger
             GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // Cache styles
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
 
-            float imageSize = 35;
+            float imageSize = Math.Min(ItemHeight - (2 * 3), 40); // We clamp it in case we display 3+ lines
+            imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
             float empiricalPaddings = 30 + sidePaddings;
@@ -1117,7 +1123,7 @@ namespace ProperLogger
             GUIStyle categoryNameStyle = new GUIStyle(textStyle);
             categoryNameStyle.alignment = TextAnchor.MiddleCenter;
             categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            categoryNameStyle.padding.top = (int)((m_itemHeight / 2f) - categoryNameStyle.fontSize);
+            categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - categoryNameStyle.fontSize);
             categoryNameStyle.fontStyle = FontStyle.Bold;
 
             string categoriesString = "";
@@ -1154,7 +1160,7 @@ namespace ProperLogger
                 currentStyle = m_skin.FindStyle("EvenEntry"); // Cache styles
             }
 
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(m_itemHeight));
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
             {
                 //GUI.color = saveColor;
                 // Picto space
@@ -1170,13 +1176,16 @@ namespace ProperLogger
                     textStyle.fontSize = m_configs.LogEntryMessageFontSize;
                     GUILayout.Label($"[{entry.timestamp}] {categoriesString}{entry.messageFirstLine}", textStyle, GUILayout.Width(entrywidth));
                     textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-                    if (m_configs.ShowContextNameInsteadOfStack && entry.context != null)
+                    if (m_configs.LogEntryStackTraceLineCount > 0)
                     {
-                        GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
-                    }
-                    else if (!string.IsNullOrEmpty(entry.stackTrace))
-                    {
-                        GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                        if (m_configs.ShowContextNameInsteadOfStack && entry.context != null)
+                        {
+                            GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
+                        }
+                        else if (!string.IsNullOrEmpty(entry.stackTrace))
+                        {
+                            GUILayout.Label($"{GetFirstLine(entry.stackTrace, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                        }
                     }
                 }
                 GUILayout.EndVertical();
@@ -1216,7 +1225,7 @@ namespace ProperLogger
                         GUI.color = category.Color;
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, m_itemHeight), "", boxStyle);
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), "", boxStyle);
                         GUILayout.Space(categoryStripWidth);
                         i++;
                     }
