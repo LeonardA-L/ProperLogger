@@ -97,6 +97,8 @@ namespace ProperLogger
         private static Texture2D m_iconWarningGray;
         private static Texture2D m_iconErrorGray;
 
+        private static Texture2D m_iconConsole;
+
         #endregion Loaded Textures
 
         #region Caches
@@ -203,7 +205,7 @@ namespace ProperLogger
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
             LoadIcons();
-            ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle);
+            ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, m_iconConsole);
 
             m_needRegexRecompile = true;
         }
@@ -232,6 +234,8 @@ namespace ProperLogger
             m_iconInfoGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon.inactive.sml" });
             m_iconWarningGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon.inactive.sml" });
             m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
+
+            m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
         }
 
         private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
@@ -859,7 +863,13 @@ namespace ProperLogger
                                                                            //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
                 if (entry.context != null)
                 {
+                    Color txtColor = textStyle.normal.textColor;
+                    if (!m_configs.ObjectNameColor.Equals(txtColor))
+                    {
+                        textStyle.normal.textColor = m_configs.ObjectNameColor;
+                    }
                     EditorSelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
+                    textStyle.normal.textColor = txtColor;
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
@@ -1015,6 +1025,7 @@ namespace ProperLogger
             m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, "Error Pause", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
+            
             m_searchString = GUILayout.TextField(m_searchString, Strings.ToolbarSeachTextField);
             if (lastSearchTerm != m_searchString)
             {
@@ -1028,19 +1039,28 @@ namespace ProperLogger
             }
 
             m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, "S", Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            Rect dropdownRect = GUILayoutUtility.GetLastRect();
 
-            if(GUILayout.Button("Categories", Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button("Categories", Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
-                Vector2 dropdownOffset = new Vector2(10, 10);
-                Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
+                Vector2 dropdownOffset = new Vector2(40, 23);
+                //Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
+                Rect dropDownPosition = new Rect(dropdownRect.x + this.position.x, dropdownRect.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
 
                 var categoriesAsset = m_configs.CurrentCategoriesConfig;
                 Vector2 size = new Vector2(250, 150);
                 if (categoriesAsset != null)
                 {
-                    int categoriesCount = m_configs.CurrentCategoriesConfig.Categories == null ? 0 : m_configs.CurrentCategoriesConfig.Categories.Count;
-                    size.y = (categoriesCount) * 20; // TODO put this somewhere in a style
+                    if (m_configs.CurrentCategoriesConfig.Categories == null || m_configs.CurrentCategoriesConfig.Categories.Count == 0)
+                    {
+                        size.y = 30;
+                    }
+                    else
+                    {
+                        size.y = (m_configs.CurrentCategoriesConfig.Categories.Count) * 20; // TODO put this somewhere in a style
+                    }
                 }
+                size.y += 25;
                 // Get existing open window or if none, make a new one:
                 var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
                 window.ShowAsDropDown(dropDownPosition, size);

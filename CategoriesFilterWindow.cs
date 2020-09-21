@@ -6,6 +6,8 @@ namespace ProperLogger
 {
     public class CategoriesFilterWindow : EditorWindow
     {
+        [SerializeField]
+        private GUISkin m_skin = null;
         private ConfigsProvider m_configs = null;
 
         void OnGUI()
@@ -14,7 +16,10 @@ namespace ProperLogger
 
             if(m_configs.CurrentCategoriesConfig == null)
             {
-                GUILayout.Label("No categories asset have been configured.\nPlease open the preference window to setup categories."); // TODO style
+                GUILayout.Label("No categories asset have been configured.\nPlease open the preference window\nto setup categories."); // TODO style
+
+                GUILayout.Space(15);
+
                 if (GUILayout.Button("Open Categories Settings"))
                 {
                     SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
@@ -29,20 +34,17 @@ namespace ProperLogger
                 if(m_configs.CurrentCategoriesConfig.Categories == null || m_configs.CurrentCategoriesConfig.Categories.Count == 0)
                 {
                     GUILayout.Label("No categories found.");
-                    if (GUILayout.Button("Open Categories Settings"))
-                    {
-                        Selection.activeObject = m_configs.CurrentCategoriesConfig;
-                    }
                 }
                 else
                 {
+                    Color defaultColor = GUI.color;
                     var inactiveCategories = m_configs.InactiveCategories;
                     foreach (var category in m_configs.CurrentCategoriesConfig.Categories)
                     {
                         bool lastActive = !inactiveCategories.Contains(category);
+                        GUI.color = Color.Lerp(category.Color, defaultColor, m_configs.CategoryNameColorize);
                         bool isActive = GUILayout.Toggle(lastActive, category.Name);
-
-                        if(isActive != lastActive)
+                        if (isActive != lastActive)
                         {
                             if (isActive)
                             {
@@ -59,6 +61,14 @@ namespace ProperLogger
                             }
                         }
                     }
+                    GUI.color = defaultColor;
+                }
+
+                GUILayout.Space(10);
+
+                if (GUILayout.Button("Open Categories Settings"))
+                {
+                    Selection.activeObject = m_configs.CurrentCategoriesConfig;
                 }
             }
         }
