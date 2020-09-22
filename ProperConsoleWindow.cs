@@ -40,6 +40,7 @@ namespace ProperLogger
 
         private bool m_needRegexRecompile = false; // TODO find region
         private DateTime m_lastRegexRecompile;
+        private bool m_callForRepaint = false;
 
         #region Logs
 
@@ -707,13 +708,13 @@ namespace ProperLogger
             HandleCopyToClipboard();
             EditorSelectableLabelInvisible();
 
-            bool callForRepaint = false;
+            m_callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
             m_inactiveCategories?.Clear();
             m_inactiveCategories = m_configs.InactiveCategories;
 
-            DisplayToolbar(ref callForRepaint);
+            DisplayToolbar(ref m_callForRepaint);
 
             if (m_configs.AdvancedSearchToolbar)
             {
@@ -967,11 +968,6 @@ namespace ProperLogger
                         }
                         break;
                 }
-            }
-
-            if (callForRepaint)
-            {
-                Repaint();
             }
         }
 
@@ -1619,6 +1615,11 @@ namespace ProperLogger
         private void Update()
         {
             CheckForUnitySync();
+
+            if (m_callForRepaint)
+            {
+                Repaint();
+            }
 
             if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
