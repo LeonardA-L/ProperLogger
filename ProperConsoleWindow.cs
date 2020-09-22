@@ -665,7 +665,7 @@ namespace ProperLogger
             }
 
             // Text Search
-            string searchableText = (m_searchMessage ? e.message : string.Empty) + (m_configs.SearchInStackTrace ? e.stackTrace : string.Empty) + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
+            string searchableText = (m_searchMessage ? e.originalMessage : string.Empty) + (m_configs.SearchInStackTrace ? e.stackTrace : string.Empty) + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
             if (m_configs.RegexSearch)
             {
                 if(m_searchRegex != null)
