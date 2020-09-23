@@ -265,7 +265,7 @@ namespace ProperLogger
             m_clearOnBuildButtonContent = new GUIContent("Clear on Build");
             m_errorPauseButtonContent = new GUIContent("Error Pause");
 
-            m_advancedSearchButtonContent = new GUIContent("S");
+            m_advancedSearchButtonContent = new GUIContent("S", null, "Advanced Search");
             m_categoriesButtonContent = new GUIContent("Categories");
             m_regexSearchButtonContent = new GUIContent("Regex Search");
             m_caseSensitiveButtonContent = new GUIContent("Case Sensitive");
@@ -1458,7 +1458,7 @@ namespace ProperLogger
                 int foundIdx = 0;
                 for (int j = 0; j < m_collapsedEntries.Count; j++)
                 {
-                    if (m_collapsedEntries[j].message == filteredEntries[i].message)
+                    if (m_collapsedEntries[j].originalMessage == filteredEntries[i].originalMessage)
                     {
                         foundIdx = j;
                         found = true;
