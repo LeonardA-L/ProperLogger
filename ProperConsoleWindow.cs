@@ -340,8 +340,7 @@ namespace ProperLogger
 
             foreach (var entry in m_selectedEntries)
             {
-                result += entry.originalMessage + Environment.NewLine;
-                result += entry.originalStackTrace + Environment.NewLine + Environment.NewLine;
+                result += entry.GetExportString() + Environment.NewLine + Environment.NewLine;
             }
 
             GUIUtility.systemCopyBuffer = result;
@@ -1567,6 +1566,7 @@ namespace ProperLogger
             }
             return string.Join(Environment.NewLine, lines.Skip(skip).Take(count));
         }
+
         private string[] GetLines(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -1575,6 +1575,7 @@ namespace ProperLogger
             }
             return text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
+
         private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
         {
             firstAsset = null;
@@ -1728,8 +1729,7 @@ namespace ProperLogger
 
                 foreach (var entry in list)
                 {
-                    result += entry.originalMessage + Environment.NewLine;
-                    result += entry.originalStackTrace + Environment.NewLine + Environment.NewLine;
+                    result += entry.GetExportString() + Environment.NewLine + Environment.NewLine;
                 }
                 File.WriteAllBytes(path, System.Text.Encoding.ASCII.GetBytes(result));
             }

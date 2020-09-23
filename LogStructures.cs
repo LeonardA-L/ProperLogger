@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProperLogger
@@ -31,6 +32,11 @@ namespace ProperLogger
         public string originalStackTrace;
         public int unityMode;
         public int unityIndex = -1;
+
+        internal string GetExportString()
+        {
+            return originalMessage + Environment.NewLine + originalStackTrace;
+        }
     }
 
     internal class CustomLogEntry
