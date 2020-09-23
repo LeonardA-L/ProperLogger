@@ -8,9 +8,9 @@ using UnityEngine.UIElements;
 
 namespace ProperLogger
 {
-    class ProperLoggerCustomSettingsProvider : SettingsProvider
+    internal class ProperLoggerCustomSettingsProvider : SettingsProvider
     {
-        public static string s_pathToPreferences = "Preferences/Proper Logger";
+        internal static string s_pathToPreferences = "Preferences/Proper Logger";
 
         private ConfigsProvider m_configs = null;
         private GUIStyle m_subtitleStyle = null;
@@ -18,15 +18,15 @@ namespace ProperLogger
         private string m_defaultPath = "Assets/LogCategories.asset";
 
         private static ProperLoggerCustomSettingsProvider m_instance = null;
-        public static ProperLoggerCustomSettingsProvider Instance => m_instance;
+        internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
 
-        public ProperLoggerCustomSettingsProvider(string path, SettingsScope scope = SettingsScope.User)
+        internal ProperLoggerCustomSettingsProvider(string path, SettingsScope scope = SettingsScope.User)
             : base(path, scope)
         {
             m_instance = this;
         }
 
-        public void SetCurrentSelectedTab(int idx)
+        internal void SetCurrentSelectedTab(int idx)
         {
             m_currentSelectedTab = idx;
         }
@@ -217,7 +217,7 @@ namespace ProperLogger
         }
 
         [SettingsProvider]
-        public static SettingsProvider CreateMyCustomSettingsProvider()
+        internal static SettingsProvider CreateMyCustomSettingsProvider()
         {
             var provider = new ProperLoggerCustomSettingsProvider(s_pathToPreferences, SettingsScope.User);
 

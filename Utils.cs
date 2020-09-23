@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    public class Utils
+    internal class Utils
     {
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {

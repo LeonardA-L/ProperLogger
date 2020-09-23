@@ -33,10 +33,9 @@ namespace ProperLogger
         public int unityIndex = -1;
     }
 
-    public class CustomLogEntry
+    internal class CustomLogEntry
     {
         public string message;
-        public int errorNum;
         public string file;
         public int line;
         public int column;
@@ -45,7 +44,7 @@ namespace ProperLogger
         public int identifier;
     }
 
-    public enum UnityLogMode
+    internal enum UnityLogMode
     {
         Error = 1,
         Assert = 2,

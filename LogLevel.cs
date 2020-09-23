@@ -2,7 +2,7 @@
 {
     [System.Serializable]
     [System.Flags]
-    public enum LogLevel
+    internal enum LogLevel
     {
         Log = 1,
         Warning = 2,

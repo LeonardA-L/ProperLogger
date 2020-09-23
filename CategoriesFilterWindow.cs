@@ -4,13 +4,11 @@ using UnityEditor;
 
 namespace ProperLogger
 {
-    public class CategoriesFilterWindow : EditorWindow
+    internal class CategoriesFilterWindow : EditorWindow
     {
-        [SerializeField]
-        private GUISkin m_skin = null;
         private ConfigsProvider m_configs = null;
 
-        void OnGUI()
+        private void OnGUI()
         {
             m_configs = m_configs ?? new EditorConfigs();
 
