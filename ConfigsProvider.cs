@@ -46,6 +46,19 @@ namespace ProperLogger
             }
         }
 
+        internal int CategoryCountInLogList
+        {
+            get
+            {
+                return GetInt("ProperConsole.CategoryCountInLogList", 1);
+            }
+            set
+            {
+                SetInt("ProperConsole.CategoryCountInLogList", value);
+                Save();
+            }
+        }
+
         internal float CategoryNameInLogListColorize
         {
             get

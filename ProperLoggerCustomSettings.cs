@@ -187,6 +187,7 @@ namespace ProperLogger
             GUILayout.Label("Categories", EditorStyles.boldLabel);
             GUILayout.Space(10);
             CategoryDisplayToggle("Show [CategoryName] in inspector", ECategoryDisplay.InInspector);
+
             CategoryDisplayToggle("Show [CategoryName] in Message", ECategoryDisplay.InMessage);
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("[CategoryName] Colorization");
@@ -213,6 +214,13 @@ namespace ProperLogger
             GUILayout.Space(10);
             m_configs.CopyOnSelect = EditorGUILayout.Toggle("Copy on Select", m_configs.CopyOnSelect);
             EditorGUILayout.LabelField("Selecting a log will automatically copy\nits content to your clipboard", m_subtitleStyle);
+            GUILayout.Space(12);
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Log List Category Count");
+            m_configs.CategoryCountInLogList = Mathf.Max(0, EditorGUILayout.IntField(m_configs.CategoryCountInLogList));
+            GUILayout.EndHorizontal();
+            EditorGUILayout.LabelField("How many [CategoryName] to display\nin the console list", m_subtitleStyle);
             GUILayout.Space(12);
         }
 

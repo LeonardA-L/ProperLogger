@@ -958,7 +958,7 @@ namespace ProperLogger
 
             if (GUILayout.Button("Log Combat"))
             {
-                Debug.Log($"[Combat] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
             if (GUILayout.Button("Log Performance"))
@@ -1213,7 +1213,7 @@ namespace ProperLogger
             {
                 if (categoryColumn)
                 {
-                    var categoryString = string.Join(" ", entry.categories.Select(c=>c.Name));
+                    var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count)).Select(c=>c.Name));
                     categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
                 }
                 if (displayCategoryStrips)
@@ -1279,10 +1279,13 @@ namespace ProperLogger
                 if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
                 {
                     GUILayout.BeginHorizontal(GUILayout.Width(categoryColumnWidth));
-                    foreach (var category in entry.categories)
+                    for (int i=0;i< Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count);i++)
                     {
-                        categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
+                        var category = entry.categories[i];
+                        var categoryColor = categoryNameStyle.normal.textColor;
+                        categoryNameStyle.normal.textColor = Color.Lerp(categoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
                         GUILayout.Label(category.Name.ToString(), categoryNameStyle, GUILayout.ExpandWidth(true));
+                        categoryNameStyle.normal.textColor = categoryColor;
                     }
                     GUILayout.EndHorizontal();
                     /*
