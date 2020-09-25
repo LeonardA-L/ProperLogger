@@ -11,7 +11,7 @@ using System.IO;
 
 namespace ProperLogger
 {
-    internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu
+    internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver
     {
         #region Members
         #region Consts
@@ -229,6 +229,7 @@ namespace ProperLogger
             RemoveListener();
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
+            ClearGUIContents();
         }
 
         public void OnBuild()
@@ -395,8 +396,17 @@ namespace ProperLogger
         {
             if (!m_listening)
             {
-                m_logHandler = new CustomLogHandler(Debug.unityLogger.logHandler, this);
-                Debug.unityLogger.logHandler = m_logHandler;
+                if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
+                {
+                    customLogHandler.RemoveObserver(this);
+                    customLogHandler.AddObserver(this);
+                }
+                else
+                {
+                    m_logHandler = new CustomLogHandler(Debug.unityLogger.logHandler);
+                    m_logHandler.AddObserver(this);
+                    Debug.unityLogger.logHandler = m_logHandler;
+                }
                 Application.logMessageReceivedThreaded += Listener;
                 m_listening = true;
             }
@@ -405,7 +415,10 @@ namespace ProperLogger
         public void RemoveListener()
         {
             Application.logMessageReceivedThreaded -= Listener;
-            Debug.unityLogger.logHandler = m_logHandler.OriginalHandler;
+            if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
+            {
+                customLogHandler.RemoveObserver(this);
+            }
             m_listening = false;
         }
 
@@ -769,8 +782,6 @@ namespace ProperLogger
                 DisplaySearchToolbar();
             }
 
-            Rect windowRect = GUILayoutUtility.GetLastRect();
-
             float startY = 0;
             float totalWidth = Screen.width;
             GUILayout.Space(1);
@@ -908,7 +919,7 @@ namespace ProperLogger
                     }
                 }
 
-                EditorSelectableLabel($"{categoriesString}{entry.message}", textStyle, currentX); // TODO if editor
+                SelectableLabel($"{categoriesString}{entry.message}", textStyle, currentX); // TODO if editor
                                                                            //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
                 if (entry.context != null)
                 {
@@ -917,12 +928,12 @@ namespace ProperLogger
                     {
                         textStyle.normal.textColor = m_configs.ObjectNameColor;
                     }
-                    EditorSelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
+                    SelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
                     textStyle.normal.textColor = txtColor;
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
-                    EditorSelectableLabel(entry.stackTrace, textStyle, currentX); // TODO if editor// TODO if not editor
+                    SelectableLabel(entry.stackTrace, textStyle, currentX); // TODO if editor// TODO if not editor
                 }
             }
             GUILayout.EndScrollView();
@@ -1202,8 +1213,8 @@ namespace ProperLogger
             {
                 if (categoryColumn)
                 {
-                    var category = entry.categories[0];
-                    categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(category.Name)).x + 10;
+                    var categoryString = string.Join(" ", entry.categories.Select(c=>c.Name));
+                    categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
                 }
                 if (displayCategoryStrips)
                 {
@@ -1267,12 +1278,13 @@ namespace ProperLogger
                 // First Category space
                 if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
                 {
-                    var category = entry.categories[0];
-                    if (displayCategoryNameInColumn)
+                    GUILayout.BeginHorizontal(GUILayout.Width(categoryColumnWidth));
+                    foreach (var category in entry.categories)
                     {
                         categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), categoryNameStyle, GUILayout.Width(categoryColumnWidth));
+                        GUILayout.Label(category.Name.ToString(), categoryNameStyle, GUILayout.ExpandWidth(true));
                     }
+                    GUILayout.EndHorizontal();
                     /*
                     if (displayCategoryIconInColumn && category.Icon != null)
                     {
@@ -1315,7 +1327,9 @@ namespace ProperLogger
             {
                 if (entry.context != null)
                 {
-                    EditorGUIUtility.PingObject(entry.context); // TODO Editor
+#if UNITY_EDITOR
+                    EditorGUIUtility.PingObject(entry.context);
+#endif
                 }
                 if (m_selectedEntries.Count > 0 && m_selectedEntries[0] == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
                 {
@@ -1381,7 +1395,7 @@ namespace ProperLogger
             GUILayout.Space(sidePaddings);
         }
 
-        private void EditorSelectableLabel(string text, GUIStyle textStyle, float currentX)
+        private void SelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
             float width = m_configs.InspectorOnTheRight ? m_splitterPosition : EditorGUIUtility.currentViewWidth;
             float height = textStyle.CalcHeight(new GUIContent(text), width);
@@ -1550,7 +1564,7 @@ namespace ProperLogger
 
         #region Text Manipulation
 
-        private string GetFirstLines(string[] lines, int skip, int count, bool isCallStack)
+        internal static string GetFirstLines(string[] lines, int skip, int count, bool isCallStack) // TODO move to utils file
         {
             if(lines == null)
             {
@@ -1567,7 +1581,7 @@ namespace ProperLogger
             return string.Join(Environment.NewLine, lines.Skip(skip).Take(count));
         }
 
-        private string[] GetLines(string text)
+        internal static string[] GetLines(string text) // TODO move to utils file
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -1576,7 +1590,7 @@ namespace ProperLogger
             return text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        private string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
+        internal static string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine) // TODO move to utils file
         {
             firstAsset = null;
             firstLine = null;
