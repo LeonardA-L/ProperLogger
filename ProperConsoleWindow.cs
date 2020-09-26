@@ -17,7 +17,7 @@ namespace ProperLogger
         #region Consts
 
         [SerializeField]
-        private GUISkin m_skin = null;
+        private GUISkin m_skin = null; // TODO can't have serialized fields
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
         [NonSerialized]
@@ -96,6 +96,11 @@ namespace ProperLogger
         private static Texture2D m_iconErrorGray;
 
         private static Texture2D m_iconConsole;
+
+        [SerializeField]
+        private Texture2D m_exceptionIcon; // TODO can't have serialized fields
+        [SerializeField]
+        private Texture2D m_assertIcon; // TODO can't have serialized fields
 
         #endregion Loaded Textures
 
@@ -337,6 +342,9 @@ namespace ProperLogger
             m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
 
             m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
+
+            //m_exceptionIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "ExceptionIcon" });
+            //m_assertIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "AssertIcon" });
         }
 
         private void HandleDoubleClick(ConsoleLogEntry entry) // TODO could this be used in play mode ?
@@ -1599,6 +1607,11 @@ namespace ProperLogger
         {
             if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
             if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
+            if (m_configs.ShowCustomErrorIcons)
+            {
+                if (entry.level.HasFlag(LogLevel.Exception)) { return m_exceptionIcon; }
+                if (entry.level.HasFlag(LogLevel.Assert)) { return m_assertIcon; }
+            }
             return m_iconError;
         }
 

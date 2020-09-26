@@ -181,13 +181,14 @@ namespace ProperLogger
 
             GUILayout.BeginHorizontal();
             m_configs.ShowContextNameInsteadOfStack = EditorGUILayout.Toggle("Show name of context object in log list", m_configs.ShowContextNameInsteadOfStack);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
-            {
-                m_configs.ResetshowContextNameInsteadOfStack();
-            }
             GUILayout.EndHorizontal();
             EditorGUILayout.LabelField("If applicable, will show the name of the\ncontext objectin the log list, instead of\nthe first line of the stack trace", m_subtitleStyle);
-            GUILayout.Space(28);
+            GUILayout.Space(23);
+
+            GUILayout.BeginHorizontal();
+            m_configs.ShowCustomErrorIcons = EditorGUILayout.Toggle("Use Special Assert and Exception Icons", m_configs.ShowCustomErrorIcons);
+            GUILayout.EndHorizontal();
+            GUILayout.Space(20);
 
             GUILayout.Label("Log Inspector", EditorStyles.boldLabel);
             GUILayout.Space(10);

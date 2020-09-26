@@ -50,6 +50,7 @@ namespace ProperLogger
             ResetsearchInStackTrace();
             ResetsearchObjectName();
             ResetshowContextNameInsteadOfStack();
+            ResetShowCustomErrorIcons();
         }
 
         internal void ResetColorStripWidth()
@@ -369,6 +370,23 @@ namespace ProperLogger
             set
             {
                 SetBool("ProperConsole.showContextNameInsteadOfStack", value);
+                Save();
+            }
+        }
+
+        internal void ResetShowCustomErrorIcons()
+        {
+            Reset("ProperConsole.showContextNameInsteadOfStack");
+        }
+        internal bool ShowCustomErrorIcons
+        {
+            get
+            {
+                return GetBool("ProperConsole.ShowCustomErrorIcons", true);
+            }
+            set
+            {
+                SetBool("ProperConsole.ShowCustomErrorIcons", value);
                 Save();
             }
         }
