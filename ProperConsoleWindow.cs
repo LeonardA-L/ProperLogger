@@ -154,6 +154,53 @@ namespace ProperLogger
         private GUIContent m_searchInStackTraceButtonContent = null;
         private GUIContent m_pluginSettingsButtonContent = null;
 
+        private GUIStyle m_oddEntry = null;
+        private GUIStyle m_selectedEntry = null;
+        private GUIStyle m_selectedEntryLabel = null;
+        private GUIStyle m_evenEntry = null;
+        private GUIStyle m_evenEntryLabel = null;
+        private GUIStyle m_categoryNameStyle = null;
+        private GUIStyle m_categoryColorStrip = null;
+        private GUIStyle m_collapseBubbleStyle = null;
+        private GUIStyle m_collapseBubbleWarningStyle = null;
+        private GUIStyle m_collapseBubbleErrorStyle = null;
+        private GUIStyle m_toolbarButtonStyle = null;
+        private GUIStyle m_inspectorTextStyle = null;
+
+
+        private void CacheStyles()
+        {
+            m_oddEntry = new GUIStyle(m_skin.FindStyle("OddEntry"));
+            m_selectedEntry = new GUIStyle(m_skin.FindStyle("SelectedEntry"));
+            m_selectedEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabelSelected"));
+            m_evenEntry = new GUIStyle(m_skin.FindStyle("EvenEntry"));
+            m_evenEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabel"));
+
+            m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
+            m_categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
+            m_categoryNameStyle.alignment = TextAnchor.MiddleCenter;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
+            m_categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - m_categoryNameStyle.fontSize);
+            m_categoryNameStyle.fontStyle = FontStyle.Bold;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
+
+            m_categoryColorStrip = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
+
+            m_collapseBubbleStyle = new GUIStyle(m_skin.FindStyle("CollapseBubble"));
+            m_collapseBubbleWarningStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleWarning"));
+            m_collapseBubbleErrorStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleError"));
+
+            m_toolbarButtonStyle = (GUIStyle)(Strings.ToolbarButton);
+
+            m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
+            m_inspectorTextStyle.richText = true;
+            m_inspectorTextStyle.normal.textColor = Color.black;
+            m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
+            m_inspectorTextStyle.wordWrap = true;
+            m_inspectorTextStyle.stretchWidth = false;
+            m_inspectorTextStyle.clipping = TextClipping.Clip;
+        }
+
         #endregion Caches
         #endregion Members
 
@@ -219,6 +266,7 @@ namespace ProperLogger
             InitListener();
             LoadIcons();
             CacheGUIContents();
+            m_autoScroll = true;
             ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, m_iconConsole);
 
             m_needRegexRecompile = true;
@@ -769,6 +817,11 @@ namespace ProperLogger
             HandleCopyToClipboard();
             EditorSelectableLabelInvisible();
 
+            if(m_inspectorTextStyle == null)
+            {
+                CacheStyles();
+            }
+
             m_callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
@@ -896,14 +949,6 @@ namespace ProperLogger
             }
             if (m_selectedEntries.Count > 0)
             {
-                GUIStyle textStyle = new GUIStyle(GUI.skin.label);
-                textStyle.richText = true;
-                textStyle.normal.textColor = Color.black;
-                textStyle.fontSize = m_configs.InspectorMessageFontSize;
-                textStyle.wordWrap = true;
-                textStyle.stretchWidth = false;
-                textStyle.clipping = TextClipping.Clip;
-
                 var entry = m_selectedEntries[0];
 
                 GUILayout.Space(1);
@@ -915,25 +960,25 @@ namespace ProperLogger
                     if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
                     {
                         string format = "<color=#{1}>[{0}]</color> ";
-                        categoriesString = string.Join(string.Empty, entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                        categoriesString = string.Join(string.Empty, entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, m_inspectorTextStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                     }
                 }
 
-                SelectableLabel($"{categoriesString}{entry.message}", textStyle, currentX); // TODO if editor
-                                                                           //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
+                SelectableLabel($"{categoriesString}{entry.message}", m_inspectorTextStyle, currentX); 
+
                 if (entry.context != null)
                 {
-                    Color txtColor = textStyle.normal.textColor;
+                    Color txtColor = m_inspectorTextStyle.normal.textColor;
                     if (!m_configs.ObjectNameColor.Equals(txtColor))
                     {
-                        textStyle.normal.textColor = m_configs.ObjectNameColor;
+                        m_inspectorTextStyle.normal.textColor = m_configs.ObjectNameColor;
                     }
-                    SelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
-                    textStyle.normal.textColor = txtColor;
+                    SelectableLabel(entry.context.name, m_inspectorTextStyle, currentX);
+                    m_inspectorTextStyle.normal.textColor = txtColor;
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
-                    SelectableLabel(entry.stackTrace, textStyle, currentX); // TODO if editor// TODO if not editor
+                    SelectableLabel(entry.stackTrace, m_inspectorTextStyle, currentX);
                 }
             }
             GUILayout.EndScrollView();
@@ -1179,8 +1224,8 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            GUIStyle currentStyle = m_skin.FindStyle("OddEntry"); // TODO Cache styles
-            GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // TODO Cache styles
+            GUIStyle currentStyle = m_oddEntry;
+            GUIStyle textStyle = m_evenEntryLabel;
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
 
             float imageSize = Math.Min(ItemHeight - (2 * 3), 40); // We clamp it in case we display 3+ lines
@@ -1200,13 +1245,6 @@ namespace ProperLogger
 
             float rightSplitterWidth = m_configs.InspectorOnTheRight ? m_splitterPosition : 0;
 
-            GUIStyle categoryNameStyle = new GUIStyle(textStyle);
-            categoryNameStyle.alignment = TextAnchor.MiddleCenter;
-            categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - categoryNameStyle.fontSize);
-            categoryNameStyle.fontStyle = FontStyle.Bold;
-            categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
-
             string categoriesString = string.Empty;
 
             if (entry.categories != null && entry.categories.Count > 0)
@@ -1214,7 +1252,7 @@ namespace ProperLogger
                 if (categoryColumn)
                 {
                     var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count)).Select(c=>c.Name));
-                    categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
+                    categoryColumnWidth = m_categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
                 }
                 if (displayCategoryStrips)
                 {
@@ -1232,13 +1270,12 @@ namespace ProperLogger
             
             if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
             {
-                currentStyle = m_skin.FindStyle("SelectedEntry"); // TODO Cache styles
-                textStyle = m_skin.FindStyle("EntryLabelSelected"); // TODO Cache styles
-                categoryNameStyle.normal.textColor = textStyle.normal.textColor;
+                currentStyle = m_selectedEntry;
+                textStyle = m_selectedEntryLabel;
             }
             else if (idx % 2 == 0)
             {
-                currentStyle = m_skin.FindStyle("EvenEntry"); // TODO Cache styles
+                currentStyle = m_evenEntry;
             }
 
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
@@ -1282,10 +1319,10 @@ namespace ProperLogger
                     for (int i=0;i< Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count);i++)
                     {
                         var category = entry.categories[i];
-                        var categoryColor = categoryNameStyle.normal.textColor;
-                        categoryNameStyle.normal.textColor = Color.Lerp(categoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), categoryNameStyle, GUILayout.ExpandWidth(true));
-                        categoryNameStyle.normal.textColor = categoryColor;
+                        var categoryColor = m_categoryNameStyle.normal.textColor;
+                        m_categoryNameStyle.normal.textColor = Color.Lerp(m_categoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
+                        GUILayout.Label(category.Name.ToString(), m_categoryNameStyle, GUILayout.ExpandWidth(true));
+                        m_categoryNameStyle.normal.textColor = categoryColor;
                     }
                     GUILayout.EndHorizontal();
                     /*
@@ -1308,13 +1345,12 @@ namespace ProperLogger
                     Color saveContentColor = GUI.contentColor;
                     Color saveBGColor = GUI.backgroundColor;
                     int i = 0;
-                    GUIStyle boxStyle = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
                     foreach (var category in entry.categories)
                     {
                         GUI.color = category.Color;
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, boxStyle);
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, m_categoryColorStrip);
                         GUILayout.Space(categoryStripWidth);
                         i++;
                     }
@@ -1379,25 +1415,25 @@ namespace ProperLogger
 
         private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
         {
-            // TODO cache FindStyle
             GUIStyle style;
             switch (level)
             {
                 case LogLevel.Log:
-                    style = m_skin.FindStyle("CollapseBubble");
+                    style = m_collapseBubbleStyle;
                     break;
                 case LogLevel.Warning:
-                    style = m_skin.FindStyle("CollapseBubbleWarning");
+                    style = m_collapseBubbleWarningStyle;
                     break;
                 case LogLevel.Error:
                 default:
-                    style = m_skin.FindStyle("CollapseBubbleError");
+                    style = m_collapseBubbleErrorStyle;
                     break;
             }
-            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23)); // TODO style
+            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
             GUILayout.Space(sidePaddings);
         }
 
+        // TODO if not editor
         private void SelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
             float width = m_configs.InspectorOnTheRight ? m_splitterPosition : EditorGUIUtility.currentViewWidth;
@@ -1416,8 +1452,8 @@ namespace ProperLogger
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                (GUIStyle)Strings.ToolbarButton
-                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
+                m_toolbarButtonStyle,
+                GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
                 );
             if (hasFlag != newFlagValue)
             {
