@@ -216,7 +216,7 @@ namespace ProperLogger
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Space(10);
+            GUILayout.Space(15);
             GUILayout.Label("Categories", EditorStyles.boldLabel);
             GUILayout.Space(10);
             CategoryDisplayToggle("Show [CategoryName] in inspector", ECategoryDisplay.InInspector);

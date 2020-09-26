@@ -81,6 +81,9 @@ namespace ProperLogger
         private Rect m_showCategoriesButtonRect = default;
         private Rect m_listDisplay = default;
 
+        private Rect m_searchFieldRect = default;
+        private Rect m_resetSearchButtonRect = default;
+
         private bool m_lastCLickIsDisplayList = false;
 
         #endregion Layout
@@ -1134,7 +1137,8 @@ namespace ProperLogger
             m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
-            
+
+            GUI.enabled = !(Event.current.isMouse && m_resetSearchButtonRect.Contains(Event.current.mousePosition));
             m_searchString = GUILayout.TextField(m_searchString, Strings.ToolbarSeachTextField);
             if (lastSearchTerm != m_searchString)
             {
@@ -1145,6 +1149,27 @@ namespace ProperLogger
                     m_needRegexRecompile = true;
                 }
                 m_searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            GUI.enabled = true;
+            if (!string.IsNullOrEmpty(m_searchString))
+            {
+                if (Event.current.type == EventType.Repaint)
+                {
+                    m_searchFieldRect = GUILayoutUtility.GetLastRect();
+                }
+                float resetSearchButtonWidth = 13;
+                m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y - 1, resetSearchButtonWidth, m_searchFieldRect.height);
+                if (GUI.Button(m_resetSearchButtonRect, "x", GUIStyle.none))
+                {
+                    m_searchString = null;
+                    m_triggerFilteredEntryComputation = true;
+                    if (m_configs.RegexSearch)
+                    {
+                        m_lastRegexRecompile = DateTime.Now;
+                        m_needRegexRecompile = true;
+                    }
+                    m_searchWords = null;
+                }
             }
 
             m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, m_advancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
@@ -1503,11 +1528,11 @@ namespace ProperLogger
             EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_configs.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
         }
 
-        #endregion GUI Components
+#endregion GUI Components
 
-        #endregion GUI
+#endregion GUI
 
-        #region Utilities
+                #region Utilities
 
         private void ComputeCollapsedEntries(List<ConsoleLogEntry> filteredEntries)
         {
@@ -1615,7 +1640,7 @@ namespace ProperLogger
             return m_iconError;
         }
 
-        #endregion Utilities
+                #endregion Utilities
 
         private void CheckForUnitySync()
         {
