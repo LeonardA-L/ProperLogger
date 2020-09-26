@@ -17,6 +17,8 @@ namespace ProperLogger
         private int m_currentSelectedTab = 0;
         private string m_defaultPath = "Assets/LogCategories.asset";
 
+        private GUIContent m_resetButtonContent = new GUIContent("R");
+
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
 
@@ -140,28 +142,50 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Message Font Size");
             m_configs.LogEntryMessageFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryMessageFontSize, 8, 20);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetLogEntryMessageFontSize();
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Message Line Count");
             m_configs.LogEntryMessageLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryMessageLineCount, 1, 5);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetLogEntryMessageLineCount();
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Stack Trace Font Size");
             m_configs.LogEntryStackTraceFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceFontSize, 8, 20);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetLogEntryStackTraceFontSize();
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Stack Trace Line Count");
             m_configs.LogEntryStackTraceLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceLineCount, 0, 5);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetLogEntryStackTraceLineCount();
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
+            GUILayout.BeginHorizontal();
             m_configs.ShowContextNameInsteadOfStack = EditorGUILayout.Toggle("Show name of context object in log list", m_configs.ShowContextNameInsteadOfStack);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetshowContextNameInsteadOfStack();
+            }
+            GUILayout.EndHorizontal();
             EditorGUILayout.LabelField("If applicable, will show the name of the\ncontext objectin the log list, instead of\nthe first line of the stack trace", m_subtitleStyle);
             GUILayout.Space(28);
 
@@ -171,6 +195,10 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Inspector Log Message Font Size");
             m_configs.InspectorMessageFontSize = EditorGUILayout.IntField(m_configs.InspectorMessageFontSize);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetInspectorMessageFontSize();
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
@@ -180,6 +208,10 @@ namespace ProperLogger
             if (color != m_configs.ObjectNameColor)
             {
                 m_configs.ObjectNameColor = color;
+            }
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetObjectNameColor();
             }
             GUILayout.EndHorizontal();
 
@@ -192,11 +224,19 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("[CategoryName] Colorization");
             m_configs.CategoryNameColorize = EditorGUILayout.Slider(m_configs.CategoryNameColorize, 0, 1);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetCategoryNameColorize();
+            }
             GUILayout.EndHorizontal();
             CategoryDisplayToggle("Show Category Color in Log List", ECategoryDisplay.ColorStrip);
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Color Strip Width");
             m_configs.ColorStripWidth = EditorGUILayout.IntSlider(m_configs.ColorStripWidth, 3, 15);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetColorStripWidth();
+            }
             GUILayout.EndHorizontal();
             CategoryDisplayToggle("Show Category Name in column in Log List", ECategoryDisplay.NameColumn);
             //CategoryDisplayToggle("Show Category Icon in Log List", ECategoryDisplay.Icon);
@@ -205,6 +245,10 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Category Name column Colorization");
             m_configs.CategoryNameInLogListColorize = EditorGUILayout.Slider(m_configs.CategoryNameInLogListColorize, 0, 1);
+            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            {
+                m_configs.ResetCategoryNameInLogListColorize();
+            }
             GUILayout.EndHorizontal();
         }
 
