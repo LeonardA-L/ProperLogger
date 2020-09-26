@@ -631,7 +631,7 @@ namespace ProperLogger
                     {
                         var consoleEntry = Listener(unityEntry.message, null, GetLogTypeFromUnityMode(unityEntry.mode), unityEntry.file, unityEntry.line.ToString());
                         consoleEntry.unityMode = unityEntry.mode;
-                        consoleEntry.message = ParseStackTrace(consoleEntry.originalMessage, out _, out _);
+                        consoleEntry.message = Utils.ParseStackTrace(consoleEntry.originalMessage, out _, out _);
                         newConsoleEntries.Add(consoleEntry);
                     }
                 }
@@ -689,7 +689,7 @@ namespace ProperLogger
                 var now = DateTime.Now;
                 string tempAssetPath = null;
                 string tempAssetLine = null;
-                string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
+                string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : Utils.ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
 
                 newConsoleEntry = new ConsoleLogEntry()
                 {
@@ -697,8 +697,8 @@ namespace ProperLogger
                     timestamp = now.ToString("T", DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
                     message = categoryLessMessage,
-                    messageLines = GetLines(categoryLessMessage),
-                    traceLines = GetLines(newStackTrace),
+                    messageLines = Utils.GetLines(categoryLessMessage),
+                    traceLines = Utils.GetLines(newStackTrace),
                     stackTrace = newStackTrace,
                     count = 1,
                     context = context,
@@ -1292,7 +1292,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical();
                 {
                     textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{GetFirstLines(entry.messageLines, 0, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
+                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
                     textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
                     if (m_configs.LogEntryStackTraceLineCount > 0)
                     {
@@ -1302,11 +1302,11 @@ namespace ProperLogger
                         }
                         else if (!string.IsNullOrEmpty(entry.stackTrace))
                         {
-                            GUILayout.Label($"{GetFirstLines(entry.traceLines, 0, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                            GUILayout.Label($"{Utils.GetFirstLines(entry.traceLines, 0, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
                         }
                         else
                         {
-                            GUILayout.Label($"{GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, m_configs.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                            GUILayout.Label($"{Utils.GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, m_configs.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
                         }
                     }
                 }
@@ -1600,98 +1600,6 @@ namespace ProperLogger
             if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
             return m_iconError;
         }
-
-        #region Text Manipulation
-
-        internal static string GetFirstLines(string[] lines, int skip, int count, bool isCallStack) // TODO move to utils file
-        {
-            if(lines == null)
-            {
-                return string.Empty;
-            }
-            if (lines.Length == 0)
-            {
-                return string.Empty;
-            }
-            if (isCallStack && lines.Length > 1)
-            {
-                skip += 1;
-            }
-            return string.Join(Environment.NewLine, lines.Skip(skip).Take(count));
-        }
-
-        internal static string[] GetLines(string text) // TODO move to utils file
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return null;
-            }
-            return text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        internal static string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine) // TODO move to utils file
-        {
-            firstAsset = null;
-            firstLine = null;
-            if (string.IsNullOrEmpty(stackTrace))
-            {
-                return null;
-            }
-
-            var split = stackTrace.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            string result = string.Empty;
-
-            Regex scriptMatch = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
-
-            for (int i = 0; i < split.Length; i++)
-            {
-                Match m = scriptMatch.Match(split[i]);
-                if (m.Success)
-                {
-                    List<string> groups = new List<string>();
-                    for(int k=0;k<m.Groups.Count;k++)
-                    {
-                        groups.Add(m.Groups[k].Value);
-                    }
-
-                    bool isHidden = false;
-                    try
-                    {
-                        /*if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
-                        {
-                            result = string.Empty;
-                            continue;
-                        }*/ // TODO uncomment
-
-                        Type type = Type.GetType(m.Groups[2].Value);
-                        MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-                        isHidden = method.GetCustomAttribute<HideInCallStackAttribute>() != null;
-                    }
-                    catch (Exception) { }
-
-                    if (isHidden)
-                    {
-                        continue;
-                    }
-                    result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + Environment.NewLine;
-
-                    if (string.IsNullOrEmpty(firstAsset))
-                    {
-                        firstAsset = m.Groups[5].Value;
-                        firstLine = m.Groups[6].Value;
-                    }
-                }
-                else
-                {
-                    result += split[i].ToString() + Environment.NewLine;
-                }
-            }
-
-            return result;
-        }
-
-        #endregion Text Manipulation
 
         #endregion Utilities
 
