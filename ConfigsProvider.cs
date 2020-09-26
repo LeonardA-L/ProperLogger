@@ -20,6 +20,42 @@ namespace ProperLogger
         protected abstract void SetString(string key, string newValue);
         protected abstract void SetBool(string key, bool newValue);
 
+        protected abstract void Reset(string key);
+
+        internal void ResetAll()
+        {
+            ResetadvancedSearchToolbar();
+            ResetcaseSensitive();
+            ResetCategoriesConfigPath();
+            ResetCategoryCountInLogList();
+            ResetCategoryDisplay();
+            ResetCategoryNameColorize();
+            ResetCategoryNameInLogListColorize();
+            ResetclearOnBuild();
+            ResetclearOnPlay();
+            Resetcollapse();
+            ResetColorStripWidth();
+            ResetcopyOnSelect();
+            ReseterrorPause();
+            ResetInactiveCategories();
+            ResetInspectorMessageFontSize();
+            ResetinspectorOnTheRight();
+            ResetLogEntryMessageFontSize();
+            ResetLogEntryMessageLineCount();
+            ResetLogEntryStackTraceFontSize();
+            ResetLogEntryStackTraceLineCount();
+            ResetLogLevelFilter();
+            ResetObjectNameColor();
+            ResetregexSearch();
+            ResetsearchInStackTrace();
+            ResetsearchObjectName();
+            ResetshowContextNameInsteadOfStack();
+        }
+
+        internal void ResetColorStripWidth()
+        {
+            Reset("ProperConsole.ColorStripWidth");
+        }
         internal int ColorStripWidth
         {
             get
@@ -33,6 +69,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetCategoryNameColorize()
+        {
+            Reset("ProperConsole.CategoryNameColorize");
+        }
         internal float CategoryNameColorize
         {
             get
@@ -46,6 +86,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetCategoryCountInLogList()
+        {
+            Reset("ProperConsole.CategoryCountInLogList");
+        }
         internal int CategoryCountInLogList
         {
             get
@@ -59,6 +103,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetCategoryNameInLogListColorize()
+        {
+            Reset("ProperConsole.CategoryNameInLogListColorize");
+        }
         internal float CategoryNameInLogListColorize
         {
             get
@@ -72,6 +120,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetCategoryDisplay()
+        {
+            Reset("ProperConsole.CategoryDisplay");
+        }
         internal ECategoryDisplay CategoryDisplay
         {
             get
@@ -85,15 +137,10 @@ namespace ProperLogger
             }
         }
 
-        internal List<string> InactiveCategoryStrings
+        internal void ResetInactiveCategories()
         {
-            get
-            {
-                string inactiveCategories = GetString("ProperConsole.InactiveCategories", "");
-                return inactiveCategories.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries).ToList();
-            }
+            Reset("ProperConsole.InactiveCategories");
         }
-
         internal List<LogCategory> InactiveCategories
         {
             get
@@ -123,6 +170,11 @@ namespace ProperLogger
                 SetString("ProperConsole.InactiveCategories", string.Join("|", value.Select(c=>c.Name)));
                 Save();
             }
+        }
+
+        internal void ResetCategoriesConfigPath()
+        {
+            Reset("ProperConsole.CategoriesConfigPath");
         }
         internal virtual LogCategoriesConfig CurrentCategoriesConfig
         {
@@ -168,6 +220,10 @@ namespace ProperLogger
             return null;
         }
 
+        internal void ResetLogEntryMessageLineCount()
+        {
+            Reset("ProperConsole.LogEntryMessageLineCount");
+        }
         internal int LogEntryMessageLineCount
         {
             get
@@ -181,6 +237,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetLogEntryStackTraceLineCount()
+        {
+            Reset("ProperConsole.LogEntryStackTraceLineCount");
+        }
         internal int LogEntryStackTraceLineCount
         {
             get
@@ -194,6 +254,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetLogEntryMessageFontSize()
+        {
+            Reset("ProperConsole.LogEntryMessageFontSize");
+        }
         internal int LogEntryMessageFontSize
         {
             get
@@ -207,6 +271,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetLogEntryStackTraceFontSize()
+        {
+            Reset("ProperConsole.LogEntryStackTraceFontSize");
+        }
         internal int LogEntryStackTraceFontSize
         {
             get
@@ -220,6 +288,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetInspectorMessageFontSize()
+        {
+            Reset("ProperConsole.InspectorMessageFontSize");
+        }
         internal int InspectorMessageFontSize
         {
             get
@@ -232,6 +304,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetObjectNameColor()
+        {
+            Reset("ProperConsole.ObjectNameColor");
+        }
         internal Color ObjectNameColor
         {
             get
@@ -246,6 +322,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetLogLevelFilter()
+        {
+            Reset("ProperConsole.LogLevelFilter");
+        }
         internal LogLevel LogLevelFilter
         {
             get
@@ -259,6 +339,10 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetcopyOnSelect()
+        {
+            Reset("ProperConsole.copyOnSelect");
+        }
         internal bool CopyOnSelect
         {
             get
@@ -270,6 +354,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.copyOnSelect", value);
                 Save();
             }
+        }
+
+        internal void ResetshowContextNameInsteadOfStack()
+        {
+            Reset("ProperConsole.showContextNameInsteadOfStack");
         }
         internal bool ShowContextNameInsteadOfStack
         {
@@ -283,6 +372,11 @@ namespace ProperLogger
                 Save();
             }
         }
+
+        internal void ResetinspectorOnTheRight()
+        {
+            Reset("ProperConsole.inspectorOnTheRight");
+        }
         internal bool InspectorOnTheRight
         {
             get
@@ -294,6 +388,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.inspectorOnTheRight", value);
                 Save();
             }
+        }
+
+        internal void ResetclearOnPlay()
+        {
+            Reset("ProperConsole.clearOnPlay");
         }
         internal bool ClearOnPlay
         {
@@ -307,6 +406,11 @@ namespace ProperLogger
                 Save();
             }
         }
+
+        internal void ResetclearOnBuild()
+        {
+            Reset("ProperConsole.clearOnBuild");
+        }
         internal bool ClearOnBuild
         {
             get
@@ -318,6 +422,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.clearOnBuild", value);
                 Save();
             }
+        }
+
+        internal void ReseterrorPause()
+        {
+            Reset("ProperConsole.errorPause");
         }
         internal bool ErrorPause
         {
@@ -331,6 +440,11 @@ namespace ProperLogger
                 Save();
             }
         }
+
+        internal void Resetcollapse()
+        {
+            Reset("ProperConsole.collapse");
+        }
         internal bool Collapse
         {
             get
@@ -342,6 +456,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.collapse", value);
                 Save();
             }
+        }
+
+        internal void ResetadvancedSearchToolbar()
+        {
+            Reset("ProperConsole.advancedSearchToolbar");
         }
         internal bool AdvancedSearchToolbar
         {
@@ -355,6 +474,11 @@ namespace ProperLogger
                 Save();
             }
         }
+
+        internal void ResetregexSearch()
+        {
+            Reset("ProperConsole.regexSearch");
+        }
         internal bool RegexSearch
         {
             get
@@ -366,6 +490,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.regexSearch", value);
                 Save();
             }
+        }
+
+        internal void ResetcaseSensitive()
+        {
+            Reset("ProperConsole.caseSensitive");
         }
         internal bool CaseSensitive
         {
@@ -379,6 +508,11 @@ namespace ProperLogger
                 Save();
             }
         }
+
+        internal void ResetsearchObjectName()
+        {
+            Reset("ProperConsole.searchObjectName");
+        }
         internal bool SearchObjectName
         {
             get
@@ -390,6 +524,11 @@ namespace ProperLogger
                 SetBool("ProperConsole.searchObjectName", value);
                 Save();
             }
+        }
+
+        internal void ResetsearchInStackTrace()
+        {
+            Reset("ProperConsole.searchInStackTrace");
         }
         internal bool SearchInStackTrace
         {
@@ -425,6 +564,11 @@ namespace ProperLogger
         protected override string GetString(string key, string defaultValue)
         {
             return EditorPrefs.GetString(key, defaultValue);
+        }
+
+        protected override void Reset(string key)
+        {
+            EditorPrefs.DeleteKey(key);
         }
 
         protected override void Save()
@@ -472,6 +616,11 @@ namespace ProperLogger
         protected override string GetString(string key, string defaultValue)
         {
             return PlayerPrefs.GetString(key, defaultValue);
+        }
+
+        protected override void Reset(string key)
+        {
+            PlayerPrefs.DeleteKey(key);
         }
 
         protected override void Save()

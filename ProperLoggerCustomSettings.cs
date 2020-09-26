@@ -222,6 +222,14 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
             EditorGUILayout.LabelField("How many [CategoryName] to display\nin the console list", m_subtitleStyle);
             GUILayout.Space(12);
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(" ");
+            if (GUILayout.Button("Reset Everything to Default Values"))
+            {
+                m_configs.ResetAll();
+            }
+            GUILayout.EndHorizontal();
         }
 
         [SettingsProvider]
