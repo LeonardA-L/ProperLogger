@@ -167,39 +167,8 @@ namespace ProperLogger
         private GUIStyle m_toolbarButtonStyle = null;
         private GUIStyle m_inspectorTextStyle = null;
 
-
-        private void CacheStyles()
-        {
-            m_oddEntry = new GUIStyle(m_skin.FindStyle("OddEntry"));
-            m_selectedEntry = new GUIStyle(m_skin.FindStyle("SelectedEntry"));
-            m_selectedEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabelSelected"));
-            m_evenEntry = new GUIStyle(m_skin.FindStyle("EvenEntry"));
-            m_evenEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabel"));
-
-            m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
-            m_categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
-            m_categoryNameStyle.alignment = TextAnchor.MiddleCenter;
-            m_categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            m_categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - m_categoryNameStyle.fontSize);
-            m_categoryNameStyle.fontStyle = FontStyle.Bold;
-            m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
-
-            m_categoryColorStrip = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
-
-            m_collapseBubbleStyle = new GUIStyle(m_skin.FindStyle("CollapseBubble"));
-            m_collapseBubbleWarningStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleWarning"));
-            m_collapseBubbleErrorStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleError"));
-
-            m_toolbarButtonStyle = (GUIStyle)(Strings.ToolbarButton);
-
-            m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
-            m_inspectorTextStyle.richText = true;
-            m_inspectorTextStyle.normal.textColor = Color.black;
-            m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
-            m_inspectorTextStyle.wordWrap = true;
-            m_inspectorTextStyle.stretchWidth = false;
-            m_inspectorTextStyle.clipping = TextClipping.Clip;
-        }
+        private Regex m_categoryParse = null;
+        private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
 
         #endregion Caches
         #endregion Members
@@ -322,6 +291,39 @@ namespace ProperLogger
             m_searchInObjectNameButtonContent = new GUIContent("Search in Object Name");
             m_searchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
             m_pluginSettingsButtonContent = new GUIContent("Plugin Settings");
+        }
+
+        private void CacheStyles()
+        {
+            m_oddEntry = new GUIStyle(m_skin.FindStyle("OddEntry"));
+            m_selectedEntry = new GUIStyle(m_skin.FindStyle("SelectedEntry"));
+            m_selectedEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabelSelected"));
+            m_evenEntry = new GUIStyle(m_skin.FindStyle("EvenEntry"));
+            m_evenEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabel"));
+
+            m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
+            m_categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
+            m_categoryNameStyle.alignment = TextAnchor.MiddleCenter;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
+            m_categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - m_categoryNameStyle.fontSize);
+            m_categoryNameStyle.fontStyle = FontStyle.Bold;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
+
+            m_categoryColorStrip = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
+
+            m_collapseBubbleStyle = new GUIStyle(m_skin.FindStyle("CollapseBubble"));
+            m_collapseBubbleWarningStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleWarning"));
+            m_collapseBubbleErrorStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleError"));
+
+            m_toolbarButtonStyle = (GUIStyle)(Strings.ToolbarButton);
+
+            m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
+            m_inspectorTextStyle.richText = true;
+            m_inspectorTextStyle.normal.textColor = Color.black;
+            m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
+            m_inspectorTextStyle.wordWrap = true;
+            m_inspectorTextStyle.stretchWidth = false;
+            m_inspectorTextStyle.clipping = TextClipping.Clip;
         }
 
         private void LoadIcons()
@@ -667,13 +669,12 @@ namespace ProperLogger
                     }
                 }
 
-                Regex categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"); // TODO cache
                 List<LogCategory> categories = new List<LogCategory>();
                 var categoryAsset = m_configs.CurrentCategoriesConfig;
                 string categoryLessMessage = condition;
                 if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
                 {
-                    foreach (Match match in categoryParse.Matches(categoryLessMessage))
+                    foreach (Match match in CategoryParse.Matches(categoryLessMessage))
                     {
                         foreach (var category in categoryAsset.Categories)
                         {

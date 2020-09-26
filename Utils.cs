@@ -29,7 +29,7 @@ namespace ProperLogger
         }
         #region Text Manipulation
 
-        internal static string GetFirstLines(string[] lines, int skip, int count, bool isCallStack) // TODO move to utils file
+        internal static string GetFirstLines(string[] lines, int skip, int count, bool isCallStack)
         {
             if (lines == null)
             {
@@ -46,7 +46,7 @@ namespace ProperLogger
             return string.Join(Environment.NewLine, lines.Skip(skip).Take(count));
         }
 
-        internal static string[] GetLines(string text) // TODO move to utils file
+        internal static string[] GetLines(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -55,7 +55,7 @@ namespace ProperLogger
             return text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        internal static string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine) // TODO move to utils file
+        internal static string ParseStackTrace(string stackTrace, out string firstAsset, out string firstLine)
         {
             firstAsset = null;
             firstLine = null;
