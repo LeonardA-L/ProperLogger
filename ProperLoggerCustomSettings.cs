@@ -153,6 +153,25 @@ namespace ProperLogger
 
         private void DisplayAppearanceTab()
         {
+
+            GUILayout.Label("Log Entries List", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Console Toolbar Button Display");
+            int lastDisplayIcon = m_configs.DisplayIcons;
+            m_configs.DisplayIcons = GUILayout.Toolbar(m_configs.DisplayIcons, new string[] { "Name Only", "Name and Icon", "Icon Only" });
+            if(lastDisplayIcon != m_configs.DisplayIcons)
+            {
+                if(ProperConsoleWindow.Instance != null)
+                {
+                    ProperConsoleWindow.Instance.ClearGUIContents();
+                    ProperConsoleWindow.Instance.CacheGUIContents();
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(10);
             GUILayout.Label("Log Entries List", EditorStyles.boldLabel);
             GUILayout.Space(10);
 

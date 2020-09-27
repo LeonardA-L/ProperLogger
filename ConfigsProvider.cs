@@ -51,6 +51,24 @@ namespace ProperLogger
             ResetsearchObjectName();
             ResetshowContextNameInsteadOfStack();
             ResetShowCustomErrorIcons();
+            ResetDisplayIcons();
+        }
+
+        internal void ResetDisplayIcons()
+        {
+            Reset("ProperConsole.DisplayIcons");
+        }
+        internal int DisplayIcons
+        {
+            get
+            {
+                return GetInt("ProperConsole.DisplayIcons", 1);
+            }
+            set
+            {
+                SetInt("ProperConsole.DisplayIcons", value);
+                Save();
+            }
         }
 
         internal void ResetColorStripWidth()

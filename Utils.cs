@@ -11,6 +11,7 @@ namespace ProperLogger
 {
     internal class Utils
     {
+        // TODO verify if this works when we're in a package
         internal static T LoadAssetByName<T>(string assetName) where T : UnityEngine.Object
         {
             string[] guids = AssetDatabase.FindAssets(assetName, null);

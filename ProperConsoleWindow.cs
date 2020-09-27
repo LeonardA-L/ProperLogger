@@ -100,6 +100,15 @@ namespace ProperLogger
 
         private static Texture2D m_iconConsole;
 
+        private static Texture2D m_clearIcon;
+        private static Texture2D m_collapseIcon;
+        private static Texture2D m_clearOnPlayIcon;
+        private static Texture2D m_clearOnBuildIcon;
+        private static Texture2D m_errorPauseIcon;
+        private static Texture2D m_regexSearchIcon;
+        private static Texture2D m_caseSensitiveIcon;
+        private static Texture2D m_advancedSearchIcon;
+
         [SerializeField]
         private Texture2D m_exceptionIcon; // TODO can't have serialized fields
         [SerializeField]
@@ -155,7 +164,7 @@ namespace ProperLogger
 
         private GUIContent m_advancedSearchButtonContent = null;
         private GUIContent m_categoriesButtonContent = null;
-        private GUIContent m_regexSearchButtonContent = null;
+        private GUIContent m_regexSearchButtonNameOnlyContent = null;
         private GUIContent m_caseSensitiveButtonContent = null;
         private GUIContent m_searchInLogMessageButtonContent = null;
         private GUIContent m_searchInObjectNameButtonContent = null;
@@ -172,7 +181,7 @@ namespace ProperLogger
         private GUIStyle m_collapseBubbleStyle = null;
         private GUIStyle m_collapseBubbleWarningStyle = null;
         private GUIStyle m_collapseBubbleErrorStyle = null;
-        private GUIStyle m_toolbarButtonStyle = null;
+        private GUIStyle m_toolbarIconButtonStyle = null;
         private GUIStyle m_inspectorTextStyle = null;
 
         private Regex m_categoryParse = null;
@@ -265,7 +274,7 @@ namespace ProperLogger
             }
         }
 
-        private void ClearGUIContents()
+        internal void ClearGUIContents()
         {
             m_clearButtonContent = null;
             m_collapseButtonContent = null;
@@ -275,7 +284,7 @@ namespace ProperLogger
 
             m_advancedSearchButtonContent = null;
             m_categoriesButtonContent = null;
-            m_regexSearchButtonContent = null;
+            m_regexSearchButtonNameOnlyContent = null;
             m_caseSensitiveButtonContent = null;
             m_searchInLogMessageButtonContent = null;
             m_searchInObjectNameButtonContent = null;
@@ -283,18 +292,36 @@ namespace ProperLogger
             m_pluginSettingsButtonContent = null;
         }
 
-        private void CacheGUIContents()
+        private GUIContent CreateButtonGUIContent(Texture2D icon, string text)
         {
-            m_clearButtonContent = new GUIContent("Clear");
-            m_collapseButtonContent = new GUIContent("Collapse");
-            m_clearOnPlayButtonContent = new GUIContent("Clear on Play");
-            m_clearOnBuildButtonContent = new GUIContent("Clear on Build");
-            m_errorPauseButtonContent = new GUIContent("Error Pause");
+            if(icon == null)
+            {
+                return new GUIContent(text);
+            }
+            switch(m_configs.DisplayIcons)
+            {
+                case 0: // Name Only
+                default:
+                    return new GUIContent(text);
+                case 1: // Name and Icon
+                    return new GUIContent($"  {text}", icon);
+                case 2: // Icon Only
+                    return new GUIContent(icon, text);
+            }
+        }
 
-            m_advancedSearchButtonContent = new GUIContent("S", null, "Advanced Search");
+        internal void CacheGUIContents()
+        {
+            m_clearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
+            m_collapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
+            m_clearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
+            m_clearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
+            m_errorPauseButtonContent = CreateButtonGUIContent(m_errorPauseIcon, "Error Pause");
+
+            m_advancedSearchButtonContent = new GUIContent(m_advancedSearchIcon, "Advanced Search");
             m_categoriesButtonContent = new GUIContent("Categories");
-            m_regexSearchButtonContent = new GUIContent("Regex Search");
-            m_caseSensitiveButtonContent = new GUIContent("Case Sensitive");
+            m_regexSearchButtonNameOnlyContent = CreateButtonGUIContent(m_regexSearchIcon, "Regex Search");
+            m_caseSensitiveButtonContent = CreateButtonGUIContent(m_caseSensitiveIcon, "Case Sensitive");
             m_searchInLogMessageButtonContent = new GUIContent("Search in Log Message");
             m_searchInObjectNameButtonContent = new GUIContent("Search in Object Name");
             m_searchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
@@ -325,7 +352,7 @@ namespace ProperLogger
             m_collapseBubbleWarningStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleWarning"));
             m_collapseBubbleErrorStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleError"));
 
-            m_toolbarButtonStyle = (GUIStyle)(Strings.ToolbarButton);
+            m_toolbarIconButtonStyle = new GUIStyle(Strings.ToolbarButton);
 
             m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
             m_inspectorTextStyle.richText = true;
@@ -348,6 +375,15 @@ namespace ProperLogger
             m_iconErrorGray = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon.inactive.sml" });
 
             m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
+
+            m_clearIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearIcon);
+            m_collapseIcon = Utils.LoadAssetByName<Texture2D>(Strings.CollapseIcon);
+            m_clearOnBuildIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon);
+            m_clearOnPlayIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon);
+            m_errorPauseIcon = Utils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon);
+            m_regexSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon);
+            m_caseSensitiveIcon = Utils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon);
+            m_advancedSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon);
 
             //m_exceptionIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "ExceptionIcon" });
             //m_assertIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "AssertIcon" });
@@ -1122,22 +1158,23 @@ namespace ProperLogger
         private void DisplayToolbar(ref bool callForRepaint)
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
-            if (GUILayout.Button(m_clearButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+
+            if (GUILayout.Button(m_clearButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 Clear();
                 GUIUtility.keyboardControl = 0;
             }
             bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, m_collapseButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, m_collapseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_selectedEntries.Clear();
             }
-            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, m_clearOnPlayButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, m_clearOnBuildButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, m_clearOnPlayButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, m_clearOnBuildButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
 
@@ -1217,9 +1254,10 @@ namespace ProperLogger
 
         private void DisplaySearchToolbar()
         {
+
             GUILayout.BeginHorizontal(Strings.Toolbar);
             bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if(lastRegexSearch != m_configs.RegexSearch)
             {
                 m_needRegexRecompile = true;
@@ -1489,7 +1527,7 @@ namespace ProperLogger
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                m_toolbarButtonStyle,
+                m_toolbarIconButtonStyle,
                 GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
                 );
             if (hasFlag != newFlagValue)
