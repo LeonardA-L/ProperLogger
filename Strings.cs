@@ -8,6 +8,11 @@
         internal const string NineNineNinePlus = "999+";
         #endregion
 
+        #region Resources
+        internal const string ResetIcon = "ProperConsoleResetIcon";
+        internal const string EditorSkin = "ProperConsoleEditorCustomSkin";
+        #endregion Resources
+
         #region Style Names
         internal const string Toolbar = "Toolbar";
         internal const string ToolbarButton = "ToolbarButton";

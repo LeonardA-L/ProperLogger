@@ -12,12 +12,17 @@ namespace ProperLogger
     {
         internal static string s_pathToPreferences = "Preferences/Proper Logger";
 
+        private Texture2D m_resetIcon = null;
+
+        private GUISkin m_skin = null;
         private ConfigsProvider m_configs = null;
         private GUIStyle m_subtitleStyle = null;
         private int m_currentSelectedTab = 0;
         private string m_defaultPath = "Assets/LogCategories.asset";
 
-        private GUIContent m_resetButtonContent = new GUIContent("R");
+        private GUIContent m_resetButtonContent = null;
+        private GUIStyle m_resetButtonStyle = null;
+        private GUILayoutOption[] m_resetButtonOptions = null;
 
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
@@ -26,6 +31,12 @@ namespace ProperLogger
             : base(path, scope)
         {
             m_instance = this;
+
+            m_resetIcon = Utils.LoadAssetByName<Texture2D>(Strings.ResetIcon);
+            m_skin = Utils.LoadAssetByName<GUISkin>(Strings.EditorSkin);
+
+            m_resetButtonContent = new GUIContent(m_resetIcon);
+            m_resetButtonOptions = new GUILayoutOption[] { GUILayout.Height(20), GUILayout.Width(20), GUILayout.ExpandWidth(false) };
         }
 
         internal void SetCurrentSelectedTab(int idx)
@@ -45,6 +56,12 @@ namespace ProperLogger
                 m_subtitleStyle.padding.left = 10;
                 m_subtitleStyle.normal.textColor = textColor;
                 m_subtitleStyle.richText = true;
+            }
+
+            if(m_resetButtonStyle == null)
+            {
+                m_resetButtonStyle = new GUIStyle("Button");
+                m_resetButtonStyle.padding = new RectOffset(3,3,3,3);
             }
 
             EditorGUIUtility.labelWidth = 280f;
@@ -142,7 +159,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Message Font Size");
             m_configs.LogEntryMessageFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryMessageFontSize, 8, 20);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetLogEntryMessageFontSize();
             }
@@ -152,7 +169,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Message Line Count");
             m_configs.LogEntryMessageLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryMessageLineCount, 1, 5);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetLogEntryMessageLineCount();
             }
@@ -162,7 +179,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Stack Trace Font Size");
             m_configs.LogEntryStackTraceFontSize = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceFontSize, 8, 20);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetLogEntryStackTraceFontSize();
             }
@@ -172,7 +189,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log Entry Stack Trace Line Count");
             m_configs.LogEntryStackTraceLineCount = EditorGUILayout.IntSlider(m_configs.LogEntryStackTraceLineCount, 0, 5);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetLogEntryStackTraceLineCount();
             }
@@ -196,7 +213,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Inspector Log Message Font Size");
             m_configs.InspectorMessageFontSize = EditorGUILayout.IntField(m_configs.InspectorMessageFontSize);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetInspectorMessageFontSize();
             }
@@ -210,7 +227,7 @@ namespace ProperLogger
             {
                 m_configs.ObjectNameColor = color;
             }
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetObjectNameColor();
             }
@@ -225,7 +242,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("[CategoryName] Colorization");
             m_configs.CategoryNameColorize = EditorGUILayout.Slider(m_configs.CategoryNameColorize, 0, 1);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetCategoryNameColorize();
             }
@@ -234,7 +251,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Color Strip Width");
             m_configs.ColorStripWidth = EditorGUILayout.IntSlider(m_configs.ColorStripWidth, 3, 15);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetColorStripWidth();
             }
@@ -246,7 +263,7 @@ namespace ProperLogger
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Category Name column Colorization");
             m_configs.CategoryNameInLogListColorize = EditorGUILayout.Slider(m_configs.CategoryNameInLogListColorize, 0, 1);
-            if (GUILayout.Button(m_resetButtonContent, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetCategoryNameInLogListColorize();
             }
@@ -270,7 +287,7 @@ namespace ProperLogger
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(" ");
-            if (GUILayout.Button("Reset Everything to Default Values"))
+            if (GUILayout.Button(new GUIContent("  Reset Everything to Default Values", m_resetIcon), GUILayout.Height(25)))
             {
                 m_configs.ResetAll();
             }
