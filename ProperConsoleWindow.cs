@@ -16,8 +16,9 @@ namespace ProperLogger
         #region Members
         #region Consts
 
-        [SerializeField]
-        private GUISkin m_skin = null; // TODO can't have serialized fields
+        private GUISkin m_skin = null;
+        private GUISkin Skin => m_skin ?? (m_skin = Utils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
+
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
         [NonSerialized]
@@ -332,11 +333,11 @@ namespace ProperLogger
         {
             // TODO some styles don't need "new" style instantiation
 
-            m_oddEntry = new GUIStyle(m_skin.FindStyle("OddEntry"));
-            m_selectedEntry = new GUIStyle(m_skin.FindStyle("SelectedEntry"));
-            m_selectedEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabelSelected"));
-            m_evenEntry = new GUIStyle(m_skin.FindStyle("EvenEntry"));
-            m_evenEntryLabel = new GUIStyle(m_skin.FindStyle("EntryLabel"));
+            m_oddEntry = new GUIStyle(Skin.FindStyle("OddEntry"));
+            m_selectedEntry = new GUIStyle(Skin.FindStyle("SelectedEntry"));
+            m_selectedEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabelSelected"));
+            m_evenEntry = new GUIStyle(Skin.FindStyle("EvenEntry"));
+            m_evenEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabel"));
 
             m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
             m_categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
@@ -346,11 +347,11 @@ namespace ProperLogger
             m_categoryNameStyle.fontStyle = FontStyle.Bold;
             m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
 
-            m_categoryColorStrip = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
+            m_categoryColorStrip = new GUIStyle(Skin.FindStyle("CategoryColorStrip"));
 
-            m_collapseBubbleStyle = new GUIStyle(m_skin.FindStyle("CollapseBubble"));
-            m_collapseBubbleWarningStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleWarning"));
-            m_collapseBubbleErrorStyle = new GUIStyle(m_skin.FindStyle("CollapseBubbleError"));
+            m_collapseBubbleStyle = new GUIStyle(Skin.FindStyle("CollapseBubble"));
+            m_collapseBubbleWarningStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleWarning"));
+            m_collapseBubbleErrorStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleError"));
 
             m_toolbarIconButtonStyle = new GUIStyle(Strings.ToolbarButton);
 
