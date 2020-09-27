@@ -253,6 +253,7 @@ namespace ProperLogger
             InitListener();
             LoadIcons();
             CacheGUIContents();
+            ClearStyles();
             m_autoScroll = true;
             ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, m_iconConsole);
 
@@ -327,6 +328,27 @@ namespace ProperLogger
             m_searchInObjectNameButtonContent = new GUIContent("Search in Object Name");
             m_searchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
             m_pluginSettingsButtonContent = new GUIContent("Plugin Settings");
+        }
+
+        private void ClearStyles()
+        {
+            m_oddEntry = null;
+            m_selectedEntry = null;
+            m_selectedEntryLabel = null;
+            m_evenEntry = null;
+            m_evenEntryLabel = null;
+
+            m_categoryNameStyle = null;
+
+            m_categoryColorStrip = null;
+
+            m_collapseBubbleStyle = null;
+            m_collapseBubbleWarningStyle = null;
+            m_collapseBubbleErrorStyle = null;
+
+            m_toolbarIconButtonStyle = null;
+
+            m_inspectorTextStyle = null;
         }
 
         private void CacheStyles()
