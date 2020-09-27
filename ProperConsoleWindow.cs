@@ -34,6 +34,8 @@ namespace ProperLogger
         
         private bool m_searchMessage = true;
 
+        private bool m_isDarkSkin = false;
+
         #endregion Configs
 
         private bool m_needRegexRecompile = false; // TODO find region
@@ -379,7 +381,6 @@ namespace ProperLogger
 
             m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
             m_inspectorTextStyle.richText = true;
-            m_inspectorTextStyle.normal.textColor = Color.black;
             m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
             m_inspectorTextStyle.wordWrap = true;
             m_inspectorTextStyle.stretchWidth = false;
@@ -399,14 +400,14 @@ namespace ProperLogger
 
             m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
 
-            m_clearIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearIcon);
-            m_collapseIcon = Utils.LoadAssetByName<Texture2D>(Strings.CollapseIcon);
-            m_clearOnBuildIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon);
-            m_clearOnPlayIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon);
-            m_errorPauseIcon = Utils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon);
-            m_regexSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon);
-            m_caseSensitiveIcon = Utils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon);
-            m_advancedSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon);
+            m_clearIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (m_isDarkSkin ? "_d" : ""));
+            m_collapseIcon = Utils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (m_isDarkSkin ? "_d" : ""));
+            m_clearOnBuildIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (m_isDarkSkin ? "_d" : ""));
+            m_clearOnPlayIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (m_isDarkSkin ? "_d" : ""));
+            m_errorPauseIcon = Utils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon + (m_isDarkSkin ? "_d" : ""));
+            m_regexSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
+            m_caseSensitiveIcon = Utils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
+            m_advancedSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
 
             //m_exceptionIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "ExceptionIcon" });
             //m_assertIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "AssertIcon" });
@@ -1147,6 +1148,18 @@ namespace ProperLogger
                         break;
                 }
             }
+
+#if UNITY_EDITOR
+            if (m_isDarkSkin != EditorGUIUtility.isProSkin)
+            {
+                m_isDarkSkin = EditorGUIUtility.isProSkin;
+                ClearStyles();
+                ClearGUIContents();
+                LoadIcons();
+                CacheStyles();
+                CacheGUIContents();
+            }
+#endif // UNITY_EDITOR
         }
 
         private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
@@ -1376,8 +1389,16 @@ namespace ProperLogger
                 currentStyle = m_evenEntry;
             }
 
+            var guiColor = GUI.color;
+#if UNITY_EDITOR
+            if (EditorGUIUtility.isProSkin)
+            {
+                GUI.color = new Color(1, 1, 1, 0.28f);
+            }
+#endif // UNITY_EDITOR
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
             {
+            GUI.color = guiColor;
                 //GUI.color = saveColor;
                 // Picto space
                 GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));

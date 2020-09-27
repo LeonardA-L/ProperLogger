@@ -24,6 +24,8 @@ namespace ProperLogger
         private GUIStyle m_resetButtonStyle = null;
         private GUILayoutOption[] m_resetButtonOptions = null;
 
+        private bool m_isDarkSkin = false;
+
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
 
@@ -51,7 +53,7 @@ namespace ProperLogger
             {
                 m_subtitleStyle = new GUIStyle();
                 m_subtitleStyle.fontSize = 11;
-                Color textColor = m_subtitleStyle.normal.textColor;
+                Color textColor = GUI.skin.label.normal.textColor;
                 textColor.a = 0.6f;
                 m_subtitleStyle.padding.left = 10;
                 m_subtitleStyle.normal.textColor = textColor;
@@ -62,6 +64,13 @@ namespace ProperLogger
             {
                 m_resetButtonStyle = new GUIStyle("Button");
                 m_resetButtonStyle.padding = new RectOffset(3,3,3,3);
+            }
+
+            if (EditorGUIUtility.isProSkin != m_isDarkSkin)
+            {
+                m_isDarkSkin = EditorGUIUtility.isProSkin;
+                m_resetIcon = Utils.LoadAssetByName<Texture2D>(Strings.ResetIcon + (m_isDarkSkin ? "_d" : ""));
+                m_resetButtonContent = new GUIContent(m_resetIcon);
             }
 
             EditorGUIUtility.labelWidth = 280f;
