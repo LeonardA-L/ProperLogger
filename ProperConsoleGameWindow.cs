@@ -18,27 +18,43 @@ namespace ProperLogger
 #endif
         [SerializeField]
         private GUISkin m_skin = null;
-
+        private GUISkin Skin => m_skin;
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
         [NonSerialized]
-        private bool m_active = false;
-        private Rect m_windowRect = new Rect(30, 30, 800, 600);
+        private float m_regexCompileDebounce = 200 * 10000;
 
-        private CustomLogHandler m_logHandler = null;
-        private bool m_listening = false;
-        private List<PendingContext> m_pendingContexts = null;
-        private object m_entriesLock = null;
+        private bool m_active = false;
+        private Rect m_windowRect = new Rect(30,30, 1200, 700);
+
+        #region Configs
 
         private ConfigsProvider m_configs = new PlayerConfigs();
-        private bool m_triggerFilteredEntryComputation = false;
+
+        private bool m_autoScroll = true;
+
+        private bool m_searchMessage = true;
+
+        private bool m_isDarkSkin = false;
+
+        #endregion Configs
+
+        private bool m_needRegexRecompile = false; // TODO find region
+        private DateTime m_lastRegexRecompile;
+        private bool m_callForRepaint = false;
+
+        #region Logs
+
         private List<ConsoleLogEntry> m_entries = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
         private List<ConsoleLogEntry> m_collapsedEntries = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
-
-        private bool m_needRegexRecompile = false; // TODO find region
-        private DateTime m_lastRegexRecompile;
+        private bool m_triggerFilteredEntryComputation = false;
+        private bool m_triggerSyncWithUnityComputation = false;
+        private CustomLogHandler m_logHandler = null;
+        private List<PendingContext> m_pendingContexts = null;
+        private object m_entriesLock = null;
+        private bool m_listening = false;
 
         #region Filters
 
@@ -46,11 +62,9 @@ namespace ProperLogger
         private string[] m_searchWords = null;
         private List<LogCategory> m_inactiveCategories = null;
 
-        private bool m_searchMessage = true;
-
-        private Regex m_searchRegex = null;
-
         #endregion Filters
+
+        #endregion Logs
 
         #region Layout
 
@@ -71,15 +85,48 @@ namespace ProperLogger
         private Rect m_showCategoriesButtonRect = default;
         private Rect m_listDisplay = default;
 
+        private Rect m_searchFieldRect = default;
+        private Rect m_resetSearchButtonRect = default;
+
         private bool m_lastCLickIsDisplayList = false;
-        private bool m_autoScroll = true;
-
-        private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
-                                  + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
-                                  + 8; // padding
-
 
         #endregion Layout
+
+        #region Loaded Textures
+
+        private static Texture2D m_iconInfo;
+        private static Texture2D m_iconWarning;
+        private static Texture2D m_iconError;
+
+        private static Texture2D m_iconInfoGray;
+        private static Texture2D m_iconWarningGray;
+        private static Texture2D m_iconErrorGray;
+
+        private static Texture2D m_iconConsole;
+
+        private static Texture2D m_clearIcon;
+        private static Texture2D m_collapseIcon;
+        private static Texture2D m_clearOnPlayIcon;
+        private static Texture2D m_clearOnBuildIcon;
+        private static Texture2D m_errorPauseIcon;
+        private static Texture2D m_regexSearchIcon;
+        private static Texture2D m_caseSensitiveIcon;
+        private static Texture2D m_advancedSearchIcon;
+
+        [SerializeField]
+        private Texture2D m_exceptionIcon; // TODO can't have serialized fields
+        [SerializeField]
+        private Texture2D m_assertIcon; // TODO can't have serialized fields
+
+        #endregion Loaded Textures
+
+        #region Caches
+
+        private Regex m_searchRegex = null;
+
+        private int m_logLog = 0;
+        private int m_warnLog = 0;
+        private int m_errLog = 0;
 
         private GUIContent m_clearButtonContent = null;
         private GUIContent m_collapseButtonContent = null;
@@ -89,18 +136,36 @@ namespace ProperLogger
 
         private GUIContent m_advancedSearchButtonContent = null;
         private GUIContent m_categoriesButtonContent = null;
-        private GUIContent m_regexSearchButtonContent = null;
+        private GUIContent m_regexSearchButtonNameOnlyContent = null;
         private GUIContent m_caseSensitiveButtonContent = null;
         private GUIContent m_searchInLogMessageButtonContent = null;
         private GUIContent m_searchInObjectNameButtonContent = null;
         private GUIContent m_searchInStackTraceButtonContent = null;
         private GUIContent m_pluginSettingsButtonContent = null;
 
-        private int m_logCounter = 0;
-        private int m_warningCounter = 0;
-        private int m_errorCounter = 0;
+        private GUIStyle m_oddEntry = null;
+        private GUIStyle m_selectedEntry = null;
+        private GUIStyle m_selectedEntryLabel = null;
+        private GUIStyle m_evenEntry = null;
+        private GUIStyle m_evenEntryLabel = null;
+        private GUIStyle m_categoryNameStyle = null;
+        private GUIStyle m_categoryColorStrip = null;
+        private GUIStyle m_collapseBubbleStyle = null;
+        private GUIStyle m_collapseBubbleWarningStyle = null;
+        private GUIStyle m_collapseBubbleErrorStyle = null;
+        private GUIStyle m_toolbarIconButtonStyle = null;
+        private GUIStyle m_inspectorTextStyle = null;
 
-        private void ClearGUIContents()
+        private Regex m_categoryParse = null;
+        private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
+
+        #endregion Caches
+
+        private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
+                                  + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
+                                  + 8; // padding
+
+        internal void ClearGUIContents()
         {
             m_clearButtonContent = null;
             m_collapseButtonContent = null;
@@ -110,7 +175,7 @@ namespace ProperLogger
 
             m_advancedSearchButtonContent = null;
             m_categoriesButtonContent = null;
-            m_regexSearchButtonContent = null;
+            m_regexSearchButtonNameOnlyContent = null;
             m_caseSensitiveButtonContent = null;
             m_searchInLogMessageButtonContent = null;
             m_searchInObjectNameButtonContent = null;
@@ -118,35 +183,107 @@ namespace ProperLogger
             m_pluginSettingsButtonContent = null;
         }
 
-        private void CacheGUIContents()
+        private GUIContent CreateButtonGUIContent(Texture2D icon, string text)
         {
-            m_clearButtonContent = new GUIContent("Clear");
-            m_collapseButtonContent = new GUIContent("Collapse");
-            m_clearOnPlayButtonContent = new GUIContent("Clear on Play");
-            m_clearOnBuildButtonContent = new GUIContent("Clear on Build");
-            m_errorPauseButtonContent = new GUIContent("Error Pause");
+            if (icon == null)
+            {
+                return new GUIContent(text);
+            }
+            switch (m_configs.DisplayIcons)
+            {
+                case 0: // Name Only
+                default:
+                    return new GUIContent(text);
+                case 1: // Name and Icon
+                    return new GUIContent($" {text}", icon);
+                case 2: // Icon Only
+                    return new GUIContent(icon, text);
+            }
+        }
 
-            m_advancedSearchButtonContent = new GUIContent("S", null, "Advanced Search");
+        internal void CacheGUIContents()
+        {
+            m_clearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
+            m_collapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
+            m_clearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
+            m_clearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
+            m_errorPauseButtonContent = CreateButtonGUIContent(m_errorPauseIcon, "Error Pause");
+
+            m_advancedSearchButtonContent = new GUIContent(m_advancedSearchIcon, "Advanced Search");
             m_categoriesButtonContent = new GUIContent("Categories");
-            m_regexSearchButtonContent = new GUIContent("Regex Search");
-            m_caseSensitiveButtonContent = new GUIContent("Case Sensitive");
+            m_regexSearchButtonNameOnlyContent = CreateButtonGUIContent(m_regexSearchIcon, "Regex Search");
+            m_caseSensitiveButtonContent = CreateButtonGUIContent(m_caseSensitiveIcon, "Case Sensitive");
             m_searchInLogMessageButtonContent = new GUIContent("Search in Log Message");
             m_searchInObjectNameButtonContent = new GUIContent("Search in Object Name");
             m_searchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
             m_pluginSettingsButtonContent = new GUIContent("Plugin Settings");
         }
 
+        private void ClearStyles()
+        {
+            m_oddEntry = null;
+            m_selectedEntry = null;
+            m_selectedEntryLabel = null;
+            m_evenEntry = null;
+            m_evenEntryLabel = null;
+
+            m_categoryNameStyle = null;
+
+            m_categoryColorStrip = null;
+
+            m_collapseBubbleStyle = null;
+            m_collapseBubbleWarningStyle = null;
+            m_collapseBubbleErrorStyle = null;
+
+            m_toolbarIconButtonStyle = null;
+
+            m_inspectorTextStyle = null;
+        }
+
+        private void CacheStyles()
+        {
+            // TODO some styles don't need "new" style instantiation
+
+            m_oddEntry = new GUIStyle(Skin.FindStyle("OddEntry"));
+            m_selectedEntry = new GUIStyle(Skin.FindStyle("SelectedEntry"));
+            m_selectedEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabelSelected"));
+            m_evenEntry = new GUIStyle(Skin.FindStyle("EvenEntry"));
+            m_evenEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabel"));
+
+            m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
+            m_categoryNameStyle.normal.textColor = Skin.label.normal.textColor;
+            m_categoryNameStyle.alignment = TextAnchor.MiddleCenter;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
+            m_categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - m_categoryNameStyle.fontSize);
+            m_categoryNameStyle.fontStyle = FontStyle.Bold;
+            m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
+
+            m_categoryColorStrip = new GUIStyle(Skin.FindStyle("CategoryColorStrip"));
+
+            m_collapseBubbleStyle = new GUIStyle(Skin.FindStyle("CollapseBubble"));
+            m_collapseBubbleWarningStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleWarning"));
+            m_collapseBubbleErrorStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleError"));
+
+            m_toolbarIconButtonStyle = Skin.FindStyle(Strings.ToolbarButton);
+
+            m_inspectorTextStyle = new GUIStyle(Skin.label);
+            m_inspectorTextStyle.richText = true;
+            m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
+            m_inspectorTextStyle.wordWrap = true;
+            m_inspectorTextStyle.stretchWidth = false;
+            m_inspectorTextStyle.clipping = TextClipping.Clip;
+        }
+
         private void Awake()
         {
-            m_entries = new List<ConsoleLogEntry>();
-            m_pendingContexts = new List<PendingContext>();
+            m_entries = m_entries ?? new List<ConsoleLogEntry>();
+            m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
             m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
             m_listening = false;
             m_entriesLock = new object();
             m_triggerFilteredEntryComputation = true;
             InitListener();
-            //LoadIcons(); TODO
-            CacheGUIContents();
+            m_autoScroll = true;
 
             m_needRegexRecompile = true;
         }
@@ -223,21 +360,23 @@ namespace ProperLogger
 
         protected virtual void OnWindowEnabled()
         {
-
+            ClearStyles();
+            CacheStyles();
         }
 
         protected virtual void OnWindowDisabled()
         {
-
+            ClearStyles();
+            ClearGUIContents();
         }
 
         internal void Clear()
         {
             lock (m_entriesLock)
             {
-                m_logCounter = 0;
-                m_warningCounter = 0;
-                m_errorCounter = 0;
+                m_logLog = 0;
+                m_warnLog = 0;
+                m_errLog = 0;
                 m_entries.Clear();
                 m_pendingContexts.Clear();
                 m_selectedEntries.Clear();
@@ -294,17 +433,27 @@ namespace ProperLogger
             GUI.DragWindow(new Rect(0, 0, 10000, 20));  // To make the window draggable
             HandleCopyToClipboard();
 
+            if (m_inspectorTextStyle == null)
+            {
+                CacheStyles();
+            }
+
+            if(m_clearButtonContent == null)
+            {
+                CacheGUIContents();
+            }
+
+            m_callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
             m_inactiveCategories?.Clear();
             m_inactiveCategories = m_configs.InactiveCategories;
 
-            bool _ = false;
-            DisplayToolbar(ref _);
+            DisplayToolbar(ref m_callForRepaint);
 
             if (m_configs.AdvancedSearchToolbar)
             {
-                DisplaySearchToolbar(); // TODO
+                DisplaySearchToolbar();
             }
 
             float startY = 0;
@@ -323,7 +472,7 @@ namespace ProperLogger
 
             #region DisplayList
             GUILayout.BeginVertical(); // Display list
-            m_entryListScrollPosition = GUILayout.BeginScrollView(m_entryListScrollPosition, false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
+            m_entryListScrollPosition = GUILayout.BeginScrollView(m_entryListScrollPosition, false, false, GUIStyle.none, Skin.verticalScrollbar);
 
             if (repaint)
             {
@@ -411,14 +560,6 @@ namespace ProperLogger
             }
             if (m_selectedEntries.Count > 0)
             {
-                GUIStyle textStyle = new GUIStyle(GUI.skin.label);
-                textStyle.richText = true;
-                textStyle.normal.textColor = Color.black;
-                textStyle.fontSize = m_configs.InspectorMessageFontSize;
-                textStyle.wordWrap = true;
-                textStyle.stretchWidth = false;
-                textStyle.clipping = TextClipping.Clip;
-
                 var entry = m_selectedEntries[0];
 
                 GUILayout.Space(1);
@@ -430,25 +571,25 @@ namespace ProperLogger
                     if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
                     {
                         string format = "<color=#{1}>[{0}]</color> ";
-                        categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                        categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, m_inspectorTextStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                     }
                 }
 
-                SelectableLabel($"{categoriesString}{entry.message}", textStyle, currentX); // TODO if editor
-                                                                                                  //GUILayout.Label($"{entry.message}", textStyle); // TODO if not editor
+                SelectableLabel($"{categoriesString}{entry.message}", m_inspectorTextStyle, currentX);
+
                 if (entry.context != null)
                 {
-                    Color txtColor = textStyle.normal.textColor;
+                    Color txtColor = m_inspectorTextStyle.normal.textColor;
                     if (!m_configs.ObjectNameColor.Equals(txtColor))
                     {
-                        textStyle.normal.textColor = m_configs.ObjectNameColor;
+                        m_inspectorTextStyle.normal.textColor = m_configs.ObjectNameColor;
                     }
-                    SelectableLabel(entry.context.name, textStyle, currentX); // TODO if editor// TODO if not editor
-                    textStyle.normal.textColor = txtColor;
+                    SelectableLabel(entry.context.name, m_inspectorTextStyle, currentX);
+                    m_inspectorTextStyle.normal.textColor = txtColor;
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
-                    SelectableLabel(entry.stackTrace, textStyle, currentX); // TODO if editor// TODO if not editor
+                    SelectableLabel(entry.stackTrace, m_inspectorTextStyle, currentX);
                 }
             }
             GUILayout.EndScrollView();
@@ -497,13 +638,14 @@ namespace ProperLogger
         private void DisplayToolbar(ref bool callForRepaint)
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
-            if (GUILayout.Button(m_clearButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+
+            if (GUILayout.Button(m_clearButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 Clear();
                 GUIUtility.keyboardControl = 0;
             }
             bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, m_collapseButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, m_collapseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
@@ -512,11 +654,12 @@ namespace ProperLogger
             }
 
 #if UNITY_EDITOR
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
 #endif
 
             string lastSearchTerm = m_searchString;
-            
+
+            GUI.enabled = !(Event.current.isMouse && m_resetSearchButtonRect.Contains(Event.current.mousePosition));
             m_searchString = GUILayout.TextField(m_searchString, Strings.ToolbarSeachTextField);
             if (lastSearchTerm != m_searchString)
             {
@@ -528,11 +671,32 @@ namespace ProperLogger
                 }
                 m_searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
+            GUI.enabled = true;
+            if (!string.IsNullOrEmpty(m_searchString))
+            {
+                if (Event.current.type == EventType.Repaint)
+                {
+                    m_searchFieldRect = GUILayoutUtility.GetLastRect();
+                }
+                float resetSearchButtonWidth = 15;
+                m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y, resetSearchButtonWidth, m_searchFieldRect.height);
+                if (GUI.Button(m_resetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
+                {
+                    m_searchString = null;
+                    m_triggerFilteredEntryComputation = true;
+                    if (m_configs.RegexSearch)
+                    {
+                        m_lastRegexRecompile = DateTime.Now;
+                        m_needRegexRecompile = true;
+                    }
+                    m_searchWords = null;
+                }
+            }
 
-            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, m_advancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, m_advancedSearchButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             Rect dropdownRect = GUILayoutUtility.GetLastRect();
 
-            if (GUILayout.Button(m_categoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(m_categoriesButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 Vector2 dropdownOffset = new Vector2(40, 23);
                 //Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
@@ -562,10 +726,55 @@ namespace ProperLogger
             GetCounters(m_displayedEntries, out int logCounter, out int warnCounter, out int errCounter);
 
             // Log Level Flags
-            FlagButton(LogLevel.Log, null, null, logCounter);
-            FlagButton(LogLevel.Warning, null, null, warnCounter);
-            FlagButton(LogLevel.Error, null, null, errCounter);
+            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray, logCounter);
+            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray, warnCounter);
+            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray, errCounter);
 
+            GUILayout.EndHorizontal();
+        }
+
+        private void DisplaySearchToolbar()
+        {
+
+            GUILayout.BeginHorizontal(Strings.Toolbar);
+            bool lastRegexSearch = m_configs.RegexSearch;
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastRegexSearch != m_configs.RegexSearch)
+            {
+                m_needRegexRecompile = true;
+            }
+            bool lastCaseSensitive = m_configs.CaseSensitive;
+            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, m_caseSensitiveButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastCaseSensitive != m_configs.CaseSensitive)
+            {
+                m_triggerFilteredEntryComputation = true;
+                m_needRegexRecompile = true;
+            }
+            bool lastSearchMessage = m_searchMessage;
+            m_searchMessage = GUILayout.Toggle(m_searchMessage, m_searchInLogMessageButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchMessage != m_searchMessage)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
+            bool lastSearchObjectName = m_configs.SearchObjectName;
+            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, m_searchInObjectNameButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchObjectName != m_configs.SearchObjectName)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
+            bool lastSearchStackTRace = m_configs.SearchInStackTrace;
+            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, m_searchInStackTraceButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchStackTRace != m_configs.SearchInStackTrace)
+            {
+                m_triggerFilteredEntryComputation = true;
+            }
+            GUILayout.FlexibleSpace();
+#if UNITY_EDITOR
+            if (GUILayout.Button(m_pluginSettingsButtonContent))
+            {
+                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
+            }
+#endif // UNITY_EDITOR
             GUILayout.EndHorizontal();
         }
 
@@ -593,7 +802,7 @@ namespace ProperLogger
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                (GUIStyle)Strings.ToolbarButton
+                m_toolbarIconButtonStyle
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
                 );
             if (hasFlag != newFlagValue)
@@ -631,51 +840,6 @@ namespace ProperLogger
                 }
             }
         }
-
-        private void DisplaySearchToolbar()
-        {
-            GUILayout.BeginHorizontal(Strings.Toolbar);
-            bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if(lastRegexSearch != m_configs.RegexSearch)
-            {
-                m_needRegexRecompile = true;
-            }
-            bool lastCaseSensitive = m_configs.CaseSensitive;
-            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, m_caseSensitiveButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastCaseSensitive != m_configs.CaseSensitive)
-            {
-                m_triggerFilteredEntryComputation = true;
-                m_needRegexRecompile = true;
-            }
-            bool lastSearchMessage = m_searchMessage;
-            m_searchMessage = GUILayout.Toggle(m_searchMessage, m_searchInLogMessageButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchMessage != m_searchMessage)
-            {
-                m_triggerFilteredEntryComputation = true;
-            }
-            bool lastSearchObjectName = m_configs.SearchObjectName;
-            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, m_searchInObjectNameButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchObjectName != m_configs.SearchObjectName)
-            {
-                m_triggerFilteredEntryComputation = true;
-            }
-            bool lastSearchStackTRace = m_configs.SearchInStackTrace;
-            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, m_searchInStackTraceButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchStackTRace != m_configs.SearchInStackTrace)
-            {
-                m_triggerFilteredEntryComputation = true;
-            }
-            GUILayout.FlexibleSpace();
-#if UNITY_EDITOR
-            if (GUILayout.Button(m_pluginSettingsButtonContent))
-            {
-                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
-            }
-#endif // UNITY_EDITOR
-            GUILayout.EndHorizontal();
-        }
-
 
         private void SelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
@@ -717,9 +881,9 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            GUIStyle currentStyle = m_skin.FindStyle("OddEntry"); // TODO Cache styles
-            GUIStyle textStyle = new GUIStyle(m_skin.FindStyle("EntryLabel")); // TODO Cache styles
-            textStyle.normal.textColor = GUI.skin.label.normal.textColor;
+            GUIStyle currentStyle = m_oddEntry;
+            GUIStyle textStyle = m_evenEntryLabel;
+            textStyle.normal.textColor = Skin.label.normal.textColor;
 
             float imageSize = Math.Min(ItemHeight - (2 * 3), 40); // We clamp it in case we display 3+ lines
             imageSize += imageSize % 2;
@@ -738,21 +902,14 @@ namespace ProperLogger
 
             float rightSplitterWidth = m_configs.InspectorOnTheRight ? m_splitterPosition : 0;
 
-            GUIStyle categoryNameStyle = new GUIStyle(textStyle);
-            categoryNameStyle.alignment = TextAnchor.MiddleCenter;
-            categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - categoryNameStyle.fontSize);
-            categoryNameStyle.fontStyle = FontStyle.Bold;
-            categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
-
             string categoriesString = string.Empty;
 
             if (entry.categories != null && entry.categories.Count > 0)
             {
                 if (categoryColumn)
                 {
-                    var category = entry.categories[0];
-                    categoryColumnWidth = categoryNameStyle.CalcSize(new GUIContent(category.Name)).x + 10;
+                    var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count)).Select(c => c.Name));
+                    categoryColumnWidth = m_categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
                 }
                 if (displayCategoryStrips)
                 {
@@ -770,17 +927,24 @@ namespace ProperLogger
 
             if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
             {
-                currentStyle = m_skin.FindStyle("SelectedEntry"); // TODO Cache styles
-                textStyle = m_skin.FindStyle("EntryLabelSelected"); // TODO Cache styles
-                categoryNameStyle.normal.textColor = textStyle.normal.textColor;
+                currentStyle = m_selectedEntry;
+                textStyle = m_selectedEntryLabel;
             }
             else if (idx % 2 == 0)
             {
-                currentStyle = m_skin.FindStyle("EvenEntry"); // TODO Cache styles
+                currentStyle = m_evenEntry;
             }
 
+            var guiColor = GUI.color;
+#if UNITY_EDITOR
+            if (EditorGUIUtility.isProSkin)
+            {
+                GUI.color = new Color(1, 1, 1, 0.28f);
+            }
+#endif // UNITY_EDITOR
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
             {
+                GUI.color = guiColor;
                 //GUI.color = saveColor;
                 // Picto space
                 GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
@@ -816,12 +980,16 @@ namespace ProperLogger
                 // First Category space
                 if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
                 {
-                    var category = entry.categories[0];
-                    if (displayCategoryNameInColumn)
+                    GUILayout.BeginHorizontal(GUILayout.Width(categoryColumnWidth));
+                    for (int i = 0; i < Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count); i++)
                     {
-                        categoryNameStyle.normal.textColor = Color.Lerp(category.Color, categoryNameStyle.normal.textColor, m_configs.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), categoryNameStyle, GUILayout.Width(categoryColumnWidth));
+                        var category = entry.categories[i];
+                        var categoryColor = m_categoryNameStyle.normal.textColor;
+                        m_categoryNameStyle.normal.textColor = Color.Lerp(m_categoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
+                        GUILayout.Label(category.Name.ToString(), m_categoryNameStyle, GUILayout.ExpandWidth(true));
+                        m_categoryNameStyle.normal.textColor = categoryColor;
                     }
+                    GUILayout.EndHorizontal();
                     /*
                     if (displayCategoryIconInColumn && category.Icon != null)
                     {
@@ -842,13 +1010,12 @@ namespace ProperLogger
                     Color saveContentColor = GUI.contentColor;
                     Color saveBGColor = GUI.backgroundColor;
                     int i = 0;
-                    GUIStyle boxStyle = new GUIStyle(m_skin.FindStyle("CategoryColorStrip"));
                     foreach (var category in entry.categories)
                     {
                         GUI.color = category.Color;
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, boxStyle);
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, m_categoryColorStrip);
                         GUILayout.Space(categoryStripWidth);
                         i++;
                     }
@@ -911,6 +1078,26 @@ namespace ProperLogger
             }
         }
 
+        private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
+        {
+            GUIStyle style;
+            switch (level)
+            {
+                case LogLevel.Log:
+                    style = m_collapseBubbleStyle;
+                    break;
+                case LogLevel.Warning:
+                    style = m_collapseBubbleWarningStyle;
+                    break;
+                case LogLevel.Error:
+                default:
+                    style = m_collapseBubbleErrorStyle;
+                    break;
+            }
+            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
+            GUILayout.Space(sidePaddings);
+        }
+
         private void CopySelection()
         {
             string result = string.Empty;
@@ -921,27 +1108,6 @@ namespace ProperLogger
             }
 
             GUIUtility.systemCopyBuffer = result;
-        }
-
-        private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
-        {
-            // TODO cache FindStyle
-            GUIStyle style;
-            switch (level)
-            {
-                case LogLevel.Log:
-                    style = m_skin.FindStyle("CollapseBubble");
-                    break;
-                case LogLevel.Warning:
-                    style = m_skin.FindStyle("CollapseBubbleWarning");
-                    break;
-                case LogLevel.Error:
-                default:
-                    style = m_skin.FindStyle("CollapseBubbleError");
-                    break;
-            }
-            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23)); // TODO style
-            GUILayout.Space(sidePaddings);
         }
 
         private Texture GetEntryIcon(ConsoleLogEntry entry)
