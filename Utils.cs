@@ -108,7 +108,8 @@ namespace ProperLogger
 
                         Type type = Type.GetType(m.Groups[2].Value);
                         MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-                        isHidden = method.GetCustomAttribute<HideInCallStackAttribute>() != null;
+                        var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true); 
+                        isHidden = attributes.Length > 0;
                     }
                     catch (Exception) { }
 
