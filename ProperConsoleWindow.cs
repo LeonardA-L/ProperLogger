@@ -174,7 +174,6 @@ namespace ProperLogger
         private GUIStyle m_collapseBubbleErrorStyle = null;
         private GUIStyle m_toolbarButtonStyle = null;
         private GUIStyle m_inspectorTextStyle = null;
-        private GUIStyle m_resetSearchFieldStyle = null;
 
         private Regex m_categoryParse = null;
         private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
@@ -335,12 +334,11 @@ namespace ProperLogger
             m_inspectorTextStyle.wordWrap = true;
             m_inspectorTextStyle.stretchWidth = false;
             m_inspectorTextStyle.clipping = TextClipping.Clip;
-
-            m_resetSearchFieldStyle = new GUIStyle(m_skin.FindStyle("ResetSearchField"));
         }
 
         private void LoadIcons()
         {
+            // TODO check out EditorGUIUtility.Load
             m_iconInfo = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon" });
             m_iconWarning = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon" });
             m_iconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
@@ -1162,9 +1160,9 @@ namespace ProperLogger
                 {
                     m_searchFieldRect = GUILayoutUtility.GetLastRect();
                 }
-                float resetSearchButtonWidth = 13;
-                m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y - 1, resetSearchButtonWidth, m_searchFieldRect.height);
-                if (GUI.Button(m_resetSearchButtonRect, "x", m_resetSearchFieldStyle))
+                float resetSearchButtonWidth = 15;
+                m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y, resetSearchButtonWidth, m_searchFieldRect.height);
+                if (GUI.Button(m_resetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
                 {
                     m_searchString = null;
                     m_triggerFilteredEntryComputation = true;
