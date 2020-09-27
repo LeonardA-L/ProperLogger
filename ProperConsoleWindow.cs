@@ -304,7 +304,7 @@ namespace ProperLogger
                 default:
                     return new GUIContent(text);
                 case 1: // Name and Icon
-                    return new GUIContent($"  {text}", icon);
+                    return new GUIContent($" {text}", icon);
                 case 2: // Icon Only
                     return new GUIContent(icon, text);
             }
