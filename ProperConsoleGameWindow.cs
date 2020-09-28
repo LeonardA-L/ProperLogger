@@ -324,6 +324,25 @@ namespace ProperLogger
                 Toggle();
             }
 #endif
+            if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
+            {
+                m_searchRegex = null;
+            }
+            else if (m_configs.RegexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
+            {
+                m_needRegexRecompile = false;
+                m_lastRegexRecompile = DateTime.Now;
+                m_triggerFilteredEntryComputation = true;
+                if (m_configs.CaseSensitive)
+                {
+                    m_searchRegex = new Regex(m_searchString.Trim());
+                }
+                else
+                {
+                    m_searchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
+                }
+            }
+            // TODO code below will not execute if regex compilation failed
         }
 
         public void InitListener()
