@@ -8,6 +8,8 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLoggerEditor")]
+
 namespace ProperLogger
 {
     public class ProperConsoleGameWindow : MonoBehaviour, ILogObserver
@@ -753,9 +755,12 @@ namespace ProperLogger
                 }
                 size.y += 25;
                 // Get existing open window or if none, make a new one:
+                /*
                 var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
                 window.ShowAsDropDown(dropDownPosition, size);
                 window.Repaint();
+                */
+                // TODO
             }
             if (Event.current.type == EventType.Repaint) m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
 
@@ -804,12 +809,13 @@ namespace ProperLogger
                 m_triggerFilteredEntryComputation = true;
             }
             GUILayout.FlexibleSpace();
-#if UNITY_EDITOR
+
             if (GUILayout.Button(m_pluginSettingsButtonContent))
             {
-                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
+                // TODO
+                //SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
             }
-#endif // UNITY_EDITOR
+
             GUILayout.EndHorizontal();
         }
 

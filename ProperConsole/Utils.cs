@@ -4,27 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEngine;
 
 namespace ProperLogger
 {
     internal class Utils
     {
-        // TODO verify if this works when we're in a package
-        internal static T LoadAssetByName<T>(string assetName) where T : UnityEngine.Object
-        {
-            string[] guids = AssetDatabase.FindAssets(assetName, null);
-
-            foreach (string guid in guids)
-            {
-                string iconPath = AssetDatabase.GUIDToAssetPath(guid);
-                var asset = AssetDatabase.LoadAssetAtPath(iconPath, typeof(T));
-                if (asset is T t)
-                    return t;
-            }
-            return null;
-        }
 
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {

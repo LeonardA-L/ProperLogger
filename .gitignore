@@ -1,4 +1,10 @@
 **.meta
-obj/**
-bin/**
-.vs/**
+**/obj/**
+**/bin/**
+**/.vs/**
+Editor/
+Editor.meta
+IconPSDs**
+Plugins**
+Untracked**
+**.asmdef

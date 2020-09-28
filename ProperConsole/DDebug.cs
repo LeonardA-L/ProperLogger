@@ -28,15 +28,6 @@ namespace ProperLogger
         {
             Assert(condition, "Assertion Failed", context, categories);
         }
-        public static void ClearDeveloperConsole()
-        {
-            if(ProperConsoleWindow.Instance != null)
-            {
-                ProperConsoleWindow.Instance.Clear();
-            }
-            Debug.ClearDeveloperConsole();
-            // TODO in-game console
-        }
         public static void Log(object message, params string[] categories)
         {
             Log(message, null, categories);

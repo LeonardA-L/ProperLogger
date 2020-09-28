@@ -34,8 +34,8 @@ namespace ProperLogger
         {
             m_instance = this;
 
-            m_resetIcon = Utils.LoadAssetByName<Texture2D>(Strings.ResetIcon);
-            m_skin = Utils.LoadAssetByName<GUISkin>(Strings.EditorSkin);
+            m_resetIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ResetIcon);
+            m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin);
 
             m_resetButtonContent = new GUIContent(m_resetIcon);
             m_resetButtonOptions = new GUILayoutOption[] { GUILayout.Height(20), GUILayout.Width(20), GUILayout.ExpandWidth(false) };
@@ -69,7 +69,7 @@ namespace ProperLogger
             if (EditorGUIUtility.isProSkin != m_isDarkSkin)
             {
                 m_isDarkSkin = EditorGUIUtility.isProSkin;
-                m_resetIcon = Utils.LoadAssetByName<Texture2D>(Strings.ResetIcon + (m_isDarkSkin ? "_d" : ""));
+                m_resetIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ResetIcon + (m_isDarkSkin ? "_d" : ""));
                 m_resetButtonContent = new GUIContent(m_resetIcon);
             }
 

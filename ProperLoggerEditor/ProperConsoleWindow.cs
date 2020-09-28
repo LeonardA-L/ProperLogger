@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Linq;
 using System.IO;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLogger")]
+
 namespace ProperLogger
 {
     internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver
@@ -17,7 +19,7 @@ namespace ProperLogger
         #region Consts
 
         private GUISkin m_skin = null;
-        private GUISkin Skin => m_skin ?? (m_skin = Utils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
+        private GUISkin Skin => m_skin ?? (m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
 
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
@@ -398,17 +400,17 @@ namespace ProperLogger
 
             m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
 
-            m_clearIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (m_isDarkSkin ? "_d" : ""));
-            m_collapseIcon = Utils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (m_isDarkSkin ? "_d" : ""));
-            m_clearOnBuildIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (m_isDarkSkin ? "_d" : ""));
-            m_clearOnPlayIcon = Utils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (m_isDarkSkin ? "_d" : ""));
-            m_errorPauseIcon = Utils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon + (m_isDarkSkin ? "_d" : ""));
-            m_regexSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
-            m_caseSensitiveIcon = Utils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
-            m_advancedSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
+            m_clearIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (m_isDarkSkin ? "_d" : ""));
+            m_collapseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (m_isDarkSkin ? "_d" : ""));
+            m_clearOnBuildIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (m_isDarkSkin ? "_d" : ""));
+            m_clearOnPlayIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (m_isDarkSkin ? "_d" : ""));
+            m_errorPauseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon + (m_isDarkSkin ? "_d" : ""));
+            m_regexSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
+            m_caseSensitiveIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
+            m_advancedSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
 
-            m_exceptionIcon = Utils.LoadAssetByName<Texture2D>(Strings.ExceptionIcon + (m_isDarkSkin ? "_d" : ""));
-            m_assertIcon = Utils.LoadAssetByName<Texture2D>(Strings.AssertIcon + (m_isDarkSkin ? "_d" : ""));
+            m_exceptionIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ExceptionIcon + (m_isDarkSkin ? "_d" : ""));
+            m_assertIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.AssertIcon + (m_isDarkSkin ? "_d" : ""));
 
             //m_exceptionIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "ExceptionIcon" });
             //m_assertIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "AssertIcon" });
