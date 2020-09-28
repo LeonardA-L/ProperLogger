@@ -24,6 +24,7 @@
         #endregion Resources
 
         #region Style Names
+        internal const string Splitter = "Splitter";
         internal const string Toolbar = "Toolbar";
         internal const string ToolbarButton = "ToolbarButton";
         internal const string ToolbarSeachTextField = "ToolbarSeachTextField";

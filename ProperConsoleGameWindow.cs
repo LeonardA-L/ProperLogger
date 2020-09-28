@@ -165,6 +165,7 @@ namespace ProperLogger
         private GUIStyle m_collapseBubbleWarningStyle = null;
         private GUIStyle m_collapseBubbleErrorStyle = null;
         private GUIStyle m_toolbarIconButtonStyle = null;
+        private Texture2D m_toolbarIconButtonActiveBackground = null;
         private GUIStyle m_inspectorTextStyle = null;
 
         private Regex m_categoryParse = null;
@@ -276,6 +277,11 @@ namespace ProperLogger
             m_collapseBubbleErrorStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleError"));
 
             m_toolbarIconButtonStyle = Skin.FindStyle(Strings.ToolbarButton);
+            if (m_toolbarIconButtonActiveBackground == null)
+            {
+                m_toolbarIconButtonActiveBackground = m_toolbarIconButtonStyle.normal.background;
+                m_toolbarIconButtonStyle.normal.background = null;
+            }
 
             m_inspectorTextStyle = new GUIStyle(Skin.label);
             m_inspectorTextStyle.richText = true;
@@ -765,7 +771,6 @@ namespace ProperLogger
 
         private void DisplaySearchToolbar()
         {
-
             GUILayout.BeginHorizontal(Strings.Toolbar);
             bool lastRegexSearch = m_configs.RegexSearch;
             m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
@@ -1158,6 +1163,7 @@ namespace ProperLogger
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box(string.Empty,
+                    Strings.Splitter,
                      GUILayout.Width(1),
                      GUILayout.MaxWidth(1),
                      GUILayout.MinWidth(1),
@@ -1170,6 +1176,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box(string.Empty,
+                    Strings.Splitter,
                      GUILayout.Height(1),
                      GUILayout.MaxHeight(1),
                      GUILayout.MinHeight(1),
