@@ -112,10 +112,8 @@ namespace ProperLogger
         private static Texture2D m_caseSensitiveIcon;
         private static Texture2D m_advancedSearchIcon;
 
-        [SerializeField]
-        private Texture2D m_exceptionIcon; // TODO can't have serialized fields
-        [SerializeField]
-        private Texture2D m_assertIcon; // TODO can't have serialized fields
+        private Texture2D m_exceptionIcon;
+        private Texture2D m_assertIcon;
 
         #endregion Loaded Textures
 
@@ -408,6 +406,9 @@ namespace ProperLogger
             m_regexSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
             m_caseSensitiveIcon = Utils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
             m_advancedSearchIcon = Utils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
+
+            m_exceptionIcon = Utils.LoadAssetByName<Texture2D>(Strings.ExceptionIcon + (m_isDarkSkin ? "_d" : ""));
+            m_assertIcon = Utils.LoadAssetByName<Texture2D>(Strings.AssertIcon + (m_isDarkSkin ? "_d" : ""));
 
             //m_exceptionIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "ExceptionIcon" });
             //m_assertIcon = (Texture2D)LoadIcon.Invoke(null, new object[] { "AssertIcon" });

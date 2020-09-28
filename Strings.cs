@@ -18,6 +18,8 @@
         internal const string RegexSearchIcon = "ProperConsoleRegexIcon";
         internal const string CaseSensitiveIcon = "ProperConsoleCaseIcon";
         internal const string AdvancedSearchIcon = "ProperConsoleAdvancedSearchIcon";
+        internal const string ExceptionIcon = "ProperConsoleExceptionIcon";
+        internal const string AssertIcon = "ProperConsoleAssertIcon";
         internal const string EditorSkin = "ProperConsoleEditorCustomSkin";
         #endregion Resources
 

@@ -94,29 +94,40 @@ namespace ProperLogger
 
         #region Loaded Textures
 
-        private static Texture2D m_iconInfo;
-        private static Texture2D m_iconWarning;
-        private static Texture2D m_iconError;
-
-        private static Texture2D m_iconInfoGray;
-        private static Texture2D m_iconWarningGray;
-        private static Texture2D m_iconErrorGray;
-
-        private static Texture2D m_iconConsole;
-
-        private static Texture2D m_clearIcon;
-        private static Texture2D m_collapseIcon;
-        private static Texture2D m_clearOnPlayIcon;
-        private static Texture2D m_clearOnBuildIcon;
-        private static Texture2D m_errorPauseIcon;
-        private static Texture2D m_regexSearchIcon;
-        private static Texture2D m_caseSensitiveIcon;
-        private static Texture2D m_advancedSearchIcon;
+        [SerializeField]
+        private Texture2D m_iconInfo;
+        [SerializeField]
+        private Texture2D m_iconWarning;
+        [SerializeField]
+        private Texture2D m_iconError;
 
         [SerializeField]
-        private Texture2D m_exceptionIcon; // TODO can't have serialized fields
+        private Texture2D m_iconInfoGray;
         [SerializeField]
-        private Texture2D m_assertIcon; // TODO can't have serialized fields
+        private Texture2D m_iconWarningGray;
+        [SerializeField]
+        private Texture2D m_iconErrorGray;
+
+        [SerializeField]
+        private Texture2D m_clearIcon;
+        [SerializeField]
+        private Texture2D m_collapseIcon;
+        [SerializeField]
+        private Texture2D m_clearOnPlayIcon;
+        [SerializeField]
+        private Texture2D m_clearOnBuildIcon;
+        [SerializeField]
+        private Texture2D m_errorPauseIcon;
+        [SerializeField]
+        private Texture2D m_regexSearchIcon;
+        [SerializeField]
+        private Texture2D m_caseSensitiveIcon;
+        [SerializeField]
+        private Texture2D m_advancedSearchIcon;
+        [SerializeField]
+        private Texture2D m_exceptionIcon;
+        [SerializeField]
+        private Texture2D m_assertIcon;
 
         #endregion Loaded Textures
 
