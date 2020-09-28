@@ -12,22 +12,12 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    public class ProperConsoleGameWindow : MonoBehaviour, ILogObserver
+    public class ProperConsoleGameWindow : ImGuiWindow, ILogObserver
     {
-#if ENABLE_LEGACY_INPUT_MANAGER
-        [SerializeField]
-        private KeyCode m_triggerKey = KeyCode.None;
-#endif
-        [SerializeField]
-        private GUISkin m_skin = null;
-        private GUISkin Skin => m_skin;
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
         [NonSerialized]
         private float m_regexCompileDebounce = 200 * 10000;
-
-        private bool m_active = false;
-        private Rect m_windowRect = new Rect(30,30, 1200, 700);
 
         #region Configs
 
@@ -44,6 +34,9 @@ namespace ProperLogger
         private bool m_needRegexRecompile = false; // TODO find region
         private DateTime m_lastRegexRecompile;
         private bool m_callForRepaint = false;
+
+        private PlayerSettingsWindow m_settingsWindow = null;
+        private PlayerSettingsWindow SettingsWindow => m_settingsWindow ?? (m_settingsWindow = GetComponent<PlayerSettingsWindow>());
 
         #region Logs
 
@@ -289,12 +282,13 @@ namespace ProperLogger
             m_inspectorTextStyle.richText = true;
             m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
             m_inspectorTextStyle.wordWrap = true;
-            m_inspectorTextStyle.stretchWidth = false;
+            m_inspectorTextStyle.stretchWidth = true;
             m_inspectorTextStyle.clipping = TextClipping.Clip;
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
             m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
             m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
@@ -307,31 +301,25 @@ namespace ProperLogger
             m_needRegexRecompile = true;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             RemoveListener();
             ClearGUIContents();
+            base.OnDestroy();
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
             if (m_active)
             {
                 Toggle();
             }
+            base.OnDisable();
         }
 
-        protected virtual void Update()
+        protected override void Update()
         {
-#if ENABLE_INPUT_SYSTEM
-            // TODO implement and test this
-#endif
-#if ENABLE_LEGACY_INPUT_MANAGER
-            if (m_triggerKey != KeyCode.None && Input.GetKeyDown(m_triggerKey))
-            {
-                Toggle();
-            }
-#endif
+            base.Update();
             if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
                 m_searchRegex = null;
@@ -383,29 +371,18 @@ namespace ProperLogger
             m_listening = false;
         }
 
-        public virtual void Toggle()
-        {
-            m_active = !m_active;
-            if (m_active)
-            {
-                OnWindowEnabled();
-            }
-            else
-            {
-                OnWindowDisabled();
-            }
-        }
-
-        protected virtual void OnWindowEnabled()
+        protected override void OnWindowEnabled()
         {
             ClearStyles();
             CacheStyles();
+            base.OnWindowEnabled();
         }
 
-        protected virtual void OnWindowDisabled()
+        protected override void OnWindowDisabled()
         {
             ClearStyles();
             ClearGUIContents();
+            base.OnWindowDisabled();
         }
 
         internal void Clear()
@@ -420,27 +397,6 @@ namespace ProperLogger
                 m_selectedEntries.Clear();
             }
             m_triggerFilteredEntryComputation = true;
-        }
-
-        protected virtual void OnGUI()
-        {
-            if (!m_active)
-            {
-                return;
-            }
-
-            if (m_skin != null)
-            {
-                GUI.skin = m_skin;
-            }
-
-            float xFactor = Screen.width / 1280f;
-            float yFactor = Screen.height / 768f;
-            GUIUtility.ScaleAroundPivot(new Vector2(xFactor, yFactor), Vector2.zero);
-
-            var windowID = GUIUtility.GetControlID(FocusType.Passive);
-            m_windowRect = GUI.Window(windowID, m_windowRect, DoGui, "Proper Logger");
-
         }
 
         // This doesn't work in play mode
@@ -466,9 +422,9 @@ namespace ProperLogger
             }
         }
 
-        protected virtual void DoGui(int windowID)
+        protected override void DoGui(int windowID)
         {
-            GUI.DragWindow(new Rect(0, 0, 10000, 20));  // To make the window draggable
+            base.DoGui(windowID);
             HandleCopyToClipboard();
 
             if (m_inspectorTextStyle == null)
@@ -810,10 +766,12 @@ namespace ProperLogger
             }
             GUILayout.FlexibleSpace();
 
-            if (GUILayout.Button(m_pluginSettingsButtonContent))
+            if (SettingsWindow != null)
             {
-                // TODO
-                //SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
+                if (GUILayout.Button(m_pluginSettingsButtonContent))
+                {
+                    SettingsWindow.Toggle();
+                }
             }
 
             GUILayout.EndHorizontal();
@@ -977,12 +935,7 @@ namespace ProperLogger
             }
 
             var guiColor = GUI.color;
-#if UNITY_EDITOR
-            if (EditorGUIUtility.isProSkin)
-            {
-                GUI.color = new Color(1, 1, 1, 0.28f);
-            }
-#endif // UNITY_EDITOR
+            GUI.color = new Color(1, 1, 1, 0.28f);
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
             {
                 GUI.color = guiColor;
@@ -1141,6 +1094,7 @@ namespace ProperLogger
 
         private void CopySelection()
         {
+            // TODO check if this works in game
             string result = string.Empty;
 
             foreach (var entry in m_selectedEntries)

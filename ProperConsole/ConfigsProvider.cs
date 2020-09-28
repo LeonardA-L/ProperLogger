@@ -287,6 +287,14 @@ namespace ProperLogger
         {
             Reset("ProperConsole.ObjectNameColor");
         }
+        internal string ObjectNameColorString
+        {
+            get
+            {
+                return "#" + GetString("ProperConsole.ObjectNameColor", "540814FF");
+            }
+        }
+
         internal Color ObjectNameColor
         {
             get
