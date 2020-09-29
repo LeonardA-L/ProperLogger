@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    public class ImGuiWindow : MonoBehaviour
+    public abstract class ImGuiWindow : MonoBehaviour
     {
 #if ENABLE_LEGACY_INPUT_MANAGER
         [SerializeField]
@@ -19,6 +19,8 @@ namespace ProperLogger
 
         [SerializeField]
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
+
+        protected abstract string WindowName {get;}
 
         protected virtual void Awake()
         {
@@ -105,7 +107,7 @@ namespace ProperLogger
             GUIUtility.ScaleAroundPivot(new Vector2(xFactor, yFactor), Vector2.zero);
 
             m_windowID = GUIUtility.GetControlID(FocusType.Passive);
-            m_windowRect = GUI.Window(m_windowID, m_windowRect, DoGui, "Window"); // TODO serialize and hide name
+            m_windowRect = GUI.Window(m_windowID, m_windowRect, DoGui, WindowName);
 
             m_windowRect.x = Mathf.Clamp(m_windowRect.x, -m_windowRect.width + 20, refScreenWidth - 20);
             m_windowRect.y = Mathf.Clamp(m_windowRect.y, 0, refScreenHeight - 20);

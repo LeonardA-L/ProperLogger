@@ -18,6 +18,7 @@ namespace ProperLogger
 
         [SerializeField]
         private Texture2D m_resetIcon = null;
+        protected override string WindowName => "Console Settings";
 
         protected override void OnWindowEnabled()
         {

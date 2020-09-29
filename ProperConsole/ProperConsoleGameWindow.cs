@@ -18,6 +18,7 @@ namespace ProperLogger
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
         [NonSerialized]
         private float m_regexCompileDebounce = 200 * 10000;
+        protected override string WindowName => "Proper Logger";
 
         #region Configs
 
