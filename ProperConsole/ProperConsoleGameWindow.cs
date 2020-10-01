@@ -655,7 +655,7 @@ namespace ProperLogger
             string lastSearchTerm = m_searchString;
 
             GUI.enabled = !(Event.current.isMouse && m_resetSearchButtonRect.Contains(Event.current.mousePosition));
-            m_searchString = GUILayout.TextField(m_searchString, Strings.ToolbarSeachTextField);
+            m_searchString = GUILayout.TextField(m_searchString, "ToolbarSearchTextField"/*Strings.ToolbarSeachTextField*/);
             if (lastSearchTerm != m_searchString)
             {
                 m_triggerFilteredEntryComputation = true;

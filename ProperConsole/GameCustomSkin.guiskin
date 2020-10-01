@@ -2080,9 +2080,9 @@ MonoBehaviour:
     m_FixedHeight: 0
     m_StretchWidth: 1
     m_StretchHeight: 0
-  - m_Name: ToolbarSeachTextField
+  - m_Name: ToolbarSearchTextField
     m_Normal:
-      m_Background: {fileID: 0}
+      m_Background: {fileID: 2800000, guid: 8128288b77f1ca84c8669162bb0db2e9, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0.9137255, g: 0.9137255, b: 0.9137255, a: 1}
     m_Hover:
@@ -2094,7 +2094,7 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Focused:
-      m_Background: {fileID: 0}
+      m_Background: {fileID: 2800000, guid: 95f28427ccebab14aa116edbd7a59b30, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0.9137255, g: 0.9137255, b: 0.9137255, a: 1}
     m_OnNormal:
@@ -2114,18 +2114,18 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
+      m_Left: 15
+      m_Right: 15
       m_Top: 0
       m_Bottom: 0
     m_Margin:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 7
-      m_Bottom: 0
+      m_Left: 2
+      m_Right: 2
+      m_Top: 4
+      m_Bottom: 2
     m_Padding:
-      m_Left: 18
-      m_Right: 0
+      m_Left: 20
+      m_Right: 5
       m_Top: 0
       m_Bottom: 0
     m_Overflow:
@@ -2134,7 +2134,7 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Font: {fileID: 0}
-    m_FontSize: 0
+    m_FontSize: 11
     m_FontStyle: 0
     m_Alignment: 3
     m_WordWrap: 0
@@ -2143,7 +2143,7 @@ MonoBehaviour:
     m_ImagePosition: 0
     m_ContentOffset: {x: 0, y: 0}
     m_FixedWidth: 0
-    m_FixedHeight: 0
+    m_FixedHeight: 18
     m_StretchWidth: 1
     m_StretchHeight: 0
   - m_Name: SearchCancelButton
