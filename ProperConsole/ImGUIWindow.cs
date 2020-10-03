@@ -4,8 +4,11 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    public abstract class ImGuiWindow : MonoBehaviour
+    public abstract class ImGuiWindow<T> : MonoBehaviour where T: MonoBehaviour
     {
+        private static T m_instance = null;
+        public static T Instance => m_instance;
+
 #if ENABLE_LEGACY_INPUT_MANAGER
         [SerializeField]
         private KeyCode m_triggerKey = KeyCode.None;
@@ -24,6 +27,7 @@ namespace ProperLogger
 
         protected virtual void Awake()
         {
+            m_instance = this as T;
             m_active = false;
 
             if (m_windowRect.x < 0)
@@ -111,6 +115,12 @@ namespace ProperLogger
 
             m_windowRect.x = Mathf.Clamp(m_windowRect.x, -m_windowRect.width + 20, refScreenWidth - 20);
             m_windowRect.y = Mathf.Clamp(m_windowRect.y, 0, refScreenHeight - 20);
+
+            if(Event.current.type == EventType.MouseDown && m_windowRect.Contains(Event.current.mousePosition))
+            {
+                Debug.Log("Clicked me");
+                Event.current.Use();
+            }
         }
 
         protected virtual void DoGui(int windowID)
