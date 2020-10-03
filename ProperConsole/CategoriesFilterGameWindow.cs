@@ -46,7 +46,7 @@ namespace ProperLogger
 
             if(m_configs.CurrentCategoriesConfig == null)
             {
-                GUILayout.Label("No categories asset have been configured.");
+                GUILayout.Label("No categories asset have been configured.\nOpen plugin settings in the editor\nto fix this.");
 
                 GUILayout.Space(15);
             }
