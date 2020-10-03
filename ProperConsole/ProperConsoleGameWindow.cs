@@ -490,7 +490,7 @@ namespace ProperLogger
             }
 
             float startY = 0;
-            float totalWidth = Screen.width;
+            float totalWidth = m_windowRect.width;
             GUILayout.Space(1);
             if (repaint)
             {
