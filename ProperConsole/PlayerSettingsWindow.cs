@@ -28,6 +28,11 @@ namespace ProperLogger
             m_resetButtonOptions = new GUILayoutOption[] { GUILayout.Height(20), GUILayout.Width(20), GUILayout.ExpandWidth(false) };
             m_configs = new PlayerConfigs();
             m_scrollPos = new Vector2();
+
+            if(ProperConsoleGameWindow.Instance != null)
+            {
+                ProperConsoleGameWindow.Instance.ShowCategoryFilter = false;
+            }
         }
 
         protected override void DoGui(int windowID)

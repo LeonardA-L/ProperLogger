@@ -15,13 +15,16 @@ namespace ProperLogger
 #endif
         [SerializeField]
         private GUISkin m_skin = null;
-        protected GUISkin Skin => m_skin;
+        public GUISkin Skin => m_skin;
 
         protected bool m_active = false;
         private int m_windowID = 0;
 
         [SerializeField]
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
+
+        [SerializeField]
+        protected int m_depth = 1;
 
         protected abstract string WindowName {get;}
 
@@ -102,6 +105,8 @@ namespace ProperLogger
             {
                 GUI.skin = m_skin;
             }
+
+            GUI.depth = m_depth;
 
             float refScreenWidth = 1280f;
             float refScreenHeight = 768f;

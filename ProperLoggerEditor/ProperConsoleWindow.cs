@@ -1086,7 +1086,7 @@ namespace ProperLogger
 
             if (GUILayout.Button("Log Performance"))
             {
-                Debug.Log($"[Performance] [Combat] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"[Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
             if (GUILayout.Button("LogWarning"))

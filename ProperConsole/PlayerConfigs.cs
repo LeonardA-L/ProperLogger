@@ -55,6 +55,6 @@ namespace ProperLogger
             PlayerPrefs.SetString(key, newValue);
         }
 
-        internal override LogCategoriesConfig CurrentCategoriesConfig { get => null; set { } }
+        internal override LogCategoriesConfig CurrentCategoriesConfig { get => (ProperConsoleGameWindow.Instance == null ? null : ProperConsoleGameWindow.Instance.CategoriesAsset); set { Debug.LogAssertion("This should never be called"); } }
     }
 }

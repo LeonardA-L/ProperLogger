@@ -127,6 +127,10 @@ namespace ProperLogger
 
         #endregion Loaded Textures
 
+        [SerializeField]
+        private LogCategoriesConfig m_categoriesAsset = null;
+        public LogCategoriesConfig CategoriesAsset => m_categoriesAsset;
+
         #region Caches
 
         private Regex m_searchRegex = null;
@@ -166,6 +170,10 @@ namespace ProperLogger
 
         private Regex m_categoryParse = null;
         private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
+
+        public bool ShowCategoryFilter { get; set; } = false;
+        public Rect CategoryFilterRect { get; private set; } = default;
+        public Rect CategoryToggleRect { get; private set; } = default;
 
         #endregion Caches
 
@@ -374,6 +382,7 @@ namespace ProperLogger
 
         protected override void OnWindowEnabled()
         {
+            ShowCategoryFilter = false;
             ClearStyles();
             CacheStyles();
             base.OnWindowEnabled();
@@ -381,6 +390,7 @@ namespace ProperLogger
 
         protected override void OnWindowDisabled()
         {
+            ShowCategoryFilter = false;
             ClearStyles();
             ClearGUIContents();
             base.OnWindowDisabled();
@@ -693,9 +703,10 @@ namespace ProperLogger
 
             if (GUILayout.Button(m_categoriesButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
-                Vector2 dropdownOffset = new Vector2(40, 23);
+                Vector2 dropdownOffset = new Vector2(29, 1);
                 //Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
-                Rect dropDownPosition = new Rect(dropdownRect.x + m_windowRect.x, dropdownRect.y + m_windowRect.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
+                Vector2 dropDownPosition = new Vector2(dropdownRect.x + m_windowRect.x + dropdownOffset.x
+                                                     , dropdownRect.y + m_windowRect.y + m_showCategoriesButtonRect.height + dropdownOffset.y);
 
                 var categoriesAsset = m_configs.CurrentCategoriesConfig;
                 Vector2 size = new Vector2(250, 150);
@@ -710,16 +721,15 @@ namespace ProperLogger
                         size.y = (m_configs.CurrentCategoriesConfig.Categories.Count) * 20; // TODO put this somewhere in a style
                     }
                 }
-                size.y += 25;
-                // Get existing open window or if none, make a new one:
-                /*
-                var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
-                window.ShowAsDropDown(dropDownPosition, size);
-                window.Repaint();
-                */
-                // TODO
+                size.y += 45;
+                ShowCategoryFilter = !ShowCategoryFilter;
+                CategoryFilterRect = new Rect(dropDownPosition, size);
+                CategoryToggleRect = new Rect(m_showCategoriesButtonRect.x + m_windowRect.x, m_showCategoriesButtonRect.y + m_windowRect.y, m_showCategoriesButtonRect.width, m_showCategoriesButtonRect.height);
             }
-            if (Event.current.type == EventType.Repaint) m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.Repaint)
+            {
+                m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
+            }
 
             GetCounters(m_displayedEntries, out int logCounter, out int warnCounter, out int errCounter);
 
@@ -1359,6 +1369,11 @@ namespace ProperLogger
             }
 #endif //UNITY_EDITOR
             return newConsoleEntry;
+        }
+
+        public void TriggerFilteredEntryComputation()
+        {
+            m_triggerFilteredEntryComputation = true;
         }
     }
 }
