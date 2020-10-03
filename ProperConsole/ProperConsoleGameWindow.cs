@@ -143,6 +143,9 @@ namespace ProperLogger
         [SerializeField]
         private bool m_hideUnityBuiltInConsole = true;
 
+        [SerializeField]
+        private bool m_openConsoleOnError = true;
+
         #region Caches
 
         private Regex m_searchRegex = null;
@@ -821,19 +824,19 @@ namespace ProperLogger
         {
             if (counter >= 1000)
             {
-                return 60;
+                return 65;
             }
             else if (counter >= 100)
             {
-                return 52;
+                return 60;
             }
             else if (counter >= 10)
             {
-                return 43;
+                return 52;
             }
             else
             {
-                return 38;
+                return 52;
             }
         }
 
@@ -1390,6 +1393,11 @@ namespace ProperLogger
                 };
 
                 m_entries.Add(newConsoleEntry);
+            }
+
+            if(m_openConsoleOnError && !m_active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
+            {
+                Toggle();
             }
 
             m_triggerFilteredEntryComputation = true;
