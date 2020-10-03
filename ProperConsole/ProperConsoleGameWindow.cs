@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    public class ProperConsoleGameWindow : ImGuiWindow, ILogObserver
+    public class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver
     {
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
@@ -227,7 +227,7 @@ namespace ProperLogger
             m_pluginSettingsButtonContent = new GUIContent("Plugin Settings");
         }
 
-        private void ClearStyles()
+        public void ClearStyles()
         {
             m_oddEntry = null;
             m_selectedEntry = null;

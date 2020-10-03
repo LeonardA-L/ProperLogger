@@ -5,7 +5,7 @@ using UnityEngine;
 namespace ProperLogger
 {
     // TODO mutualize
-    public class PlayerSettingsWindow : ImGuiWindow
+    public class PlayerSettingsWindow : ImGuiWindow<PlayerSettingsWindow>
     {
         private GUIContent m_resetButtonContent = null;
         private GUIStyle m_resetButtonStyle = null;
@@ -65,6 +65,14 @@ namespace ProperLogger
             DisplayAppearanceTab();
 
             GUILayout.EndScrollView();
+
+            if (GUI.changed)
+            {
+                if(ProperConsoleGameWindow.Instance != null)
+                {
+                    ProperConsoleGameWindow.Instance.ClearStyles();
+                }
+            }
         }
         private void CategoryDisplayToggle(string label, ECategoryDisplay flag)
         {
@@ -153,7 +161,7 @@ namespace ProperLogger
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Inspector Log Message Font Size");
-            m_configs.InspectorMessageFontSize = (int)GUILayout.HorizontalSlider(m_configs.LogEntryStackTraceLineCount, 8, 20);
+            m_configs.InspectorMessageFontSize = (int)GUILayout.HorizontalSlider(m_configs.InspectorMessageFontSize, 8, 20);
             if (GUILayout.Button(m_resetButtonContent, m_resetButtonStyle, m_resetButtonOptions))
             {
                 m_configs.ResetInspectorMessageFontSize();
