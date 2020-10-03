@@ -6,6 +6,7 @@ using UnityEditor;
 
 namespace ProperLogger
 {
+    // TODO mutualize
     internal class CategoriesFilterGameWindow : MonoBehaviour
     {
         private ConfigsProvider m_configs = null;

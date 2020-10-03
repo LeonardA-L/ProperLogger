@@ -450,7 +450,6 @@ namespace ProperLogger
 
         protected override void DoGui(int windowID)
         {
-            base.DoGui(windowID);
             HandleCopyToClipboard();
 
             if (m_inspectorTextStyle == null)
@@ -468,6 +467,11 @@ namespace ProperLogger
 
             m_inactiveCategories?.Clear();
             m_inactiveCategories = m_configs.InactiveCategories;
+
+            if (DisplayCloseButton())
+            {
+                return;
+            }
 
             DisplayToolbar(ref m_callForRepaint);
 
@@ -653,6 +657,7 @@ namespace ProperLogger
                         break;
                 }
             }
+            base.DoGui(windowID);
         }
 
         private void DisplayToolbar(ref bool callForRepaint)

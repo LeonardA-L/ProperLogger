@@ -126,5 +126,18 @@ namespace ProperLogger
         {
             GUI.DragWindow(new Rect(0, 0, 10000, 20));  // To make the window draggable
         }
+
+        protected bool DisplayCloseButton()
+        {
+            GUI.depth = 0;
+            var buttonRect = new Rect(m_windowRect.width - 20, 0, 20, 20);
+            if(GUI.Button(buttonRect, "x", (GUIStyle)"CloseWindowButton")) // TODO cache style
+            {
+                Toggle();
+                return true;
+            }
+            GUI.depth = m_depth;
+            return false;
+        }
     }
 }

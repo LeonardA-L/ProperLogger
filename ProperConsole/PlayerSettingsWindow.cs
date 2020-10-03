@@ -37,7 +37,10 @@ namespace ProperLogger
 
         protected override void DoGui(int windowID)
         {
-            base.DoGui(windowID);
+            if (DisplayCloseButton())
+            {
+                return;
+            }
 
             m_scrollPos = GUILayout.BeginScrollView(m_scrollPos);
 
@@ -78,6 +81,7 @@ namespace ProperLogger
                     ProperConsoleGameWindow.Instance.ClearStyles();
                 }
             }
+            base.DoGui(windowID);
         }
         private void CategoryDisplayToggle(string label, ECategoryDisplay flag)
         {
