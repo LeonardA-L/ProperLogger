@@ -150,6 +150,7 @@ namespace ProperLogger
         private MethodInfo getCount = null;
         private MethodInfo rowGotDoubleClicked = null;
         private MethodInfo clearEntries = null;
+        private MethodInfo setUnityConsoleFlag = null;
         private FieldInfo messageField = null;
         private FieldInfo fileField = null;
         private FieldInfo lineField = null;
@@ -203,6 +204,7 @@ namespace ProperLogger
         private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod(Strings.GetCount));
         private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod(Strings.RowGotDoubleClicked));
         private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod(Strings.Clear));
+        private MethodInfo SetUnityConsoleFlag => setUnityConsoleFlag ?? (setUnityConsoleFlag = LogEntries.GetMethod(Strings.SetUnityConsoleFlag));
 
         private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
                                   + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
@@ -258,6 +260,7 @@ namespace ProperLogger
             ClearStyles();
             m_autoScroll = true;
             ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, m_iconConsole);
+            ResetUnityConsoleFlags();
 
             m_needRegexRecompile = true;
         }
@@ -268,6 +271,20 @@ namespace ProperLogger
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
             ClearGUIContents();
+        }
+
+        private void ResetUnityConsoleFlags()
+        {
+            SetUnityConsoleFlag.Invoke(null, new object[] { 1 , false }); // Collapse
+            SetUnityConsoleFlag.Invoke(null, new object[] { 2 , false }); // ClearOnPlay
+            SetUnityConsoleFlag.Invoke(null, new object[] { 4 , false }); // ErrorPause
+            SetUnityConsoleFlag.Invoke(null, new object[] { 8 , false }); // Verbose
+            SetUnityConsoleFlag.Invoke(null, new object[] { 16 , false }); // StopForAssert
+            SetUnityConsoleFlag.Invoke(null, new object[] { 32 , false }); // StopForError
+            SetUnityConsoleFlag.Invoke(null, new object[] { 64 , false }); // Autoscroll
+            SetUnityConsoleFlag.Invoke(null, new object[] { 128 , true }); // LogLevelLog
+            SetUnityConsoleFlag.Invoke(null, new object[] { 256 , true }); // LogLevelWarning
+            SetUnityConsoleFlag.Invoke(null, new object[] { 512 , true }); // LogLevelError
         }
 
         public void OnBuild()

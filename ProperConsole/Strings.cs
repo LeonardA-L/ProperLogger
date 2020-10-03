@@ -40,6 +40,7 @@
         internal const string EndGettingEntries = "EndGettingEntries";
         internal const string GetEntryInternal = "GetEntryInternal";
         internal const string Clear = "Clear";
+        internal const string SetUnityConsoleFlag = "SetConsoleFlag";
         #endregion Reflection
     }
 }
