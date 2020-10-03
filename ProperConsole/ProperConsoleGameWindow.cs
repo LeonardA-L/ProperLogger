@@ -131,6 +131,9 @@ namespace ProperLogger
         private LogCategoriesConfig m_categoriesAsset = null;
         public LogCategoriesConfig CategoriesAsset => m_categoriesAsset;
 
+        [SerializeField]
+        private bool m_hideUnityBuiltInConsole = true;
+
         #region Caches
 
         private Regex m_searchRegex = null;
@@ -329,6 +332,9 @@ namespace ProperLogger
         protected override void Update()
         {
             base.Update();
+
+            Debug.developerConsoleVisible = false;
+
             if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
                 m_searchRegex = null;
@@ -431,6 +437,15 @@ namespace ProperLogger
                     m_lastCLickIsDisplayList = false;
                 }
             }
+        }
+
+        protected override void OnGUI()
+        {
+            if (m_hideUnityBuiltInConsole)
+            {
+                Debug.developerConsoleVisible = false;
+            }
+            base.OnGUI();
         }
 
         protected override void DoGui(int windowID)
