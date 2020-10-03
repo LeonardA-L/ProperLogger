@@ -9,10 +9,12 @@ using UnityEditor;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLoggerEditor")]
+[assembly: System.Reflection.ObfuscateAssemblyAttribute(true)]
 
 namespace ProperLogger
 {
-    public class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver
+    [System.Reflection.Obfuscation(Exclude = true, ApplyToMembers = false)]
+    internal class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver, IProperLogger
     {
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
@@ -132,12 +134,10 @@ namespace ProperLogger
         public LogCategoriesConfig CategoriesAsset
         {
             get => m_categoriesAsset;
-#if UNITY_EDITOR
             set
             {
                 m_categoriesAsset = value;
             }
-#endif // UNITY_EDITOR
         }
 
         [SerializeField]
@@ -195,6 +195,8 @@ namespace ProperLogger
         private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
                                   + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
                                   + 8; // padding
+
+        public GUIContent ClearButtonContent { get; set; } = null;
 
         internal void ClearGUIContents()
         {

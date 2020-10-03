@@ -13,7 +13,7 @@ using System.IO;
 
 namespace ProperLogger
 {
-    internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver
+    internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver, IProperLogger
     {
         #region Members
         #region Consts
@@ -160,7 +160,6 @@ namespace ProperLogger
         private int m_warnLog = 0;
         private int m_errLog = 0;
 
-        private GUIContent m_clearButtonContent = null;
         private GUIContent m_collapseButtonContent = null;
         private GUIContent m_clearOnPlayButtonContent = null;
         private GUIContent m_clearOnBuildButtonContent = null;
@@ -209,6 +208,8 @@ namespace ProperLogger
         private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
                                   + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
                                   + 8; // padding
+
+        public GUIContent ClearButtonContent { get; set; } = null;
 
         #endregion Properties
 
@@ -297,7 +298,7 @@ namespace ProperLogger
 
         internal void ClearGUIContents()
         {
-            m_clearButtonContent = null;
+            ClearButtonContent = null;
             m_collapseButtonContent = null;
             m_clearOnPlayButtonContent = null;
             m_clearOnBuildButtonContent = null;
@@ -333,7 +334,7 @@ namespace ProperLogger
 
         internal void CacheGUIContents()
         {
-            m_clearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
+            ClearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
             m_collapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
             m_clearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
             m_clearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
@@ -1220,7 +1221,7 @@ namespace ProperLogger
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
 
-            if (GUILayout.Button(m_clearButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(ClearButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 Clear();
                 GUIUtility.keyboardControl = 0;
@@ -1430,6 +1431,7 @@ namespace ProperLogger
                 {
                     GUILayout.FlexibleSpace();
                     GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+                    GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndHorizontal();
                 // Text space
