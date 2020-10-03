@@ -129,7 +129,16 @@ namespace ProperLogger
 
         [SerializeField]
         private LogCategoriesConfig m_categoriesAsset = null;
-        public LogCategoriesConfig CategoriesAsset => m_categoriesAsset;
+        public LogCategoriesConfig CategoriesAsset
+        {
+            get => m_categoriesAsset;
+#if UNITY_EDITOR
+            set
+            {
+                m_categoriesAsset = value;
+            }
+#endif // UNITY_EDITOR
+        }
 
         [SerializeField]
         private bool m_hideUnityBuiltInConsole = true;

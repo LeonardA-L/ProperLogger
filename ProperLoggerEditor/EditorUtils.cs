@@ -11,10 +11,25 @@ namespace ProperLogger
 
             foreach (string guid in guids)
             {
-                string iconPath = AssetDatabase.GUIDToAssetPath(guid);
-                var asset = AssetDatabase.LoadAssetAtPath(iconPath, typeof(T));
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath(path, typeof(T));
                 if (asset is T t)
                     return t;
+            }
+            return null;
+        }
+        internal static string FindAssetPath<T>(string assetName) where T : UnityEngine.Object
+        {
+            string[] guids = AssetDatabase.FindAssets(assetName, null);
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath(path, typeof(T));
+                if (asset is T t)
+                {
+                    return path;
+                }
             }
             return null;
         }

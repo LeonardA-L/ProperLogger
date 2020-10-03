@@ -104,6 +104,24 @@ namespace ProperLogger
 
         }
 
+        private void SetCategoriesAsset(LogCategoriesConfig asset)
+        {
+            m_configs.CurrentCategoriesConfig = asset;
+
+            string path = EditorUtils.FindAssetPath<ProperConsoleGameWindow>("ProperLogger"); // TODO string
+            var inGamePrefab = PrefabUtility.LoadPrefabContents(path);
+            var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
+            Debug.Assert(prefabConsole != null); // TODO explicit message
+            if (prefabConsole != null)
+            {
+                prefabConsole.CategoriesAsset = asset;
+                PrefabUtility.SaveAsPrefabAsset(inGamePrefab, path);
+                PrefabUtility.UnloadPrefabContents(inGamePrefab);
+            }
+            Debug.Log(inGamePrefab);
+            Debug.Log(asset);
+        }
+
         private void DisplayCategoriesTab()
         {
             // TODO all texts here were written late at night
@@ -114,7 +132,7 @@ namespace ProperLogger
             var newAsset = (LogCategoriesConfig)EditorGUILayout.ObjectField(asset, typeof(LogCategoriesConfig), false);
             if (newAsset != asset)
             {
-                m_configs.CurrentCategoriesConfig = newAsset;
+                SetCategoriesAsset(newAsset);
             }
             GUILayout.EndHorizontal();
 
@@ -125,13 +143,13 @@ namespace ProperLogger
                 {
                     asset = ScriptableObject.CreateInstance<LogCategoriesConfig>();
 
-                    asset.Add("Combat");
+                    asset.Add("Combat"); // TODO add color
                     asset.Add("Dialogue");
                     asset.Add("Performance");
 
                     AssetDatabase.CreateAsset(asset, m_defaultPath);
                     AssetDatabase.SaveAssets();
-                    m_configs.CurrentCategoriesConfig = asset;
+                    SetCategoriesAsset(asset);
                 }
             }
             else
