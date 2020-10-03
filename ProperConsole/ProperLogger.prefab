@@ -54,12 +54,12 @@ MonoBehaviour:
     width: 1200
     height: 700
   m_depth: 1
-  m_iconInfo: {fileID: 0}
-  m_iconWarning: {fileID: 0}
-  m_iconError: {fileID: 0}
-  m_iconInfoGray: {fileID: 0}
-  m_iconWarningGray: {fileID: 0}
-  m_iconErrorGray: {fileID: 0}
+  m_iconInfo: {fileID: 2800000, guid: b3e18538927ebde408417e7b14924615, type: 3}
+  m_iconWarning: {fileID: 2800000, guid: d706e5a2943bfd945a0dae9e61a33640, type: 3}
+  m_iconError: {fileID: 2800000, guid: 67fa35e61b122564990b0b3887fc1946, type: 3}
+  m_iconInfoGray: {fileID: 2800000, guid: c74efa3e447480e43b14312efb67c0d2, type: 3}
+  m_iconWarningGray: {fileID: 2800000, guid: 2f1dd0a08d1330b49b49bda5d4ff34ad, type: 3}
+  m_iconErrorGray: {fileID: 2800000, guid: c94f7f8fd741db640bf77238d4c37577, type: 3}
   m_clearIcon: {fileID: 2800000, guid: e58e95385b66369499c0d0a72fbe2b75, type: 3}
   m_collapseIcon: {fileID: 2800000, guid: 87c9e3c6af02cd744af54bc5d205fa69, type: 3}
   m_clearOnPlayIcon: {fileID: 2800000, guid: 7aea4f5f269f8a348834f7c03aac1311, type: 3}
@@ -69,8 +69,8 @@ MonoBehaviour:
   m_caseSensitiveIcon: {fileID: 2800000, guid: d29b3156352804d4280f5bb23ba1864e, type: 3}
   m_advancedSearchIcon: {fileID: 2800000, guid: 5de306c1ac6a15a43bb814d132be1224,
     type: 3}
-  m_exceptionIcon: {fileID: 2800000, guid: 557977e4afea9b74d84d203c2f1dd44a, type: 3}
-  m_assertIcon: {fileID: 2800000, guid: 79411466394ae6b4fa9ab361660b102b, type: 3}
+  m_exceptionIcon: {fileID: 2800000, guid: 1b7ffbefdce7cb34abda9c04ea9a92e2, type: 3}
+  m_assertIcon: {fileID: 2800000, guid: e351bb8d3e6eaab44867576fd507778a, type: 3}
   m_categoriesAsset: {fileID: 11400000, guid: 417d3e212b8af6c4eb3a9d3393db9a50, type: 2}
   m_hideUnityBuiltInConsole: 1
 --- !u!114 &1490771459762167227

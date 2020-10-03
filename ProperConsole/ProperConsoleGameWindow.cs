@@ -760,7 +760,7 @@ namespace ProperLogger
                 m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
             }
 
-            GetCounters(m_displayedEntries, out int logCounter, out int warnCounter, out int errCounter);
+            GetCounters(m_entries, out int logCounter, out int warnCounter, out int errCounter);
 
             // Log Level Flags
             FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray, logCounter);
@@ -924,7 +924,7 @@ namespace ProperLogger
             GUIStyle textStyle = m_evenEntryLabel;
             textStyle.normal.textColor = Skin.label.normal.textColor;
 
-            float imageSize = Math.Min(ItemHeight - (2 * 3), 40); // We clamp it in case we display 3+ lines
+            float imageSize = Math.Min(ItemHeight - (2 * 3), 32); // We clamp it in case we display 3+ lines
             imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
@@ -985,6 +985,7 @@ namespace ProperLogger
                 {
                     GUILayout.FlexibleSpace();
                     GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+                    GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndHorizontal();
                 // Text space
@@ -1147,11 +1148,14 @@ namespace ProperLogger
 
         private Texture GetEntryIcon(ConsoleLogEntry entry)
         {
-            /*if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
+            if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
             if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
-            return m_iconError;*/
-            //TODO
-            return null;
+            if (m_configs.ShowCustomErrorIcons)
+            {
+                if (entry.level.HasFlag(LogLevel.Exception)) { return m_exceptionIcon; }
+                if (entry.level.HasFlag(LogLevel.Assert)) { return m_assertIcon; }
+            }
+            return m_iconError;
         }
 
 
