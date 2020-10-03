@@ -1089,6 +1089,11 @@ namespace ProperLogger
                 Debug.Log($"[Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
             }
 
+            if (GUILayout.Button("LogException"))
+            {
+                Debug.LogException(new Exception());
+            }
+
             if (GUILayout.Button("LogWarning"))
             {
                 Debug.LogWarning($"Warning {DateTime.Now.ToString()} {m_listening} {m_autoScroll}");
