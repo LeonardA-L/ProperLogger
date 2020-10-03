@@ -26,6 +26,8 @@ namespace ProperLogger
 
         private bool m_isDarkSkin = false;
 
+        private string PrefabPath => EditorUtils.FindAssetPath<ProperConsoleGameWindow>("ProperLogger"); // TODO string
+
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
 
@@ -97,6 +99,21 @@ namespace ProperLogger
                     break;
             }
 
+            if (string.IsNullOrEmpty(PrefabPath))
+            {
+                GUILayout.Label("Could not locate ProperLogger prefab. You will want to reimport the plugin to restore it.", (GUIStyle)"ErrorLabel");
+            } else // Try and salvage reference error on the Prefab
+            {
+                var inGamePrefab = PrefabUtility.LoadPrefabContents(PrefabPath);
+                var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
+                if (m_configs.CurrentCategoriesConfig != null && prefabConsole.CategoriesAsset == null)
+                {
+                    prefabConsole.CategoriesAsset = m_configs.CurrentCategoriesConfig;
+                    PrefabUtility.SaveAsPrefabAsset(inGamePrefab, PrefabPath);
+                }
+                PrefabUtility.UnloadPrefabContents(inGamePrefab);
+            }
+
             if (EditorGUI.EndChangeCheck() && ProperConsoleWindow.Instance != null)
             {
                 ProperConsoleWindow.Instance.Repaint();
@@ -108,18 +125,15 @@ namespace ProperLogger
         {
             m_configs.CurrentCategoriesConfig = asset;
 
-            string path = EditorUtils.FindAssetPath<ProperConsoleGameWindow>("ProperLogger"); // TODO string
-            var inGamePrefab = PrefabUtility.LoadPrefabContents(path);
+            var inGamePrefab = PrefabUtility.LoadPrefabContents(PrefabPath);
             var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
             Debug.Assert(prefabConsole != null); // TODO explicit message
             if (prefabConsole != null)
             {
                 prefabConsole.CategoriesAsset = asset;
-                PrefabUtility.SaveAsPrefabAsset(inGamePrefab, path);
-                PrefabUtility.UnloadPrefabContents(inGamePrefab);
+                PrefabUtility.SaveAsPrefabAsset(inGamePrefab, PrefabPath);
             }
-            Debug.Log(inGamePrefab);
-            Debug.Log(asset);
+            PrefabUtility.UnloadPrefabContents(inGamePrefab);
         }
 
         private void DisplayCategoriesTab()
