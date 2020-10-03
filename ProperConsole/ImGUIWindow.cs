@@ -115,12 +115,6 @@ namespace ProperLogger
 
             m_windowRect.x = Mathf.Clamp(m_windowRect.x, -m_windowRect.width + 20, refScreenWidth - 20);
             m_windowRect.y = Mathf.Clamp(m_windowRect.y, 0, refScreenHeight - 20);
-
-            if(Event.current.type == EventType.MouseDown && m_windowRect.Contains(Event.current.mousePosition))
-            {
-                Debug.Log("Clicked me");
-                Event.current.Use();
-            }
         }
 
         protected virtual void DoGui(int windowID)
