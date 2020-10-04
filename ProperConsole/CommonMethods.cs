@@ -605,5 +605,46 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
         }
 
+        internal static void DisplaySearchToolbar(IProperLogger console)
+        {
+            GUILayout.BeginHorizontal(Strings.Toolbar);
+            bool lastRegexSearch = console.Config.RegexSearch;
+            console.Config.RegexSearch = GUILayout.Toggle(console.Config.RegexSearch, console.RegexSearchButtonNameOnlyContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastRegexSearch != console.Config.RegexSearch)
+            {
+                console.NeedRegexRecompile = true;
+            }
+            bool lastCaseSensitive = console.Config.CaseSensitive;
+            console.Config.CaseSensitive = GUILayout.Toggle(console.Config.CaseSensitive, console.CaseSensitiveButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastCaseSensitive != console.Config.CaseSensitive)
+            {
+                console.TriggerFilteredEntryComputation = true;
+                console.NeedRegexRecompile = true;
+            }
+            bool lastSearchMessage = console.SearchMessage;
+            console.SearchMessage = GUILayout.Toggle(console.SearchMessage, console.SearchInLogMessageButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchMessage != console.SearchMessage)
+            {
+                console.TriggerFilteredEntryComputation = true;
+            }
+            bool lastSearchObjectName = console.Config.SearchObjectName;
+            console.Config.SearchObjectName = GUILayout.Toggle(console.Config.SearchObjectName, console.SearchInObjectNameButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchObjectName != console.Config.SearchObjectName)
+            {
+                console.TriggerFilteredEntryComputation = true;
+            }
+            bool lastSearchStackTRace = console.Config.SearchInStackTrace;
+            console.Config.SearchInStackTrace = GUILayout.Toggle(console.Config.SearchInStackTrace, console.SearchInStackTraceButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchStackTRace != console.Config.SearchInStackTrace)
+            {
+                console.TriggerFilteredEntryComputation = true;
+            }
+            GUILayout.FlexibleSpace();
+
+            console.ToggleSettings();
+
+            GUILayout.EndHorizontal();
+        }
+
     }
 }

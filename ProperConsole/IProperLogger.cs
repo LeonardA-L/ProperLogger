@@ -85,5 +85,6 @@ namespace ProperLogger
         void SelectableLabel(string text, GUIStyle textStyle, float currentX);
         void HandleDoubleClick(ConsoleLogEntry entry);
         void DrawCategoriesWindow(Rect dropdownRect, Vector2 size);
+        void ToggleSettings();
     }
 }

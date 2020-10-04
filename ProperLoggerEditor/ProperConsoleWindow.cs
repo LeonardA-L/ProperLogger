@@ -626,7 +626,7 @@ namespace ProperLogger
 
             if (m_configs.AdvancedSearchToolbar)
             {
-                DisplaySearchToolbar();
+                C.DisplaySearchToolbar(this);
             }
 
             float startY = 0;
@@ -926,51 +926,6 @@ namespace ProperLogger
             var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
             window.ShowAsDropDown(ComputeCategoryDropdownPosition(dropdownRect), size);
             window.Repaint();
-        }
-
-        private void DisplaySearchToolbar()
-        {
-
-            GUILayout.BeginHorizontal(Strings.Toolbar);
-            bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if(lastRegexSearch != m_configs.RegexSearch)
-            {
-                NeedRegexRecompile = true;
-            }
-            bool lastCaseSensitive = m_configs.CaseSensitive;
-            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, CaseSensitiveButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastCaseSensitive != m_configs.CaseSensitive)
-            {
-                TriggerFilteredEntryComputation = true;
-                NeedRegexRecompile = true;
-            }
-            bool lastSearchMessage = SearchMessage;
-            SearchMessage = GUILayout.Toggle(SearchMessage, SearchInLogMessageButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchMessage != SearchMessage)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            bool lastSearchObjectName = m_configs.SearchObjectName;
-            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, SearchInObjectNameButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchObjectName != m_configs.SearchObjectName)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            bool lastSearchStackTRace = m_configs.SearchInStackTrace;
-            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, SearchInStackTraceButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            if (lastSearchStackTRace != m_configs.SearchInStackTrace)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            GUILayout.FlexibleSpace();
-#if UNITY_EDITOR
-            if (GUILayout.Button(PluginSettingsButtonContent))
-            {
-                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
-            }
-#endif // UNITY_EDITOR
-            GUILayout.EndHorizontal();
         }
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
@@ -1296,6 +1251,14 @@ namespace ProperLogger
         public void TriggerRepaint()
         {
             Repaint();
+        }
+
+        public void ToggleSettings()
+        {
+            if (GUILayout.Button(PluginSettingsButtonContent))
+            {
+                SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
+            }
         }
     }
 }

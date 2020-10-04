@@ -323,7 +323,7 @@ namespace ProperLogger
 
             if (m_configs.AdvancedSearchToolbar)
             {
-                DisplaySearchToolbar();
+                C.DisplaySearchToolbar(this);
             }
 
             float startY = 0;
@@ -518,53 +518,6 @@ namespace ProperLogger
             ShowCategoryFilter = !ShowCategoryFilter;
             CategoryFilterRect = new Rect(ComputeCategoryDropdownPosition(dropdownRect), size);
             CategoryToggleRect = new Rect(ShowCategoriesButtonRect.x + m_windowRect.x, ShowCategoriesButtonRect.y + m_windowRect.y, ShowCategoriesButtonRect.width, ShowCategoriesButtonRect.height);
-        }
-
-        private void DisplaySearchToolbar()
-        {
-            GUILayout.BeginHorizontal(Strings.Toolbar);
-            bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastRegexSearch != m_configs.RegexSearch)
-            {
-                NeedRegexRecompile = true;
-            }
-            bool lastCaseSensitive = m_configs.CaseSensitive;
-            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, CaseSensitiveButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastCaseSensitive != m_configs.CaseSensitive)
-            {
-                TriggerFilteredEntryComputation = true;
-                NeedRegexRecompile = true;
-            }
-            bool lastSearchMessage = SearchMessage;
-            SearchMessage = GUILayout.Toggle(SearchMessage, SearchInLogMessageButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastSearchMessage != SearchMessage)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            bool lastSearchObjectName = m_configs.SearchObjectName;
-            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, SearchInObjectNameButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastSearchObjectName != m_configs.SearchObjectName)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            bool lastSearchStackTRace = m_configs.SearchInStackTrace;
-            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, SearchInStackTraceButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastSearchStackTRace != m_configs.SearchInStackTrace)
-            {
-                TriggerFilteredEntryComputation = true;
-            }
-            GUILayout.FlexibleSpace();
-
-            if (SettingsWindow != null)
-            {
-                if (GUILayout.Button(PluginSettingsButtonContent))
-                {
-                    SettingsWindow.Toggle();
-                }
-            }
-
-            GUILayout.EndHorizontal();
         }
 
         // TODO clickable and selectable?
@@ -860,5 +813,16 @@ namespace ProperLogger
         }
 
         public void TriggerRepaint() { }
+
+        public void ToggleSettings()
+        {
+            if (SettingsWindow != null)
+            {
+                if (GUILayout.Button(PluginSettingsButtonContent))
+                {
+                    SettingsWindow.Toggle();
+                }
+            }
+        }
     }
 }
