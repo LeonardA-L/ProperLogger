@@ -85,11 +85,11 @@ namespace ProperLogger
                     bool isHidden = false;
                     try
                     {
-                        /*if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
+                        if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
                         {
                             result = string.Empty;
                             continue;
-                        }*/ // TODO uncomment
+                        }
 
                         Type type = Type.GetType(m.Groups[2].Value);
                         MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);

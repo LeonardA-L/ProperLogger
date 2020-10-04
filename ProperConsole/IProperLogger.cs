@@ -9,12 +9,23 @@ namespace ProperLogger
         bool IsGame { get; }
         GUISkin Skin { get; }
         ConfigsProvider Config { get; }
+        bool AutoScroll { get; set; }
         bool Listening { get; set; }
         CustomLogHandler LogHandler { get; set; }
+        bool SplitterDragging { get; set; }
+        float InnerScrollableHeight { get; set; }
+        float OuterScrollableHeight { get; set; }
+        float SplitterPosition { get; set; }
+        System.DateTime LastClick { get; set; }
         bool LastCLickIsDisplayList { get; set; }
         Rect ListDisplay { get; set; }
+        Vector2 EntryListScrollPosition { get; set; }
+        Vector2 InspectorScrollPosition { get; set; }
         List<ConsoleLogEntry> SelectedEntries { get; set; }
+        List<ConsoleLogEntry> FilteredEntries { get; set; }
+        List<ConsoleLogEntry> DisplayedEntries { get; set; }
         bool TriggerFilteredEntryComputation { get; set; }
+        bool TriggerSyncWithUnityComputation { get; set; }
         object EntriesLock { get; set; }
         List<ConsoleLogEntry> Entries { get; set; }
         bool OpenConsoleOnError { get; }
@@ -30,6 +41,10 @@ namespace ProperLogger
         Rect SearchFieldRect { get; set; }
         Rect ResetSearchButtonRect { get; set; }
         Rect ShowCategoriesButtonRect { get; set; }
+        bool CallForRepaint { get; set; }
+        int DisplayedEntriesCount { get; set; }
+        bool IsDarkSkin { get; set; }
+        Rect WindowRect { get; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -86,5 +101,9 @@ namespace ProperLogger
         void HandleDoubleClick(ConsoleLogEntry entry);
         void DrawCategoriesWindow(Rect dropdownRect, Vector2 size);
         void ToggleSettings();
+        void ExternalEditorSelectableLabelInvisible();
+        void SyncWithUnityEntries();
+        void LoadIcons();
+        bool ExternalDisplayCloseButton();
     }
 }

@@ -12,6 +12,7 @@ namespace ProperLogger
 {
     internal class CommonMethods
     {
+        private static float s_doubleClickSpeed = 300 * 10000; // Could be a config ?
         private static float s_regexCompileDebounce => 200 * 10000;
         private static Regex s_categoryParse = null;
         private static Regex CategoryParse => s_categoryParse ?? (s_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
@@ -122,7 +123,7 @@ namespace ProperLogger
             inspectorTextStyle.richText = true;
             inspectorTextStyle.fontSize = console.Config.InspectorMessageFontSize;
             inspectorTextStyle.wordWrap = true;
-            inspectorTextStyle.stretchWidth = false;
+            inspectorTextStyle.stretchWidth = true;
             inspectorTextStyle.clipping = TextClipping.Clip;
             console.InspectorTextStyle = inspectorTextStyle;
         }
@@ -510,7 +511,6 @@ namespace ProperLogger
                 Debug.LogException(e);
             }
         }
-
         internal static void DisplayToolbar(IProperLogger console, ref bool callForRepaint)
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
@@ -604,7 +604,6 @@ namespace ProperLogger
 
             GUILayout.EndHorizontal();
         }
-
         internal static void DisplaySearchToolbar(IProperLogger console)
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
@@ -644,6 +643,562 @@ namespace ProperLogger
             console.ToggleSettings();
 
             GUILayout.EndHorizontal();
+        }
+        internal static void DisplayList(IProperLogger console, List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
+        {
+            int startI = 0;
+            int endI = filteredEntries.Count;
+            int lastVisibleIdx = 0;
+            // Only display elements that are in view
+            if (console.OuterScrollableHeight + 100 <= console.InnerScrollableHeight)
+            {
+                int firstVisibleIdx = Mathf.Clamp((int)(console.EntryListScrollPosition.y / ItemHeight(console)) - 1, 0, filteredEntries.Count);
+                lastVisibleIdx = Mathf.Clamp((int)((console.EntryListScrollPosition.y + console.OuterScrollableHeight) / ItemHeight(console)) + 1, 0, filteredEntries.Count);
+                GUILayout.Space(firstVisibleIdx * ItemHeight(console));
+                startI = firstVisibleIdx;
+                endI = lastVisibleIdx;
+            }
+
+            for (int i = startI; i < endI; i++)
+            {
+                DisplayEntry(console, filteredEntries[i], i, totalWidth);
+            }
+
+            if (lastVisibleIdx != 0)
+            {
+                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * ItemHeight(console));
+            }
+            displayedEntries = filteredEntries;
+        }
+        internal static void DisplayEntry(IProperLogger console, ConsoleLogEntry entry, int idx, float totalWidth)
+        {
+            GUIStyle currentStyle = console.OddEntry;
+            GUIStyle textStyle = console.EvenEntryLabel;
+            textStyle.normal.textColor = console.IsGame ? console.Skin.label.normal.textColor : GUI.skin.label.normal.textColor;
+
+            float imageSize = Math.Min(ItemHeight(console) - (2 * 3), 32); // We clamp it in case we display 3+ lines
+            imageSize += imageSize % 2;
+            float sidePaddings = 10;
+            float collapseBubbleSize = console.Config.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
+            float empiricalPaddings = 30 + sidePaddings;
+
+            bool displayCategoryNameInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
+            bool displayCategoryIconInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
+            bool displayCategoryStrips = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.ColorStrip);
+            bool categoryColumn = displayCategoryNameInColumn || displayCategoryIconInColumn;
+            float categoryColumnWidth = 0;
+
+            float categoryStripWidth = console.Config.ColorStripWidth;
+            float categoriesStripsTotalWidth = 0;
+
+            float rightSplitterWidth = console.Config.InspectorOnTheRight ? console.SplitterPosition : 0;
+
+            string categoriesString = string.Empty;
+
+            if (entry.categories != null && entry.categories.Count > 0)
+            {
+                if (categoryColumn)
+                {
+                    var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(console.Config.CategoryCountInLogList, entry.categories.Count)).Select(c => c.Name));
+                    categoryColumnWidth = console.CategoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
+                }
+                if (displayCategoryStrips)
+                {
+                    categoriesStripsTotalWidth = entry.categories.Count * categoryStripWidth;
+                }
+                if (console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.InMessage))
+                {
+                    string format = "<color=#{1}>[{0}]</color> ";
+                    categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, console.Config.CategoryNameColorize)))));
+                }
+            }
+
+            float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
+
+
+            if (console.SelectedEntries.Count > 0 && console.SelectedEntries.Contains(entry))
+            {
+                currentStyle = console.SelectedEntry;
+                textStyle = console.SelectedEntryLabel;
+            }
+            else if (idx % 2 == 0)
+            {
+                currentStyle = console.EvenEntry;
+            }
+
+            var guiColor = GUI.color;
+            if (console.IsGame)
+            {
+                GUI.color = new Color(1, 1, 1, 0.28f);
+            }
+            else
+            {
+#if UNITY_EDITOR
+                if (EditorGUIUtility.isProSkin)
+                {
+                    GUI.color = new Color(1, 1, 1, 0.28f);
+                }
+#endif // UNITY_EDITOR
+            }
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight(console)));
+            {
+                GUI.color = guiColor;
+                //GUI.color = saveColor;
+                // Picto space
+                GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box(GetEntryIcon(console, entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+                // Text space
+                GUILayout.BeginVertical();
+                {
+                    textStyle.fontSize = console.Config.LogEntryMessageFontSize;
+                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
+                    textStyle.fontSize = console.Config.LogEntryStackTraceFontSize;
+                    if (console.Config.LogEntryStackTraceLineCount > 0)
+                    {
+                        if (console.Config.ShowContextNameInsteadOfStack && entry.context != null)
+                        {
+                            GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
+                        }
+                        else if (!string.IsNullOrEmpty(entry.stackTrace))
+                        {
+                            GUILayout.Label($"{Utils.GetFirstLines(entry.traceLines, 0, console.Config.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                        }
+                        else
+                        {
+                            GUILayout.Label($"{Utils.GetFirstLines(entry.messageLines, console.Config.LogEntryMessageLineCount, console.Config.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
+                        }
+                    }
+                }
+                GUILayout.EndVertical();
+                GUILayout.FlexibleSpace();
+                // First Category space
+                if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
+                {
+                    GUILayout.BeginHorizontal(GUILayout.Width(categoryColumnWidth));
+                    for (int i = 0; i < Mathf.Min(console.Config.CategoryCountInLogList, entry.categories.Count); i++)
+                    {
+                        var category = entry.categories[i];
+                        var categoryColor = console.CategoryNameStyle.normal.textColor;
+                        console.CategoryNameStyle.normal.textColor = Color.Lerp(console.CategoryNameStyle.normal.textColor, category.Color, console.Config.CategoryNameInLogListColorize);
+                        GUILayout.Label(category.Name.ToString(), console.CategoryNameStyle, GUILayout.ExpandWidth(true));
+                        console.CategoryNameStyle.normal.textColor = categoryColor;
+                    }
+                    GUILayout.EndHorizontal();
+                    /*
+                    if (displayCategoryIconInColumn && category.Icon != null)
+                    {
+                        //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
+                    }
+                    */
+                }
+                // Collapse Space
+                if (console.Config.Collapse)
+                {
+                    DisplayCollapseBubble(console, entry.level, entry.count, collapseBubbleSize, sidePaddings);
+                }
+                // Category strips space
+                if (displayCategoryStrips && entry.categories != null && entry.categories.Count > 0)
+                {
+                    Rect lastRect = GUILayoutUtility.GetLastRect();
+                    Color saveColor = GUI.color;
+                    Color saveContentColor = GUI.contentColor;
+                    Color saveBGColor = GUI.backgroundColor;
+                    int i = 0;
+                    foreach (var category in entry.categories)
+                    {
+                        GUI.color = category.Color;
+                        GUI.backgroundColor = Color.white;
+                        GUI.contentColor = Color.white;
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight(console)), string.Empty, console.CategoryColorStrip);
+                        GUILayout.Space(categoryStripWidth);
+                        i++;
+                    }
+                    GUI.contentColor = saveContentColor;
+                    GUI.backgroundColor = saveBGColor;
+                    GUI.color = saveColor;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            Rect r = GUILayoutUtility.GetLastRect();
+            if (GUI.Button(r, GUIContent.none, GUIStyle.none))
+            {
+                if (entry.context != null)
+                {
+#if UNITY_EDITOR
+                    EditorGUIUtility.PingObject(entry.context);
+#endif
+                }
+                if (console.SelectedEntries.Count > 0 && console.SelectedEntries[0] == entry && DateTime.Now.Ticks - console.LastClick.Ticks < s_doubleClickSpeed)
+                {
+                    console.HandleDoubleClick(entry);
+                }
+                console.LastClick = DateTime.Now;
+
+                if (Event.current.shift && console.SelectedEntries != null && console.SelectedEntries.Count > 0)
+                {
+                    int startIdx = console.DisplayedEntries.IndexOf(console.SelectedEntries[console.SelectedEntries.Count - 1]);
+                    int thisIdx = idx;
+                    for (int i = startIdx; i <= thisIdx; i++)
+                    {
+                        if (!console.SelectedEntries.Contains(console.DisplayedEntries[i]))
+                        {
+                            console.SelectedEntries.Add(console.DisplayedEntries[i]);
+                        }
+                    }
+                }
+                else if (Event.current.control)
+                {
+                    if (console.SelectedEntries.Contains(entry))
+                    {
+                        console.SelectedEntries.Remove(entry);
+                    }
+                    else
+                    {
+                        console.SelectedEntries.Add(entry);
+                    }
+                }
+                else
+                {
+                    console.SelectedEntries.Clear();
+                    console.SelectedEntries.Add(entry);
+                }
+                console.LastCLickIsDisplayList = true;
+
+                if (console.Config.CopyOnSelect)
+                {
+                    CopySelection(console);
+                }
+            }
+        }
+        internal static void DisplayCollapseBubble(IProperLogger console, LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
+        {
+            GUIStyle style;
+            switch (level)
+            {
+                case LogLevel.Log:
+                    style = console.CollapseBubbleStyle;
+                    break;
+                case LogLevel.Warning:
+                    style = console.CollapseBubbleWarningStyle;
+                    break;
+                case LogLevel.Error:
+                default:
+                    style = console.CollapseBubbleErrorStyle;
+                    break;
+            }
+            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
+            GUILayout.Space(sidePaddings);
+        }
+
+        internal static void DoGui(IProperLogger console)
+        {
+            HandleCopyToClipboard(console);
+            console.ExternalEditorSelectableLabelInvisible();
+
+            if (console.ClearButtonContent == null)
+            {
+                CacheGUIContents(console);
+            }
+
+            if (console.InspectorTextStyle == null)
+            {
+                CacheStyles(console);
+            }
+
+            bool callForRepaint = false;
+            bool repaint = Event.current.type == EventType.Repaint;
+
+            console.InactiveCategories?.Clear();
+            console.InactiveCategories = console.Config.InactiveCategories;
+
+            if (console.IsGame)
+            {
+                if (console.ExternalDisplayCloseButton())
+	            {
+	                return;
+	            }
+            }
+
+            DisplayToolbar(console, ref callForRepaint);
+
+            console.CallForRepaint = callForRepaint;
+
+            if (console.Config.AdvancedSearchToolbar)
+            {
+                DisplaySearchToolbar(console);
+            }
+
+            float startY = 0;
+            float totalWidth = console.IsGame ? console.WindowRect.width : Screen.width;
+            GUILayout.Space(1);
+            if (repaint)
+            {
+                Rect r = GUILayoutUtility.GetLastRect();
+                startY = r.yMax;
+            }
+
+            if (console.Config.InspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal();
+            }
+
+            #region DisplayList
+            GUILayout.BeginVertical(); // Display list
+            console.EntryListScrollPosition = GUILayout.BeginScrollView(console.EntryListScrollPosition, false, false, GUIStyle.none, console.IsGame ? console.Skin.verticalScrollbar : GUI.skin.verticalScrollbar);
+
+            if (repaint)
+            {
+                float scrollTolerance = 0;
+                console.AutoScroll = console.EntryListScrollPosition.y >= (console.InnerScrollableHeight - console.OuterScrollableHeight - scrollTolerance + startY);
+            }
+
+            GUILayout.BeginVertical();
+
+            if (console.Entries.Count == 0) GUILayout.Space(10);
+
+            if (!console.IsGame)
+            {
+                if (console.TriggerSyncWithUnityComputation)
+                {
+                    lock (console.Entries)
+                    {
+                        console.SyncWithUnityEntries();
+                    }
+                    console.TriggerFilteredEntryComputation = true;
+                    console.TriggerSyncWithUnityComputation = false;
+                }
+            }
+
+            if (console.TriggerFilteredEntryComputation)
+            {
+                console.FilteredEntries = console.Entries.FindAll(e => ValidFilter(console, e));
+                if (console.Config.Collapse)
+                {
+                    ComputeCollapsedEntries(console, console.FilteredEntries);
+                }
+                console.TriggerFilteredEntryComputation = false;
+            }
+
+            DisplayList(console, console.Config.Collapse ? console.CollapsedEntries : console.FilteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);
+            console.DisplayedEntries = displayedEntries;
+
+            if (console.DisplayedEntries.Count < console.DisplayedEntriesCount)
+            {
+                console.SelectedEntries.Clear();
+            }
+            console.DisplayedEntriesCount = console.DisplayedEntries.Count;
+
+            GUILayout.EndVertical();
+
+            if (repaint)
+            {
+                Rect r = GUILayoutUtility.GetLastRect();
+                console.InnerScrollableHeight = r.yMax;
+            }
+
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(1);
+            if (repaint)
+            {
+                Rect r = GUILayoutUtility.GetLastRect();
+                console.OuterScrollableHeight = r.yMin;
+            }
+
+            if (repaint && console.AutoScroll)
+            {
+                console.EntryListScrollPosition = new Vector2(console.EntryListScrollPosition.x, console.InnerScrollableHeight - console.OuterScrollableHeight + startY);
+            }
+            GUILayout.EndVertical(); // Display list
+            if (repaint)
+            {
+                console.ListDisplay = GUILayoutUtility.GetLastRect();
+            }
+            #endregion DisplayList
+
+            #region Inspector
+            if (console.Config.InspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal(); // Inspector
+            }
+            else
+            {
+                GUILayout.BeginVertical(); // Inspector
+            }
+
+            console.SplitterPosition = Mathf.Clamp(console.SplitterPosition, 100, (console.Config.InspectorOnTheRight ? Screen.width : Screen.height) - 200);
+
+            Splitter(console);
+
+            if (console.Config.InspectorOnTheRight)
+            {
+                GUILayout.BeginVertical(GUILayout.Width(console.SplitterPosition),
+                GUILayout.MaxWidth(console.SplitterPosition),
+                GUILayout.MinWidth(console.SplitterPosition));
+                console.InspectorScrollPosition = GUILayout.BeginScrollView(console.InspectorScrollPosition);
+            }
+            else
+            {
+                GUILayout.BeginVertical(GUILayout.Height(console.SplitterPosition),
+                GUILayout.MaxHeight(console.SplitterPosition),
+                GUILayout.MinHeight(console.SplitterPosition));
+                console.InspectorScrollPosition = GUILayout.BeginScrollView(console.InspectorScrollPosition);
+            }
+            if (console.SelectedEntries.Count > 0)
+            {
+                var entry = console.SelectedEntries[0];
+
+                GUILayout.Space(1);
+                float currentX = (GUILayoutUtility.GetLastRect()).xMin;
+
+                string categoriesString = string.Empty;
+                if (entry.categories != null && entry.categories.Count > 0)
+                {
+                    if (console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
+                    {
+                        string format = "<color=#{1}>[{0}]</color> ";
+                        categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, console.InspectorTextStyle.normal.textColor, console.Config.CategoryNameColorize)))));
+                    }
+                }
+
+                console.SelectableLabel($"{categoriesString}{entry.message}", console.InspectorTextStyle, currentX);
+
+                if (entry.context != null)
+                {
+                    Color txtColor = console.InspectorTextStyle.normal.textColor;
+                    if (!console.Config.ObjectNameColor.Equals(txtColor))
+                    {
+                        console.InspectorTextStyle.normal.textColor = console.Config.ObjectNameColor;
+                    }
+                    console.SelectableLabel(entry.context.name, console.InspectorTextStyle, currentX);
+                    console.InspectorTextStyle.normal.textColor = txtColor;
+                }
+                if (!string.IsNullOrEmpty(entry.stackTrace))
+                {
+                    console.SelectableLabel(entry.stackTrace, console.InspectorTextStyle, currentX);
+                }
+            }
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+
+            if (console.Config.InspectorOnTheRight)
+            {
+                GUILayout.EndHorizontal(); // Inspector
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                GUILayout.EndVertical(); // Inspector
+            }
+            #endregion Inspector
+
+            #region Debug Buttons
+            if (!console.IsGame)
+            {
+                if (GUILayout.Button("Log"))
+                {
+                    Debug.Log($"Log {DateTime.Now.ToString()} {console.Listening}\r\nA\nB\nC\nD", Camera.main);
+                }
+
+                if (GUILayout.Button("Log Combat"))
+                {
+                    Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {console.Listening}", Camera.main);
+                }
+
+                if (GUILayout.Button("Log Performance"))
+                {
+                    Debug.Log($"[Performance] Log {DateTime.Now.ToString()} {console.Listening}", Camera.main);
+                }
+
+                if (GUILayout.Button("LogException"))
+                {
+                    Debug.LogException(new Exception());
+                }
+
+                if (GUILayout.Button("LogWarning"))
+                {
+                    Debug.LogWarning($"Warning {DateTime.Now.ToString()} {console.Listening}");
+                }
+
+                if (GUILayout.Button("LogError"))
+                {
+                    Debug.LogError("Error");
+                }
+
+                if (GUILayout.Button("LogAssert"))
+                {
+                    DDebug.Assert(false);
+                }
+
+                if (GUILayout.Button("Add 1000 Log"))
+                {
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        Debug.Log($"Log {DateTime.Now.ToString()} {console.Listening}");
+                    }
+                }
+                if (GUILayout.Button("1000 syncs"))
+                {
+                    lock (console.EntriesLock)
+                    {
+                        for (int i = 0; i < 10000; i++)
+                        {
+                            console.SyncWithUnityEntries();
+                        }
+                    }
+                }
+            }
+            #endregion Debug Buttons
+
+            if (Event.current != null)
+            {
+                switch (Event.current.rawType)
+                {
+                    case EventType.MouseDown:
+                        if (console.SplitterRect.Contains(Event.current.mousePosition))
+                        {
+                            //Debug.Log("Start dragging");
+                            console.SplitterDragging = true;
+                        }
+                        break;
+                    case EventType.MouseDrag:
+                        if (console.SplitterDragging)
+                        {
+                            //Debug.Log("moving splitter");
+                            console.SplitterPosition -= console.Config.InspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
+                            console.TriggerRepaint();
+                        }
+                        break;
+                    case EventType.MouseUp:
+                        if (console.SplitterDragging)
+                        {
+                            //Debug.Log("Done dragging");
+                            console.SplitterDragging = false;
+                        }
+                        break;
+                }
+            }
+
+            if (!console.IsGame)
+            {
+#if UNITY_EDITOR
+                if (console.IsDarkSkin != EditorGUIUtility.isProSkin)
+                {
+                    console.IsDarkSkin = EditorGUIUtility.isProSkin;
+                    ClearStyles(console);
+                    ClearGUIContents(console);
+                    console.LoadIcons();
+                    CacheStyles(console);
+                    CacheGUIContents(console);
+                }
+#endif // UNITY_EDITOR
+            }
         }
 
     }

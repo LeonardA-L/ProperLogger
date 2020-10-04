@@ -20,10 +20,6 @@ namespace ProperLogger
     {
         public bool IsGame => true;
 
-        [NonSerialized]
-        private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
-        [NonSerialized]
-        private float m_regexCompileDebounce = 200 * 10000;
         protected override string WindowName => "Proper Logger";
 
         #region Configs
@@ -31,17 +27,17 @@ namespace ProperLogger
         private ConfigsProvider m_configs = new PlayerConfigs();
         public ConfigsProvider Config => m_configs;
 
-        private bool m_autoScroll = true;
+        public bool AutoScroll { get; set; } = true;
 
         public bool SearchMessage { get; set; } = true;
 
-        private bool m_isDarkSkin = false;
+        public bool IsDarkSkin { get; set; } = false;
 
         #endregion Configs
 
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
-        private bool m_callForRepaint = false;
+        public bool CallForRepaint { get; set; } = false;
 
         private PlayerSettingsWindow m_settingsWindow = null;
         private PlayerSettingsWindow SettingsWindow => m_settingsWindow ?? (m_settingsWindow = GetComponent<PlayerSettingsWindow>());
@@ -49,12 +45,12 @@ namespace ProperLogger
         #region Logs
 
         public List<ConsoleLogEntry> Entries { get; set; } = null;
-        private List<ConsoleLogEntry> m_filteredEntries = null;
+        public List<ConsoleLogEntry> FilteredEntries { get; set; } = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
+        public List<ConsoleLogEntry> DisplayedEntries { get => m_displayedEntries; set { m_displayedEntries = value; } }
         public List<ConsoleLogEntry> CollapsedEntries { get; set; } = null;
         public bool TriggerFilteredEntryComputation { get; set; } = false;
-        private bool m_triggerSyncWithUnityComputation = false;
-        private CustomLogHandler m_logHandler = null;
+        public bool TriggerSyncWithUnityComputation { get; set; } = false;
         public CustomLogHandler LogHandler { get; set; } = null;
         public List<PendingContext> PendingContexts { get; set; } = null;
         public object EntriesLock { get; set; } = null;
@@ -74,17 +70,17 @@ namespace ProperLogger
 
         //private int m_selectedIndex = -1;
         public List<ConsoleLogEntry> SelectedEntries { get; set; } = null;
-        private int m_displayedEntriesCount = -1;
-        private DateTime m_lastClick = default;
+        public int DisplayedEntriesCount { get; set; } = -1;
+        public DateTime LastClick { get; set; } = default;
 
-        private Vector2 m_entryListScrollPosition;
-        private Vector2 m_inspectorScrollPosition;
+        public Vector2 EntryListScrollPosition { get; set; }
+        public Vector2 InspectorScrollPosition { get; set; }
 
-        private float m_splitterPosition = 0;
+        public float SplitterPosition { get; set; } = 0;
         public Rect SplitterRect { get; set; } = default;
-        private bool m_splitterDragging = false;
-        private float m_innerScrollableHeight = 0;
-        private float m_outerScrollableHeight = 0;
+        public bool SplitterDragging { get; set; } = false;
+        public float InnerScrollableHeight { get; set; } = 0;
+        public float OuterScrollableHeight { get; set; } = 0;
 
         public Rect ShowCategoriesButtonRect { get; set; } = default;
         public Rect ListDisplay { get; set; } = default;
@@ -151,6 +147,7 @@ namespace ProperLogger
         private bool m_openConsoleOnError = true;
         public bool OpenConsoleOnError => m_openConsoleOnError;
         public bool Active => m_active;
+        public Rect WindowRect => m_windowRect;
 
         #region Caches
 
@@ -222,7 +219,7 @@ namespace ProperLogger
             EntriesLock = new object();
             TriggerFilteredEntryComputation = true;
             C.InitListener(this);
-            m_autoScroll = true;
+            AutoScroll = true;
 
             NeedRegexRecompile = true;
         }
@@ -296,215 +293,10 @@ namespace ProperLogger
 
         protected override void DoGui(int windowID)
         {
-            C.HandleCopyToClipboard(this);
-
-            if (InspectorTextStyle == null)
-            {
-                C.CacheStyles(this);
-            }
-
-            if(ClearButtonContent == null)
-            {
-                C.CacheGUIContents(this);
-            }
-
-            m_callForRepaint = false;
-            bool repaint = Event.current.type == EventType.Repaint;
-
-            InactiveCategories?.Clear();
-            InactiveCategories = m_configs.InactiveCategories;
-
-            if (DisplayCloseButton())
-            {
-                return;
-            }
-
-            C.DisplayToolbar(this, ref m_callForRepaint);
-
-            if (m_configs.AdvancedSearchToolbar)
-            {
-                C.DisplaySearchToolbar(this);
-            }
-
-            float startY = 0;
-            float totalWidth = m_windowRect.width;
-            GUILayout.Space(1);
-            if (repaint)
-            {
-                Rect r = GUILayoutUtility.GetLastRect();
-                startY = r.yMax;
-            }
-
-            if (m_configs.InspectorOnTheRight)
-            {
-                GUILayout.BeginHorizontal();
-            }
-
-            #region DisplayList
-            GUILayout.BeginVertical(); // Display list
-            m_entryListScrollPosition = GUILayout.BeginScrollView(m_entryListScrollPosition, false, false, GUIStyle.none, Skin.verticalScrollbar);
-
-            if (repaint)
-            {
-                float scrollTolerance = 0;
-                m_autoScroll = m_entryListScrollPosition.y >= (m_innerScrollableHeight - m_outerScrollableHeight - scrollTolerance + startY);
-            }
-
-            GUILayout.BeginVertical();
-
-            if (Entries.Count == 0) GUILayout.Space(10);
-
-            if (TriggerFilteredEntryComputation)
-            {
-                m_filteredEntries = Entries.FindAll(e => C.ValidFilter(this, e));
-                if (m_configs.Collapse)
-                {
-                    C.ComputeCollapsedEntries(this, m_filteredEntries);
-                }
-                TriggerFilteredEntryComputation = false;
-            }
-
-            DisplayList(m_configs.Collapse ? CollapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
-
-            if (m_displayedEntries.Count < m_displayedEntriesCount)
-            {
-                SelectedEntries.Clear();
-            }
-            m_displayedEntriesCount = m_displayedEntries.Count;
-
-            GUILayout.EndVertical();
-
-            if (repaint)
-            {
-                Rect r = GUILayoutUtility.GetLastRect();
-                m_innerScrollableHeight = r.yMax;
-            }
-
-            GUILayout.EndScrollView();
-
-            GUILayout.Space(1);
-            if (repaint)
-            {
-                Rect r = GUILayoutUtility.GetLastRect();
-                m_outerScrollableHeight = r.yMin;
-            }
-
-            if (repaint && m_autoScroll)
-            {
-                m_entryListScrollPosition.y = m_innerScrollableHeight - m_outerScrollableHeight + startY;
-            }
-            GUILayout.EndVertical(); // Display list
-            if (repaint)
-            {
-                ListDisplay = GUILayoutUtility.GetLastRect();
-            }
-            #endregion DisplayList
-
-            #region Inspector
-            if (m_configs.InspectorOnTheRight)
-            {
-                GUILayout.BeginHorizontal(); // Inspector
-            }
-            else
-            {
-                GUILayout.BeginVertical(); // Inspector
-            }
-
-            m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, (m_configs.InspectorOnTheRight ? Screen.width : Screen.height) - 200);
-
-            C.Splitter(this);
-
-            if (m_configs.InspectorOnTheRight)
-            {
-                GUILayout.BeginVertical(GUILayout.Width(m_splitterPosition),
-                GUILayout.MaxWidth(m_splitterPosition),
-                GUILayout.MinWidth(m_splitterPosition));
-                m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
-            }
-            else
-            {
-                GUILayout.BeginVertical(GUILayout.Height(m_splitterPosition),
-                GUILayout.MaxHeight(m_splitterPosition),
-                GUILayout.MinHeight(m_splitterPosition));
-                m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
-            }
-            if (SelectedEntries.Count > 0)
-            {
-                var entry = SelectedEntries[0];
-
-                GUILayout.Space(1);
-                float currentX = (GUILayoutUtility.GetLastRect()).xMin;
-
-                string categoriesString = string.Empty;
-                if (entry.categories != null && entry.categories.Count > 0)
-                {
-                    if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
-                    {
-                        string format = "<color=#{1}>[{0}]</color> ";
-                        categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, InspectorTextStyle.normal.textColor, m_configs.CategoryNameColorize)))));
-                    }
-                }
-
-                SelectableLabel($"{categoriesString}{entry.message}", InspectorTextStyle, currentX);
-
-                if (entry.context != null)
-                {
-                    Color txtColor = InspectorTextStyle.normal.textColor;
-                    if (!m_configs.ObjectNameColor.Equals(txtColor))
-                    {
-                        InspectorTextStyle.normal.textColor = m_configs.ObjectNameColor;
-                    }
-                    SelectableLabel(entry.context.name, InspectorTextStyle, currentX);
-                    InspectorTextStyle.normal.textColor = txtColor;
-                }
-                if (!string.IsNullOrEmpty(entry.stackTrace))
-                {
-                    SelectableLabel(entry.stackTrace, InspectorTextStyle, currentX);
-                }
-            }
-            GUILayout.EndScrollView();
-            GUILayout.EndVertical();
-
-            if (m_configs.InspectorOnTheRight)
-            {
-                GUILayout.EndHorizontal(); // Inspector
-                GUILayout.EndHorizontal();
-            }
-            else
-            {
-                GUILayout.EndVertical(); // Inspector
-            }
-            #endregion Inspector
-            
-            if (Event.current != null)
-            {
-                switch (Event.current.rawType)
-                {
-                    case EventType.MouseDown:
-                        if (SplitterRect.Contains(Event.current.mousePosition))
-                        {
-                            //Debug.Log("Start dragging");
-                            m_splitterDragging = true;
-                        }
-                        break;
-                    case EventType.MouseDrag:
-                        if (m_splitterDragging)
-                        {
-                            //Debug.Log("moving splitter");
-                            m_splitterPosition -= m_configs.InspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
-                        }
-                        break;
-                    case EventType.MouseUp:
-                        if (m_splitterDragging)
-                        {
-                            //Debug.Log("Done dragging");
-                            m_splitterDragging = false;
-                        }
-                        break;
-                }
-            }
+            C.DoGui(this);
             base.DoGui(windowID);
         }
+
 
         private Vector2 ComputeCategoryDropdownPosition(Rect dropdownRect)
         {
@@ -530,248 +322,6 @@ namespace ProperLogger
             EditorGUI.SelectableLabel(new Rect(currentX, lastRect.yMax, width, height), text, textStyle);
             GUILayout.Space(height);*/
             GUILayout.Label(text, textStyle);
-        }
-
-        private void DisplayList(List<ConsoleLogEntry> filteredEntries, out List<ConsoleLogEntry> displayedEntries, float totalWidth)
-        {
-            int startI = 0;
-            int endI = filteredEntries.Count;
-            int lastVisibleIdx = 0;
-            // Only display elements that are in view
-            if (m_outerScrollableHeight + 100 <= m_innerScrollableHeight)
-            {
-                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / C.ItemHeight(this)) - 1, 0, filteredEntries.Count);
-                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / C.ItemHeight(this)) + 1, 0, filteredEntries.Count);
-                GUILayout.Space(firstVisibleIdx * C.ItemHeight(this));
-                startI = firstVisibleIdx;
-                endI = lastVisibleIdx;
-            }
-
-            for (int i = startI; i < endI; i++)
-            {
-                DisplayEntry(filteredEntries[i], i, totalWidth);
-            }
-
-            if (lastVisibleIdx != 0)
-            {
-                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * C.ItemHeight(this));
-            }
-            displayedEntries = filteredEntries;
-        }
-
-        private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
-        {
-            GUIStyle currentStyle = OddEntry;
-            GUIStyle textStyle = EvenEntryLabel;
-            textStyle.normal.textColor = Skin.label.normal.textColor;
-
-            float imageSize = Math.Min(C.ItemHeight(this) - (2 * 3), 32); // We clamp it in case we display 3+ lines
-            imageSize += imageSize % 2;
-            float sidePaddings = 10;
-            float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 30 + sidePaddings;
-
-            bool displayCategoryNameInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
-            bool displayCategoryIconInColumn = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
-            bool displayCategoryStrips = m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.ColorStrip);
-            bool categoryColumn = displayCategoryNameInColumn || displayCategoryIconInColumn;
-            float categoryColumnWidth = 0;
-
-            float categoryStripWidth = m_configs.ColorStripWidth;
-            float categoriesStripsTotalWidth = 0;
-
-            float rightSplitterWidth = m_configs.InspectorOnTheRight ? m_splitterPosition : 0;
-
-            string categoriesString = string.Empty;
-
-            if (entry.categories != null && entry.categories.Count > 0)
-            {
-                if (categoryColumn)
-                {
-                    var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count)).Select(c => c.Name));
-                    categoryColumnWidth = CategoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
-                }
-                if (displayCategoryStrips)
-                {
-                    categoriesStripsTotalWidth = entry.categories.Count * categoryStripWidth;
-                }
-                if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InMessage))
-                {
-                    string format = "<color=#{1}>[{0}]</color> ";
-                    categoriesString = string.Join(string.Empty, entry.categories.Select(c => string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, textStyle.normal.textColor, m_configs.CategoryNameColorize)))));
-                }
-            }
-
-            float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
-
-
-            if (SelectedEntries.Count > 0 && SelectedEntries.Contains(entry))
-            {
-                currentStyle = SelectedEntry;
-                textStyle = SelectedEntryLabel;
-            }
-            else if (idx % 2 == 0)
-            {
-                currentStyle = EvenEntry;
-            }
-
-            var guiColor = GUI.color;
-            GUI.color = new Color(1, 1, 1, 0.28f);
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(C.ItemHeight(this)));
-            {
-                GUI.color = guiColor;
-                //GUI.color = saveColor;
-                // Picto space
-                GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Box(C.GetEntryIcon(this, entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.EndHorizontal();
-                // Text space
-                GUILayout.BeginVertical();
-                {
-                    textStyle.fontSize = m_configs.LogEntryMessageFontSize;
-                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, m_configs.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
-                    textStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-                    if (m_configs.LogEntryStackTraceLineCount > 0)
-                    {
-                        if (m_configs.ShowContextNameInsteadOfStack && entry.context != null)
-                        {
-                            GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
-                        }
-                        else if (!string.IsNullOrEmpty(entry.stackTrace))
-                        {
-                            GUILayout.Label($"{Utils.GetFirstLines(entry.traceLines, 0, m_configs.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
-                        }
-                        else
-                        {
-                            GUILayout.Label($"{Utils.GetFirstLines(entry.messageLines, m_configs.LogEntryMessageLineCount, m_configs.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
-                        }
-                    }
-                }
-                GUILayout.EndVertical();
-                GUILayout.FlexibleSpace();
-                // First Category space
-                if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
-                {
-                    GUILayout.BeginHorizontal(GUILayout.Width(categoryColumnWidth));
-                    for (int i = 0; i < Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count); i++)
-                    {
-                        var category = entry.categories[i];
-                        var categoryColor = CategoryNameStyle.normal.textColor;
-                        CategoryNameStyle.normal.textColor = Color.Lerp(CategoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), CategoryNameStyle, GUILayout.ExpandWidth(true));
-                        CategoryNameStyle.normal.textColor = categoryColor;
-                    }
-                    GUILayout.EndHorizontal();
-                    /*
-                    if (displayCategoryIconInColumn && category.Icon != null)
-                    {
-                        //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
-                    }
-                    */
-                }
-                // Collapse Space
-                if (m_configs.Collapse)
-                {
-                    DisplayCollapseBubble(entry.level, entry.count, collapseBubbleSize, sidePaddings);
-                }
-                // Category strips space
-                if (displayCategoryStrips && entry.categories != null && entry.categories.Count > 0)
-                {
-                    Rect lastRect = GUILayoutUtility.GetLastRect();
-                    Color saveColor = GUI.color;
-                    Color saveContentColor = GUI.contentColor;
-                    Color saveBGColor = GUI.backgroundColor;
-                    int i = 0;
-                    foreach (var category in entry.categories)
-                    {
-                        GUI.color = category.Color;
-                        GUI.backgroundColor = Color.white;
-                        GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, C.ItemHeight(this)), string.Empty, CategoryColorStrip);
-                        GUILayout.Space(categoryStripWidth);
-                        i++;
-                    }
-                    GUI.contentColor = saveContentColor;
-                    GUI.backgroundColor = saveBGColor;
-                    GUI.color = saveColor;
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            Rect r = GUILayoutUtility.GetLastRect();
-            if (GUI.Button(r, GUIContent.none, GUIStyle.none))
-            {
-                if (entry.context != null)
-                {
-#if UNITY_EDITOR
-                    EditorGUIUtility.PingObject(entry.context);
-#endif
-                }
-                if (SelectedEntries.Count > 0 && SelectedEntries[0] == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
-                {
-                    HandleDoubleClick(entry);
-                }
-                m_lastClick = DateTime.Now;
-
-                if (Event.current.shift && SelectedEntries != null && SelectedEntries.Count > 0)
-                {
-                    int startIdx = m_displayedEntries.IndexOf(SelectedEntries[SelectedEntries.Count - 1]);
-                    int thisIdx = idx;
-                    for (int i = startIdx; i <= thisIdx; i++)
-                    {
-                        if (!SelectedEntries.Contains(m_displayedEntries[i]))
-                        {
-                            SelectedEntries.Add(m_displayedEntries[i]);
-                        }
-                    }
-                }
-                else if (Event.current.control)
-                {
-                    if (SelectedEntries.Contains(entry))
-                    {
-                        SelectedEntries.Remove(entry);
-                    }
-                    else
-                    {
-                        SelectedEntries.Add(entry);
-                    }
-                }
-                else
-                {
-                    SelectedEntries.Clear();
-                    SelectedEntries.Add(entry);
-                }
-                LastCLickIsDisplayList = true;
-
-                if (m_configs.CopyOnSelect)
-                {
-                    C.CopySelection(this);
-                }
-            }
-        }
-
-        private void DisplayCollapseBubble(LogLevel level, int count, float collapseBubbleSize, float sidePaddings)
-        {
-            GUIStyle style;
-            switch (level)
-            {
-                case LogLevel.Log:
-                    style = CollapseBubbleStyle;
-                    break;
-                case LogLevel.Warning:
-                    style = CollapseBubbleWarningStyle;
-                    break;
-                case LogLevel.Error:
-                default:
-                    style = CollapseBubbleErrorStyle;
-                    break;
-            }
-            GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
-            GUILayout.Space(sidePaddings);
         }
 
         public void HandleDoubleClick(ConsoleLogEntry entry)
@@ -823,6 +373,14 @@ namespace ProperLogger
                     SettingsWindow.Toggle();
                 }
             }
+        }
+
+        public void ExternalEditorSelectableLabelInvisible() { }
+        public void SyncWithUnityEntries() { }
+        public void LoadIcons() { }
+        public bool ExternalDisplayCloseButton()
+        {
+            return DisplayCloseButton();
         }
     }
 }
