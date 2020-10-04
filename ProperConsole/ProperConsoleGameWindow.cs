@@ -33,7 +33,7 @@ namespace ProperLogger
 
         private bool m_autoScroll = true;
 
-        private bool m_searchMessage = true;
+        public bool SearchMessage { get; set; } = true;
 
         private bool m_isDarkSkin = false;
 
@@ -63,8 +63,8 @@ namespace ProperLogger
         #region Filters
 
         private string m_searchString = null;
-        private string[] m_searchWords = null;
-        private List<LogCategory> m_inactiveCategories = null;
+        public string[] SearchWords { get; set; } = null;
+        public List<LogCategory> InactiveCategories { get; set; } = null;
 
         #endregion Filters
 
@@ -154,7 +154,7 @@ namespace ProperLogger
 
         #region Caches
 
-        private Regex m_searchRegex = null;
+        public Regex SearchRegex { get; set; } = null;
 
         private int m_logLog = 0;
         private int m_warnLog = 0;
@@ -254,7 +254,7 @@ namespace ProperLogger
 
             if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
             {
-                m_searchRegex = null;
+                SearchRegex = null;
             }
             else if (m_configs.RegexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
             {
@@ -263,11 +263,11 @@ namespace ProperLogger
                 TriggerFilteredEntryComputation = true;
                 if (m_configs.CaseSensitive)
                 {
-                    m_searchRegex = new Regex(m_searchString.Trim());
+                    SearchRegex = new Regex(m_searchString.Trim());
                 }
                 else
                 {
-                    m_searchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
+                    SearchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
                 }
             }
             // TODO code below will not execute if regex compilation failed
@@ -329,8 +329,8 @@ namespace ProperLogger
             m_callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
-            m_inactiveCategories?.Clear();
-            m_inactiveCategories = m_configs.InactiveCategories;
+            InactiveCategories?.Clear();
+            InactiveCategories = m_configs.InactiveCategories;
 
             if (DisplayCloseButton())
             {
@@ -374,7 +374,7 @@ namespace ProperLogger
 
             if (TriggerFilteredEntryComputation)
             {
-                m_filteredEntries = Entries.FindAll(e => ValidFilter(e));
+                m_filteredEntries = Entries.FindAll(e => C.ValidFilter(this, e));
                 if (m_configs.Collapse)
                 {
                     C.ComputeCollapsedEntries(this, m_filteredEntries);
@@ -558,7 +558,7 @@ namespace ProperLogger
                     m_lastRegexRecompile = DateTime.Now;
                     m_needRegexRecompile = true;
                 }
-                m_searchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                SearchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
             GUI.enabled = true;
             if (!string.IsNullOrEmpty(m_searchString))
@@ -578,7 +578,7 @@ namespace ProperLogger
                         m_lastRegexRecompile = DateTime.Now;
                         m_needRegexRecompile = true;
                     }
-                    m_searchWords = null;
+                    SearchWords = null;
                 }
             }
 
@@ -641,9 +641,9 @@ namespace ProperLogger
                 TriggerFilteredEntryComputation = true;
                 m_needRegexRecompile = true;
             }
-            bool lastSearchMessage = m_searchMessage;
-            m_searchMessage = GUILayout.Toggle(m_searchMessage, SearchInLogMessageButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            if (lastSearchMessage != m_searchMessage)
+            bool lastSearchMessage = SearchMessage;
+            SearchMessage = GUILayout.Toggle(SearchMessage, SearchInLogMessageButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            if (lastSearchMessage != SearchMessage)
             {
                 TriggerFilteredEntryComputation = true;
             }
@@ -961,59 +961,6 @@ namespace ProperLogger
             // TODO find a way to change cursor
             //EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_configs.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
         }
-
-        #region Search
-
-        // TODO this is a copy of the editor one. Unify with a static tool
-        private bool ValidFilter(ConsoleLogEntry e)
-        {
-            bool valid = true;
-
-            // Log Level
-            if (m_configs.LogLevelFilter != LogLevel.All)
-            {
-                valid &= (e.level & m_configs.LogLevelFilter) == e.level;
-                if (!valid)
-                {
-                    return false;
-                }
-            }
-
-            // Text Search
-            string searchableText = (m_searchMessage ? e.originalMessage : string.Empty) + (m_configs.SearchInStackTrace ? e.stackTrace : string.Empty) + ((m_configs.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
-            if (m_configs.RegexSearch)
-            {
-                if (m_searchRegex != null)
-                {
-                    valid &= m_searchRegex.IsMatch(searchableText);
-                }
-            }
-            else
-            {
-                if (m_searchWords != null && m_searchWords.Length > 0)
-                {
-                    valid &= m_searchWords.All(p => searchableText.IndexOf(p, m_configs.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
-                    if (!valid)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            // Categories
-            if (m_inactiveCategories.Count > 0)
-            {
-                valid &= m_inactiveCategories.Intersect(e.categories).Count() == 0;
-                if (!valid)
-                {
-                    return false;
-                }
-            }
-
-            return valid;
-        }
-
-        #endregion Search
 
         private void HandleDoubleClick(ConsoleLogEntry entry)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -397,6 +398,54 @@ namespace ProperLogger
             }
 #endif //UNITY_EDITOR
             return newConsoleEntry;
+        }
+
+        internal static bool ValidFilter(IProperLogger console, ConsoleLogEntry e)
+        {
+            bool valid = true;
+
+            // Log Level
+            if (console.Config.LogLevelFilter != LogLevel.All)
+            {
+                valid &= (e.level & console.Config.LogLevelFilter) == e.level;
+                if (!valid)
+                {
+                    return false;
+                }
+            }
+
+            // Text Search
+            string searchableText = (console.SearchMessage ? e.originalMessage : string.Empty) + (console.Config.SearchInStackTrace ? e.stackTrace : string.Empty) + ((console.Config.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
+            if (console.Config.RegexSearch)
+            {
+                if (console.SearchRegex != null)
+                {
+                    valid &= console.SearchRegex.IsMatch(searchableText);
+                }
+            }
+            else
+            {
+                if (console.SearchWords != null && console.SearchWords.Length > 0)
+                {
+                    valid &= console.SearchWords.All(p => searchableText.IndexOf(p, console.Config.CaseSensitive ? StringComparison.Ordinal : System.StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (!valid)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // Categories
+            if (console.InactiveCategories.Count > 0)
+            {
+                valid &= console.InactiveCategories.Intersect(e.categories).Count() == 0;
+                if (!valid)
+                {
+                    return false;
+                }
+            }
+
+            return valid;
         }
 
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace ProperLogger
@@ -18,6 +19,10 @@ namespace ProperLogger
         List<ConsoleLogEntry> Entries { get; set; }
         bool OpenConsoleOnError { get; }
         bool Active { get; }
+        bool SearchMessage { get; set; }
+        Regex SearchRegex { get; set; }
+        string[] SearchWords { get; set; }
+        List<LogCategory> InactiveCategories { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
