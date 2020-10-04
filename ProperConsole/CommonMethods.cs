@@ -510,5 +510,100 @@ namespace ProperLogger
                 Debug.LogException(e);
             }
         }
+
+        internal static void DisplayToolbar(IProperLogger console, ref bool callForRepaint)
+        {
+            GUILayout.BeginHorizontal(Strings.Toolbar);
+
+            if (GUILayout.Button(console.ClearButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
+            {
+                console.Clear();
+                GUIUtility.keyboardControl = 0;
+            }
+            bool lastCollapse = console.Config.Collapse;
+            console.Config.Collapse = GUILayout.Toggle(console.Config.Collapse, console.CollapseButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            callForRepaint = console.Config.Collapse != lastCollapse;
+            if (console.Config.Collapse != lastCollapse)
+            {
+                console.TriggerFilteredEntryComputation = true;
+                console.SelectedEntries.Clear();
+            }
+            if (!console.IsGame)
+            {
+                console.Config.ClearOnPlay = GUILayout.Toggle(console.Config.ClearOnPlay, console.ClearOnPlayButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+                console.Config.ClearOnBuild = GUILayout.Toggle(console.Config.ClearOnBuild, console.ClearOnBuildButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            }
+#if UNITY_EDITOR
+            console.Config.ErrorPause = GUILayout.Toggle(console.Config.ErrorPause, console.ErrorPauseButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+#endif
+
+            string lastSearchTerm = console.SearchString;
+
+            GUI.enabled = !(Event.current.isMouse && console.ResetSearchButtonRect.Contains(Event.current.mousePosition));
+            console.SearchString = GUILayout.TextField(console.SearchString, console.IsGame ? Strings.ToolbarSearchTextField : Strings.ToolbarSeachTextField);
+            if (lastSearchTerm != console.SearchString)
+            {
+                console.TriggerFilteredEntryComputation = true;
+                if (console.Config.RegexSearch)
+                {
+                    console.LastRegexRecompile = DateTime.Now;
+                    console.NeedRegexRecompile = true;
+                }
+                console.SearchWords = console.SearchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            GUI.enabled = true;
+            if (!string.IsNullOrEmpty(console.SearchString))
+            {
+                if (Event.current.type == EventType.Repaint)
+                {
+                    console.SearchFieldRect = GUILayoutUtility.GetLastRect();
+                }
+                float resetSearchButtonWidth = 15;
+                console.ResetSearchButtonRect = new Rect(console.SearchFieldRect.xMax - resetSearchButtonWidth, console.SearchFieldRect.y, resetSearchButtonWidth, console.SearchFieldRect.height);
+                if (GUI.Button(console.ResetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
+                {
+                    console.SearchString = null;
+                    console.TriggerFilteredEntryComputation = true;
+                    if (console.Config.RegexSearch)
+                    {
+                        console.LastRegexRecompile = DateTime.Now;
+                        console.NeedRegexRecompile = true;
+                    }
+                    console.SearchWords = null;
+                }
+            }
+
+            console.Config.AdvancedSearchToolbar = GUILayout.Toggle(console.Config.AdvancedSearchToolbar, console.AdvancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            Rect dropdownRect = GUILayoutUtility.GetLastRect();
+
+            if (GUILayout.Button(console.CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+            {
+                var categoriesAsset = console.Config.CurrentCategoriesConfig;
+                Vector2 size = new Vector2(250, 150);
+                if (categoriesAsset != null)
+                {
+                    if (console.Config.CurrentCategoriesConfig.Categories == null || console.Config.CurrentCategoriesConfig.Categories.Count == 0)
+                    {
+                        size.y = 30;
+                    }
+                    else
+                    {
+                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 20; // TODO put this somewhere in a style
+                    }
+                }
+                console.DrawCategoriesWindow(dropdownRect, size);
+            }
+            if (Event.current.type == EventType.Repaint) console.ShowCategoriesButtonRect = GUILayoutUtility.GetLastRect();
+
+            GetCounters(console.Entries, out int logCounter, out int warnCounter, out int errCounter);
+
+            // Log Level Flags
+            FlagButton(console, LogLevel.Log, console.IconInfo, console.IconInfoGray, logCounter);
+            FlagButton(console, LogLevel.Warning, console.IconWarning, console.IconWarningGray, warnCounter);
+            FlagButton(console, LogLevel.Error, console.IconError, console.IconErrorGray, errCounter);
+
+            GUILayout.EndHorizontal();
+        }
+
     }
 }

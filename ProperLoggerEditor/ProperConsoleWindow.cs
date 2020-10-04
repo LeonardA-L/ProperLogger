@@ -86,11 +86,11 @@ namespace ProperLogger
         private float m_innerScrollableHeight = 0;
         private float m_outerScrollableHeight = 0;
 
-        private Rect m_showCategoriesButtonRect = default;
+        public Rect ShowCategoriesButtonRect { get; set; } = default;
         public Rect ListDisplay { get; set; } = default;
 
-        private Rect m_searchFieldRect = default;
-        private Rect m_resetSearchButtonRect = default;
+        public Rect SearchFieldRect { get; set; } = default;
+        public Rect ResetSearchButtonRect { get; set; } = default;
 
         public bool LastCLickIsDisplayList { get; set; } = false;
 
@@ -573,7 +573,7 @@ namespace ProperLogger
             C.Listener(this, condition, stackTrace, type, null, null);
         }
 
-        internal void Clear()
+        public void Clear()
         {
             lock (EntriesLock)
             {
@@ -622,7 +622,7 @@ namespace ProperLogger
             InactiveCategories?.Clear();
             InactiveCategories = m_configs.InactiveCategories;
 
-            DisplayToolbar(ref m_callForRepaint);
+            C.DisplayToolbar(this, ref m_callForRepaint);
 
             if (m_configs.AdvancedSearchToolbar)
             {
@@ -915,101 +915,17 @@ namespace ProperLogger
 
         #region GUI Components
 
-        private void DisplayToolbar(ref bool callForRepaint)
+        private Rect ComputeCategoryDropdownPosition(Rect dropdownRect)
         {
-            GUILayout.BeginHorizontal(Strings.Toolbar);
+            Vector2 dropdownOffset = new Vector2(40, 23);
+            return new Rect(dropdownRect.x + this.position.x, dropdownRect.y + this.position.y, dropdownOffset.x, ShowCategoriesButtonRect.height + dropdownOffset.y);
+        }
 
-            if (GUILayout.Button(ClearButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
-            {
-                Clear();
-                GUIUtility.keyboardControl = 0;
-            }
-            bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, CollapseButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            callForRepaint = m_configs.Collapse != lastCollapse;
-            if (m_configs.Collapse != lastCollapse)
-            {
-                TriggerFilteredEntryComputation = true;
-                SelectedEntries.Clear();
-            }
-            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, ClearOnPlayButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, ClearOnBuildButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, ErrorPauseButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-
-            string lastSearchTerm = SearchString;
-
-            GUI.enabled = !(Event.current.isMouse && m_resetSearchButtonRect.Contains(Event.current.mousePosition));
-            SearchString = GUILayout.TextField(SearchString, Strings.ToolbarSeachTextField);
-            if (lastSearchTerm != SearchString)
-            {
-                TriggerFilteredEntryComputation = true;
-                if (m_configs.RegexSearch)
-                {
-                    LastRegexRecompile = DateTime.Now;
-                    NeedRegexRecompile = true;
-                }
-                SearchWords = SearchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            }
-            GUI.enabled = true;
-            if (!string.IsNullOrEmpty(SearchString))
-            {
-                if (Event.current.type == EventType.Repaint)
-                {
-                    m_searchFieldRect = GUILayoutUtility.GetLastRect();
-                }
-                float resetSearchButtonWidth = 15;
-                m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y, resetSearchButtonWidth, m_searchFieldRect.height);
-                if (GUI.Button(m_resetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
-                {
-                    SearchString = null;
-                    TriggerFilteredEntryComputation = true;
-                    if (m_configs.RegexSearch)
-                    {
-                        LastRegexRecompile = DateTime.Now;
-                        NeedRegexRecompile = true;
-                    }
-                    SearchWords = null;
-                }
-            }
-
-            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, AdvancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
-            Rect dropdownRect = GUILayoutUtility.GetLastRect();
-
-            if (GUILayout.Button(CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
-            {
-                Vector2 dropdownOffset = new Vector2(40, 23);
-                //Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
-                Rect dropDownPosition = new Rect(dropdownRect.x + this.position.x, dropdownRect.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
-
-                var categoriesAsset = m_configs.CurrentCategoriesConfig;
-                Vector2 size = new Vector2(250, 150);
-                if (categoriesAsset != null)
-                {
-                    if (m_configs.CurrentCategoriesConfig.Categories == null || m_configs.CurrentCategoriesConfig.Categories.Count == 0)
-                    {
-                        size.y = 30;
-                    }
-                    else
-                    {
-                        size.y = (m_configs.CurrentCategoriesConfig.Categories.Count) * 20; // TODO put this somewhere in a style
-                    }
-                }
-                size.y += 25;
-                // Get existing open window or if none, make a new one:
-                var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
-                window.ShowAsDropDown(dropDownPosition, size);
-                window.Repaint();
-            }
-            if (Event.current.type == EventType.Repaint) m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
-
-            C.GetCounters(Entries, out int logCounter, out int warnCounter, out int errCounter);
-
-            // Log Level Flags
-            C.FlagButton(this, LogLevel.Log, IconInfo, IconInfoGray, logCounter);
-            C.FlagButton(this, LogLevel.Warning, IconWarning, IconWarningGray, warnCounter);
-            C.FlagButton(this, LogLevel.Error, IconError, IconErrorGray, errCounter);
-
-            GUILayout.EndHorizontal();
+        public void DrawCategoriesWindow(Rect dropdownRect, Vector2 size)
+        {
+            var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
+            window.ShowAsDropDown(ComputeCategoryDropdownPosition(dropdownRect), size);
+            window.Repaint();
         }
 
         private void DisplaySearchToolbar()

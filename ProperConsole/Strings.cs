@@ -28,6 +28,7 @@
         internal const string Toolbar = "Toolbar";
         internal const string ToolbarButton = "ToolbarButton";
         internal const string ToolbarSeachTextField = "ToolbarSeachTextField";
+        internal const string ToolbarSearchTextField = "ToolbarSearchTextField";
         #endregion Style Names
 
         #region Reflection

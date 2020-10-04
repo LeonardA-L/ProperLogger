@@ -27,6 +27,9 @@ namespace ProperLogger
         bool NeedRegexRecompile { get; set; }
         System.DateTime LastRegexRecompile { get; set; }
         string SearchString { get; set; }
+        Rect SearchFieldRect { get; set; }
+        Rect ResetSearchButtonRect { get; set; }
+        Rect ShowCategoriesButtonRect { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -75,10 +78,12 @@ namespace ProperLogger
         List<ConsoleLogEntry> CollapsedEntries { get; set; }
         List<PendingContext> PendingContexts { get; set; }
 
+        void Clear();
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();
         void TriggerRepaint();
         void SelectableLabel(string text, GUIStyle textStyle, float currentX);
         void HandleDoubleClick(ConsoleLogEntry entry);
+        void DrawCategoriesWindow(Rect dropdownRect, Vector2 size);
     }
 }
