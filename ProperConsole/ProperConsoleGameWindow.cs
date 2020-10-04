@@ -48,16 +48,16 @@ namespace ProperLogger
 
         #region Logs
 
-        private List<ConsoleLogEntry> m_entries = null;
+        public List<ConsoleLogEntry> Entries { get; set; } = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
         public List<ConsoleLogEntry> CollapsedEntries { get; set; } = null;
-        private bool m_triggerFilteredEntryComputation = false;
+        public bool TriggerFilteredEntryComputation { get; set; } = false;
         private bool m_triggerSyncWithUnityComputation = false;
         private CustomLogHandler m_logHandler = null;
         public CustomLogHandler LogHandler { get; set; } = null;
         public List<PendingContext> PendingContexts { get; set; } = null;
-        private object m_entriesLock = null;
+        public object EntriesLock { get; set; } = null;
         public bool Listening { get; set; } = false;
 
         #region Filters
@@ -149,6 +149,8 @@ namespace ProperLogger
 
         [SerializeField, Obfuscation(Exclude = true)]
         private bool m_openConsoleOnError = true;
+        public bool OpenConsoleOnError => m_openConsoleOnError;
+        public bool Active => m_active;
 
         #region Caches
 
@@ -172,6 +174,13 @@ namespace ProperLogger
         public GUIContent SearchInStackTraceButtonContent { get; set; } = null;
         public GUIContent PluginSettingsButtonContent { get; set; } = null;
 
+        public Texture2D IconInfo { get => m_iconInfo; set { } }
+        public Texture2D IconWarning { get => m_iconWarning; set { } }
+        public Texture2D IconError { get => m_iconError; set { } }
+        public Texture2D IconInfoGray { get => IconInfoGray; set { } }
+        public Texture2D IconWarningGray { get => m_iconWarningGray; set { } }
+        public Texture2D IconErrorGray { get => m_iconErrorGray; set { } }
+        public Texture2D IconConsole { get => null; set { } }
         public Texture2D ClearIcon { get => m_clearIcon; set { } }
         public Texture2D CollapseIcon { get => m_collapseIcon; set { } }
         public Texture2D ClearOnPlayIcon { get => m_clearOnPlayIcon; set { } }
@@ -180,6 +189,8 @@ namespace ProperLogger
         public Texture2D RegexSearchIcon { get => m_regexSearchIcon; set { } }
         public Texture2D CaseSensitiveIcon { get => m_caseSensitiveIcon; set { } }
         public Texture2D AdvancedSearchIcon { get => m_advancedSearchIcon; set { } }
+        public Texture2D ExceptionIcon { get=>m_exceptionIcon; set { } }
+        public Texture2D AssertIcon { get=>m_assertIcon; set { } }
 
         public GUIStyle OddEntry { get; set; } = null;
         public GUIStyle SelectedEntry { get; set; } = null;
@@ -194,9 +205,6 @@ namespace ProperLogger
         public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
         public GUIStyle InspectorTextStyle { get; set; } = null;
 
-        private Regex m_categoryParse = null;
-        private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
-
         public bool ShowCategoryFilter { get; set; } = false;
         public Rect CategoryFilterRect { get; private set; } = default;
         public Rect CategoryToggleRect { get; private set; } = default;
@@ -207,12 +215,12 @@ namespace ProperLogger
         protected override void Awake()
         {
             base.Awake();
-            m_entries = m_entries ?? new List<ConsoleLogEntry>();
+            Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
             Listening = false;
-            m_entriesLock = new object();
-            m_triggerFilteredEntryComputation = true;
+            EntriesLock = new object();
+            TriggerFilteredEntryComputation = true;
             C.InitListener(this);
             m_autoScroll = true;
 
@@ -252,7 +260,7 @@ namespace ProperLogger
             {
                 m_needRegexRecompile = false;
                 m_lastRegexRecompile = DateTime.Now;
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
                 if (m_configs.CaseSensitive)
                 {
                     m_searchRegex = new Regex(m_searchString.Trim());
@@ -269,7 +277,6 @@ namespace ProperLogger
         {
             ShowCategoryFilter = false;
             C.ClearStyles(this);
-            C.CacheStyles(this);
             base.OnWindowEnabled();
         }
 
@@ -283,16 +290,16 @@ namespace ProperLogger
 
         internal void Clear()
         {
-            lock (m_entriesLock)
+            lock (EntriesLock)
             {
                 m_logLog = 0;
                 m_warnLog = 0;
                 m_errLog = 0;
-                m_entries.Clear();
+                Entries.Clear();
                 PendingContexts.Clear();
                 SelectedEntries.Clear();
             }
-            m_triggerFilteredEntryComputation = true;
+            TriggerFilteredEntryComputation = true;
         }
 
         [Obfuscation(Exclude = true)]
@@ -363,16 +370,16 @@ namespace ProperLogger
 
             GUILayout.BeginVertical();
 
-            if (m_entries.Count == 0) GUILayout.Space(10);
+            if (Entries.Count == 0) GUILayout.Space(10);
 
-            if (m_triggerFilteredEntryComputation)
+            if (TriggerFilteredEntryComputation)
             {
-                m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
+                m_filteredEntries = Entries.FindAll(e => ValidFilter(e));
                 if (m_configs.Collapse)
                 {
                     C.ComputeCollapsedEntries(this, m_filteredEntries);
                 }
-                m_triggerFilteredEntryComputation = false;
+                TriggerFilteredEntryComputation = false;
             }
 
             DisplayList(m_configs.Collapse ? CollapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
@@ -531,7 +538,7 @@ namespace ProperLogger
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
                 SelectedEntries.Clear();
             }
 
@@ -545,7 +552,7 @@ namespace ProperLogger
             m_searchString = GUILayout.TextField(m_searchString, "ToolbarSearchTextField"/*Strings.ToolbarSeachTextField*/);
             if (lastSearchTerm != m_searchString)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
                 if (m_configs.RegexSearch)
                 {
                     m_lastRegexRecompile = DateTime.Now;
@@ -565,7 +572,7 @@ namespace ProperLogger
                 if (GUI.Button(m_resetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
                 {
                     m_searchString = null;
-                    m_triggerFilteredEntryComputation = true;
+                    TriggerFilteredEntryComputation = true;
                     if (m_configs.RegexSearch)
                     {
                         m_lastRegexRecompile = DateTime.Now;
@@ -608,12 +615,12 @@ namespace ProperLogger
                 m_showCategoriesButtonRect = GUILayoutUtility.GetLastRect();
             }
 
-            GetCounters(m_entries, out int logCounter, out int warnCounter, out int errCounter);
+            C.GetCounters(Entries, out int logCounter, out int warnCounter, out int errCounter);
 
             // Log Level Flags
-            FlagButton(LogLevel.Log, m_iconInfo, m_iconInfoGray, logCounter);
-            FlagButton(LogLevel.Warning, m_iconWarning, m_iconWarningGray, warnCounter);
-            FlagButton(LogLevel.Error, m_iconError, m_iconErrorGray, errCounter);
+            C.FlagButton(this, LogLevel.Log, m_iconInfo, m_iconInfoGray, logCounter);
+            C.FlagButton(this, LogLevel.Warning, m_iconWarning, m_iconWarningGray, warnCounter);
+            C.FlagButton(this, LogLevel.Error, m_iconError, m_iconErrorGray, errCounter);
 
             GUILayout.EndHorizontal();
         }
@@ -631,26 +638,26 @@ namespace ProperLogger
             m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, CaseSensitiveButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastCaseSensitive != m_configs.CaseSensitive)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
                 m_needRegexRecompile = true;
             }
             bool lastSearchMessage = m_searchMessage;
             m_searchMessage = GUILayout.Toggle(m_searchMessage, SearchInLogMessageButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastSearchMessage != m_searchMessage)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
             }
             bool lastSearchObjectName = m_configs.SearchObjectName;
             m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, SearchInObjectNameButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastSearchObjectName != m_configs.SearchObjectName)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
             }
             bool lastSearchStackTRace = m_configs.SearchInStackTrace;
             m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, SearchInStackTraceButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastSearchStackTRace != m_configs.SearchInStackTrace)
             {
-                m_triggerFilteredEntryComputation = true;
+                TriggerFilteredEntryComputation = true;
             }
             GUILayout.FlexibleSpace();
 
@@ -665,68 +672,6 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
         }
 
-        private int GetFlagButtonWidthFromCounter(int counter)
-        {
-            if (counter >= 1000)
-            {
-                return 65;
-            }
-            else if (counter >= 100)
-            {
-                return 60;
-            }
-            else if (counter >= 10)
-            {
-                return 52;
-            }
-            else
-            {
-                return 52;
-            }
-        }
-
-        private void FlagButton(LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
-        {
-            bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                ToolbarIconButtonStyle
-                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
-                );
-            if (hasFlag != newFlagValue)
-            {
-                m_configs.LogLevelFilter ^= level;
-                m_triggerFilteredEntryComputation = true;
-            }
-        }
-
-        private void GetCounters(List<ConsoleLogEntry> entries, out int logCounter, out int warnCounter, out int errCounter)
-        {
-            if (entries == null || entries.Count == 0)
-            {
-                logCounter = 0;
-                warnCounter = 0;
-                errCounter = 0;
-                return;
-            }
-            logCounter = warnCounter = errCounter = 0;
-            foreach (var entry in entries)
-            {
-                switch (entry.level)
-                {
-                    case LogLevel.Log:
-                        logCounter++;
-                        break;
-                    case LogLevel.Warning:
-                        warnCounter++;
-                        break;
-                    case LogLevel.Error:
-                    case LogLevel.Exception:
-                    case LogLevel.Assert:
-                        errCounter++;
-                        break;
-                }
-            }
-        }
 
         private void SelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
@@ -832,7 +777,7 @@ namespace ProperLogger
                 GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
                 {
                     GUILayout.FlexibleSpace();
-                    GUILayout.Box(GetEntryIcon(entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
+                    GUILayout.Box(C.GetEntryIcon(this, entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndHorizontal();
@@ -981,18 +926,6 @@ namespace ProperLogger
             GUILayout.Space(sidePaddings);
         }
 
-        private Texture GetEntryIcon(ConsoleLogEntry entry)
-        {
-            if (entry.level.HasFlag(LogLevel.Log)) { return m_iconInfo; }
-            if (entry.level.HasFlag(LogLevel.Warning)) { return m_iconWarning; }
-            if (m_configs.ShowCustomErrorIcons)
-            {
-                if (entry.level.HasFlag(LogLevel.Exception)) { return m_exceptionIcon; }
-                if (entry.level.HasFlag(LogLevel.Assert)) { return m_assertIcon; }
-            }
-            return m_iconError;
-        }
-
 
         private void Splitter()
         {
@@ -1082,7 +1015,6 @@ namespace ProperLogger
 
         #endregion Search
 
-
         private void HandleDoubleClick(ConsoleLogEntry entry)
         {
 #if UNITY_EDITOR
@@ -1108,90 +1040,19 @@ namespace ProperLogger
 
         public void Listener(string condition, string stackTrace, LogType type)
         {
-            Listener(condition, stackTrace, type, null, null);
+            C.Listener(this, condition, stackTrace, type, null, null);
         }
 
-        private ConsoleLogEntry Listener(string condition, string stackTrace, LogType type, string assetPath, string assetLine)
+        public void SetTriggerFilteredEntryComputation()
         {
-            ConsoleLogEntry newConsoleEntry = null;
-            lock (m_entriesLock)
-            {
-                UnityEngine.Object context = null;
-                for (int i = 0; i < PendingContexts.Count; i++)
-                {
-                    if (PendingContexts[i].message.Equals(condition) && PendingContexts[i].logType == type)
-                    {
-                        context = PendingContexts[i].context;
-                        PendingContexts.RemoveAt(i);
-                        break;
-                    }
-                }
-
-                Regex categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"); // TODO cache
-                List<LogCategory> categories = new List<LogCategory>();
-                var categoryAsset = m_configs.CurrentCategoriesConfig;
-                string categoryLessMessage = condition;
-                if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
-                {
-                    foreach (Match match in categoryParse.Matches(categoryLessMessage))
-                    {
-                        foreach (var category in categoryAsset.Categories)
-                        {
-                            if (category.Name == match.Groups[1].Value && !categories.Contains(category))
-                            {
-                                categories.Add(category);
-                                categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", string.Empty);
-                            }
-                        }
-                    }
-                }
-
-                var now = DateTime.Now;
-                string tempAssetPath = null;
-                string tempAssetLine = null;
-                string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : Utils.ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
-
-                newConsoleEntry = new ConsoleLogEntry()
-                {
-                    date = now.Ticks,
-                    timestamp = now.ToString("T", System.Globalization.DateTimeFormatInfo.InvariantInfo),
-                    level = Utils.GetLogLevelFromUnityLogType(type),
-                    message = categoryLessMessage,
-                    messageLines = Utils.GetLines(categoryLessMessage),
-                    traceLines = Utils.GetLines(newStackTrace),
-                    stackTrace = newStackTrace,
-                    count = 1,
-                    context = context,
-                    assetPath = string.IsNullOrEmpty(assetPath) ? tempAssetPath : assetPath,
-                    assetLine = string.IsNullOrEmpty(assetLine) ? tempAssetLine : assetLine,
-                    categories = categories,
-                    originalMessage = condition,
-                    originalStackTrace = stackTrace,
-                };
-
-                m_entries.Add(newConsoleEntry);
-            }
-
-            if(m_openConsoleOnError && !m_active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
-            {
-                Toggle();
-            }
-
-            m_triggerFilteredEntryComputation = true;
-
-            //this.Repaint();
-#if UNITY_EDITOR
-            if (EditorApplication.isPlaying && m_configs.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
-            {
-                Debug.Break();
-            }
-#endif //UNITY_EDITOR
-            return newConsoleEntry;
+            TriggerFilteredEntryComputation = true;
         }
 
-        public void TriggerFilteredEntryComputation()
+        public void ExternalToggle()
         {
-            m_triggerFilteredEntryComputation = true;
+            Toggle();
         }
+
+        public void TriggerRepaint() { }
     }
 }

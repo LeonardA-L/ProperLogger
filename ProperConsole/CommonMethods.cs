@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace ProperLogger
 {
     internal class CommonMethods
     {
+        private static Regex m_categoryParse = null;
+        private static Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
+
         internal static float ItemHeight(IProperLogger console) => (console.Config.LogEntryMessageFontSize + (console.Config.LogEntryMessageFontSize < 15 ? 3 : 4)) * console.Config.LogEntryMessageLineCount
                                   + (console.Config.LogEntryStackTraceFontSize + (console.Config.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * console.Config.LogEntryStackTraceLineCount
                                   + 8; // padding
@@ -236,5 +243,161 @@ namespace ProperLogger
 
             GUIUtility.systemCopyBuffer = result;
         }
+        internal static void FlagButton(IProperLogger console, LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
+        {
+            bool hasFlag = (console.Config.LogLevelFilter & level) != 0;
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
+                console.ToolbarIconButtonStyle
+                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
+                );
+            if (hasFlag != newFlagValue)
+            {
+                console.Config.LogLevelFilter ^= level;
+                console.TriggerFilteredEntryComputation = true;
+            }
+        }
+        private static int GetFlagButtonWidthFromCounter(int counter)
+        {
+            if (counter >= 1000)
+            {
+                return 60;
+            }
+            else if (counter >= 100)
+            {
+                return 60;
+            }
+            else if (counter >= 10)
+            {
+                return 52;
+            }
+            else
+            {
+                return 52;
+            }
+        }
+        internal static void GetCounters(List<ConsoleLogEntry> entries, out int logCounter, out int warnCounter, out int errCounter)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                logCounter = 0;
+                warnCounter = 0;
+                errCounter = 0;
+                return;
+            }
+            logCounter = warnCounter = errCounter = 0;
+            foreach (var entry in entries)
+            {
+                switch (entry.level)
+                {
+                    case LogLevel.Log:
+                        logCounter++;
+                        break;
+                    case LogLevel.Warning:
+                        warnCounter++;
+                        break;
+                    case LogLevel.Error:
+                    case LogLevel.Exception:
+                    case LogLevel.Assert:
+                        errCounter++;
+                        break;
+                }
+            }
+        }
+
+        internal static Texture GetEntryIcon(IProperLogger console, ConsoleLogEntry entry)
+        {
+            if (entry.level.HasFlag(LogLevel.Log)) { return console.IconInfo; }
+            if (entry.level.HasFlag(LogLevel.Warning)) { return console.IconWarning; }
+            if (console.Config.ShowCustomErrorIcons)
+            {
+                if (entry.level.HasFlag(LogLevel.Exception)) { return console.ExceptionIcon; }
+                if (entry.level.HasFlag(LogLevel.Assert)) { return console.AssertIcon; }
+            }
+            return console.IconError;
+        }
+
+        internal static ConsoleLogEntry Listener(IProperLogger console, string condition, string stackTrace, LogType type, string assetPath, string assetLine)
+        {
+            ConsoleLogEntry newConsoleEntry = null;
+            lock (console.EntriesLock)
+            {
+                UnityEngine.Object context = null;
+                for (int i = 0; i < console.PendingContexts.Count; i++)
+                {
+                    if (console.PendingContexts[i].message.Equals(condition) && console.PendingContexts[i].logType == type)
+                    {
+                        context = console.PendingContexts[i].context;
+                        console.PendingContexts.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                List<LogCategory> categories = new List<LogCategory>();
+                var categoryAsset = console.Config.CurrentCategoriesConfig;
+                string categoryLessMessage = condition;
+                if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
+                {
+                    foreach (Match match in CategoryParse.Matches(categoryLessMessage))
+                    {
+                        foreach (var category in categoryAsset.Categories)
+                        {
+                            if (category.Name == match.Groups[1].Value && !categories.Contains(category))
+                            {
+                                categories.Add(category);
+                                categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", string.Empty);
+                            }
+                        }
+                    }
+                }
+
+                var now = DateTime.Now;
+                string tempAssetPath = null;
+                string tempAssetLine = null;
+                string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : Utils.ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
+
+                newConsoleEntry = new ConsoleLogEntry()
+                {
+                    date = now.Ticks,
+                    timestamp = now.ToString("T", System.Globalization.DateTimeFormatInfo.InvariantInfo),
+                    level = Utils.GetLogLevelFromUnityLogType(type),
+                    message = categoryLessMessage,
+                    messageLines = Utils.GetLines(categoryLessMessage),
+                    traceLines = Utils.GetLines(newStackTrace),
+                    stackTrace = newStackTrace,
+                    count = 1,
+                    context = context,
+                    assetPath = string.IsNullOrEmpty(assetPath) ? tempAssetPath : assetPath,
+                    assetLine = string.IsNullOrEmpty(assetLine) ? tempAssetLine : assetLine,
+                    categories = categories,
+                    originalMessage = condition,
+                    originalStackTrace = stackTrace,
+                };
+
+                console.Entries.Add(newConsoleEntry);
+            }
+
+            console.TriggerFilteredEntryComputation = true;
+
+            if (console.IsGame)
+            {
+                if (console.OpenConsoleOnError && !console.Active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
+                {
+                    console.ExternalToggle();
+                }
+            } else
+            {
+                console.TriggerRepaint();
+            }
+
+
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying && console.Config.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+            {
+                Debug.Break();
+            }
+#endif //UNITY_EDITOR
+            return newConsoleEntry;
+        }
+
     }
 }

@@ -88,7 +88,7 @@ namespace ProperLogger
 
                 if (GUI.changed)
                 {
-                    ProperConsoleGameWindow.Instance.TriggerFilteredEntryComputation();
+                    ProperConsoleGameWindow.Instance.SetTriggerFilteredEntryComputation();
                 }
 
 #if UNITY_EDITOR

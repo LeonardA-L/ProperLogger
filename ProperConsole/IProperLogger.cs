@@ -13,6 +13,11 @@ namespace ProperLogger
         bool LastCLickIsDisplayList { get; set; }
         Rect ListDisplay { get; set; }
         List<ConsoleLogEntry> SelectedEntries { get; set; }
+        bool TriggerFilteredEntryComputation { get; set; }
+        object EntriesLock { get; set; }
+        List<ConsoleLogEntry> Entries { get; set; }
+        bool OpenConsoleOnError { get; }
+        bool Active { get; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -35,6 +40,16 @@ namespace ProperLogger
         Texture2D RegexSearchIcon { get; set; }
         Texture2D CaseSensitiveIcon { get; set; }
         Texture2D AdvancedSearchIcon { get; set; }
+
+        Texture2D IconInfo { get; set; }
+        Texture2D IconWarning { get; set; }
+        Texture2D IconError { get; set; }
+        Texture2D IconInfoGray { get; set; }
+        Texture2D IconWarningGray { get; set; }
+        Texture2D IconErrorGray { get; set; }
+        Texture2D IconConsole { get; set; }
+        Texture2D ExceptionIcon { get; set; }
+        Texture2D AssertIcon { get; set; }
         GUIStyle OddEntry { get; set; }
         GUIStyle SelectedEntry { get; set; }
         GUIStyle SelectedEntryLabel { get; set; }
@@ -52,5 +67,7 @@ namespace ProperLogger
         List<PendingContext> PendingContexts { get; set; }
 
         void Listener(string condition, string stackTrace, LogType type);
+        void ExternalToggle();
+        void TriggerRepaint();
     }
 }
