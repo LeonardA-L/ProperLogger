@@ -480,7 +480,9 @@ namespace ProperLogger
             // TODO find a way to change cursor in game
             if (!console.IsGame)
             {
+#if UNITY_EDITOR
                 EditorGUIUtility.AddCursorRect(new Rect(console.SplitterRect), console.Config.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical);
+#endif //UNITY_EDITOR
             }
         }
         internal static void RegexCompilation(IProperLogger console)
@@ -588,9 +590,10 @@ namespace ProperLogger
                     }
                     else
                     {
-                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 20; // TODO put this somewhere in a style
+                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 25; // TODO put this somewhere in a style
                     }
                 }
+                size.y += console.IsGame ? 45 : 25;
                 console.DrawCategoriesWindow(dropdownRect, size);
             }
             if (Event.current.type == EventType.Repaint) console.ShowCategoriesButtonRect = GUILayoutUtility.GetLastRect();
@@ -948,7 +951,7 @@ namespace ProperLogger
                 GUILayout.BeginHorizontal();
             }
 
-            #region DisplayList
+#region DisplayList
             GUILayout.BeginVertical(); // Display list
             console.EntryListScrollPosition = GUILayout.BeginScrollView(console.EntryListScrollPosition, false, false, GUIStyle.none, console.IsGame ? console.Skin.verticalScrollbar : GUI.skin.verticalScrollbar);
 
@@ -1020,9 +1023,9 @@ namespace ProperLogger
             {
                 console.ListDisplay = GUILayoutUtility.GetLastRect();
             }
-            #endregion DisplayList
+#endregion DisplayList
 
-            #region Inspector
+#region Inspector
             if (console.Config.InspectorOnTheRight)
             {
                 GUILayout.BeginHorizontal(); // Inspector
@@ -1098,7 +1101,8 @@ namespace ProperLogger
             }
             #endregion Inspector
 
-            #region Debug Buttons
+#if DEBUG
+#region Debug Buttons
             if (!console.IsGame)
             {
                 if (GUILayout.Button("Log"))
@@ -1154,7 +1158,8 @@ namespace ProperLogger
                     }
                 }
             }
-            #endregion Debug Buttons
+#endregion Debug Buttons
+#endif // DEBUG
 
             if (Event.current != null)
             {

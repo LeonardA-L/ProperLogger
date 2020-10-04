@@ -29,6 +29,27 @@
   <PropertyGroup>
     <RootNamespace>ProperLogger</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EditorDebug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorDebug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;UNITY_EDITOR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EditorRelease|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorRelease\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -80,6 +101,7 @@
   <ItemGroup>
     <Compile Include="Attributes.cs" />
     <Compile Include="CategoriesFilterGameWindow.cs" />
+    <Compile Include="CommonMethods.cs" />
     <Compile Include="ConfigsProvider.cs" />
     <Compile Include="CustomLogHandler.cs" />
     <Compile Include="DDebug.cs" />

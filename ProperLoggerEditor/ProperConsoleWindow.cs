@@ -324,7 +324,6 @@ namespace ProperLogger
 
         public void HandleDoubleClick(ConsoleLogEntry entry)
         {
-#if UNITY_EDITOR
             if (entry.unityIndex >= 0)
             {
                 RowGotDoubleClicked.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
@@ -343,7 +342,6 @@ namespace ProperLogger
                     AssetDatabase.OpenAsset(asset);
                 }
             }
-#endif // UNITY_EDITOR
         }
 
         #region Mode Changes
