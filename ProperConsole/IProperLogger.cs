@@ -23,6 +23,10 @@ namespace ProperLogger
         Regex SearchRegex { get; set; }
         string[] SearchWords { get; set; }
         List<LogCategory> InactiveCategories { get; set; }
+        Rect SplitterRect { get; set; }
+        bool NeedRegexRecompile { get; set; }
+        System.DateTime LastRegexRecompile { get; set; }
+        string SearchString { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -74,5 +78,7 @@ namespace ProperLogger
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();
         void TriggerRepaint();
+        void SelectableLabel(string text, GUIStyle textStyle, float currentX);
+        void HandleDoubleClick(ConsoleLogEntry entry);
     }
 }

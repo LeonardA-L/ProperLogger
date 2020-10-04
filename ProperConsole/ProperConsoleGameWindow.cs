@@ -18,7 +18,7 @@ namespace ProperLogger
     [Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver, IProperLogger
     {
-        public bool IsGame => false;
+        public bool IsGame => true;
 
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
@@ -39,8 +39,8 @@ namespace ProperLogger
 
         #endregion Configs
 
-        private bool m_needRegexRecompile = false; // TODO find region
-        private DateTime m_lastRegexRecompile;
+        public bool NeedRegexRecompile { get; set; } = false;
+        public DateTime LastRegexRecompile { get; set; }
         private bool m_callForRepaint = false;
 
         private PlayerSettingsWindow m_settingsWindow = null;
@@ -62,7 +62,7 @@ namespace ProperLogger
 
         #region Filters
 
-        private string m_searchString = null;
+        public string SearchString { get; set; } = null;
         public string[] SearchWords { get; set; } = null;
         public List<LogCategory> InactiveCategories { get; set; } = null;
 
@@ -81,7 +81,7 @@ namespace ProperLogger
         private Vector2 m_inspectorScrollPosition;
 
         private float m_splitterPosition = 0;
-        private Rect m_splitterRect = default;
+        public Rect SplitterRect { get; set; } = default;
         private bool m_splitterDragging = false;
         private float m_innerScrollableHeight = 0;
         private float m_outerScrollableHeight = 0;
@@ -224,7 +224,7 @@ namespace ProperLogger
             C.InitListener(this);
             m_autoScroll = true;
 
-            m_needRegexRecompile = true;
+            NeedRegexRecompile = true;
         }
 
         [Obfuscation(Exclude = true)]
@@ -252,25 +252,7 @@ namespace ProperLogger
 
             Debug.developerConsoleVisible = false;
 
-            if (m_configs.RegexSearch && string.IsNullOrEmpty(m_searchString))
-            {
-                SearchRegex = null;
-            }
-            else if (m_configs.RegexSearch && m_needRegexRecompile && DateTime.Now.Ticks - m_lastRegexRecompile.Ticks > m_regexCompileDebounce)
-            {
-                m_needRegexRecompile = false;
-                m_lastRegexRecompile = DateTime.Now;
-                TriggerFilteredEntryComputation = true;
-                if (m_configs.CaseSensitive)
-                {
-                    SearchRegex = new Regex(m_searchString.Trim());
-                }
-                else
-                {
-                    SearchRegex = new Regex(m_searchString.Trim(), RegexOptions.IgnoreCase);
-                }
-            }
-            // TODO code below will not execute if regex compilation failed
+            C.RegexCompilation(this);
         }
 
         protected override void OnWindowEnabled()
@@ -430,7 +412,7 @@ namespace ProperLogger
 
             m_splitterPosition = Mathf.Clamp(m_splitterPosition, 100, (m_configs.InspectorOnTheRight ? Screen.width : Screen.height) - 200);
 
-            Splitter();
+            C.Splitter(this);
 
             if (m_configs.InspectorOnTheRight)
             {
@@ -499,7 +481,7 @@ namespace ProperLogger
                 switch (Event.current.rawType)
                 {
                     case EventType.MouseDown:
-                        if (m_splitterRect.Contains(Event.current.mousePosition))
+                        if (SplitterRect.Contains(Event.current.mousePosition))
                         {
                             //Debug.Log("Start dragging");
                             m_splitterDragging = true;
@@ -546,22 +528,22 @@ namespace ProperLogger
             m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, ErrorPauseButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
 #endif
 
-            string lastSearchTerm = m_searchString;
+            string lastSearchTerm = SearchString;
 
             GUI.enabled = !(Event.current.isMouse && m_resetSearchButtonRect.Contains(Event.current.mousePosition));
-            m_searchString = GUILayout.TextField(m_searchString, "ToolbarSearchTextField"/*Strings.ToolbarSeachTextField*/);
-            if (lastSearchTerm != m_searchString)
+            SearchString = GUILayout.TextField(SearchString, "ToolbarSearchTextField"/*Strings.ToolbarSeachTextField*/);
+            if (lastSearchTerm != SearchString)
             {
                 TriggerFilteredEntryComputation = true;
                 if (m_configs.RegexSearch)
                 {
-                    m_lastRegexRecompile = DateTime.Now;
-                    m_needRegexRecompile = true;
+                    LastRegexRecompile = DateTime.Now;
+                    NeedRegexRecompile = true;
                 }
-                SearchWords = m_searchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                SearchWords = SearchString.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
             GUI.enabled = true;
-            if (!string.IsNullOrEmpty(m_searchString))
+            if (!string.IsNullOrEmpty(SearchString))
             {
                 if (Event.current.type == EventType.Repaint)
                 {
@@ -571,12 +553,12 @@ namespace ProperLogger
                 m_resetSearchButtonRect = new Rect(m_searchFieldRect.xMax - resetSearchButtonWidth, m_searchFieldRect.y, resetSearchButtonWidth, m_searchFieldRect.height);
                 if (GUI.Button(m_resetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
                 {
-                    m_searchString = null;
+                    SearchString = null;
                     TriggerFilteredEntryComputation = true;
                     if (m_configs.RegexSearch)
                     {
-                        m_lastRegexRecompile = DateTime.Now;
-                        m_needRegexRecompile = true;
+                        LastRegexRecompile = DateTime.Now;
+                        NeedRegexRecompile = true;
                     }
                     SearchWords = null;
                 }
@@ -632,14 +614,14 @@ namespace ProperLogger
             m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastRegexSearch != m_configs.RegexSearch)
             {
-                m_needRegexRecompile = true;
+                NeedRegexRecompile = true;
             }
             bool lastCaseSensitive = m_configs.CaseSensitive;
             m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, CaseSensitiveButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (lastCaseSensitive != m_configs.CaseSensitive)
             {
                 TriggerFilteredEntryComputation = true;
-                m_needRegexRecompile = true;
+                NeedRegexRecompile = true;
             }
             bool lastSearchMessage = SearchMessage;
             SearchMessage = GUILayout.Toggle(SearchMessage, SearchInLogMessageButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
@@ -672,8 +654,8 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
         }
 
-
-        private void SelectableLabel(string text, GUIStyle textStyle, float currentX)
+        // TODO clickable and selectable?
+        public void SelectableLabel(string text, GUIStyle textStyle, float currentX)
         {
             // TODO
             /*float width = m_configs.InspectorOnTheRight ? m_splitterPosition : EditorGUIUtility.currentViewWidth;
@@ -926,43 +908,7 @@ namespace ProperLogger
             GUILayout.Space(sidePaddings);
         }
 
-
-        private void Splitter()
-        {
-            int splitterSize = 5;
-            if (m_configs.InspectorOnTheRight)
-            {
-                GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
-                GUILayout.Space(splitterSize);
-                GUILayout.Box(string.Empty,
-                    Strings.Splitter,
-                     GUILayout.Width(1),
-                     GUILayout.MaxWidth(1),
-                     GUILayout.MinWidth(1),
-                     GUILayout.ExpandHeight(true));
-                GUILayout.Space(splitterSize);
-                GUILayout.EndHorizontal();
-            }
-            else
-            {
-                GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
-                GUILayout.Space(splitterSize);
-                GUILayout.Box(string.Empty,
-                    Strings.Splitter,
-                     GUILayout.Height(1),
-                     GUILayout.MaxHeight(1),
-                     GUILayout.MinHeight(1),
-                     GUILayout.ExpandWidth(true));
-                GUILayout.Space(splitterSize);
-                GUILayout.EndVertical();
-            }
-
-            m_splitterRect = GUILayoutUtility.GetLastRect();
-            // TODO find a way to change cursor
-            //EditorGUIUtility.AddCursorRect(new Rect(m_splitterRect), m_configs.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical); // TODO Editor
-        }
-
-        private void HandleDoubleClick(ConsoleLogEntry entry)
+        public void HandleDoubleClick(ConsoleLogEntry entry)
         {
 #if UNITY_EDITOR
             if (!string.IsNullOrEmpty(entry.assetPath))

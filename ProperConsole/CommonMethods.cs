@@ -12,8 +12,9 @@ namespace ProperLogger
 {
     internal class CommonMethods
     {
-        private static Regex m_categoryParse = null;
-        private static Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
+        private static float s_regexCompileDebounce => 200 * 10000;
+        private static Regex s_categoryParse = null;
+        private static Regex CategoryParse => s_categoryParse ?? (s_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
 
         internal static float ItemHeight(IProperLogger console) => (console.Config.LogEntryMessageFontSize + (console.Config.LogEntryMessageFontSize < 15 ? 3 : 4)) * console.Config.LogEntryMessageLineCount
                                   + (console.Config.LogEntryStackTraceFontSize + (console.Config.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * console.Config.LogEntryStackTraceLineCount
@@ -304,7 +305,6 @@ namespace ProperLogger
                 }
             }
         }
-
         internal static Texture GetEntryIcon(IProperLogger console, ConsoleLogEntry entry)
         {
             if (entry.level.HasFlag(LogLevel.Log)) { return console.IconInfo; }
@@ -316,7 +316,6 @@ namespace ProperLogger
             }
             return console.IconError;
         }
-
         internal static ConsoleLogEntry Listener(IProperLogger console, string condition, string stackTrace, LogType type, string assetPath, string assetLine)
         {
             ConsoleLogEntry newConsoleEntry = null;
@@ -399,7 +398,6 @@ namespace ProperLogger
 #endif //UNITY_EDITOR
             return newConsoleEntry;
         }
-
         internal static bool ValidFilter(IProperLogger console, ConsoleLogEntry e)
         {
             bool valid = true;
@@ -447,6 +445,70 @@ namespace ProperLogger
 
             return valid;
         }
+        internal static void Splitter(IProperLogger console)
+        {
+            int splitterSize = 5;
+            if (console.Config.InspectorOnTheRight)
+            {
+                GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
+                GUILayout.Space(splitterSize);
+                GUILayout.Box(string.Empty,
+                     console.IsGame ? (GUIStyle)Strings.Splitter : (GUIStyle)"Box", // TODO string
+                     GUILayout.Width(1),
+                     GUILayout.MaxWidth(1),
+                     GUILayout.MinWidth(1),
+                     GUILayout.ExpandHeight(true));
+                GUILayout.Space(splitterSize);
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
+                GUILayout.Space(splitterSize);
+                GUILayout.Box(string.Empty,
+                     console.IsGame ? (GUIStyle)Strings.Splitter : (GUIStyle)"Box", // TODO string
+                     GUILayout.Height(1),
+                     GUILayout.MaxHeight(1),
+                     GUILayout.MinHeight(1),
+                     GUILayout.ExpandWidth(true));
+                GUILayout.Space(splitterSize);
+                GUILayout.EndVertical();
+            }
 
+            console.SplitterRect = GUILayoutUtility.GetLastRect();
+            // TODO find a way to change cursor in game
+            if (!console.IsGame)
+            {
+                EditorGUIUtility.AddCursorRect(new Rect(console.SplitterRect), console.Config.InspectorOnTheRight ? MouseCursor.ResizeHorizontal : MouseCursor.ResizeVertical);
+            }
+        }
+        internal static void RegexCompilation(IProperLogger console)
+        {
+            try
+            {
+                if (console.Config.RegexSearch && string.IsNullOrEmpty(console.SearchString))
+                {
+                    console.SearchRegex = null;
+                }
+                else if (console.Config.RegexSearch && console.NeedRegexRecompile && DateTime.Now.Ticks - console.LastRegexRecompile.Ticks > s_regexCompileDebounce)
+                {
+                    console.NeedRegexRecompile = false;
+                    console.LastRegexRecompile = DateTime.Now;
+                    console.TriggerFilteredEntryComputation = true;
+                    if (console.Config.CaseSensitive)
+                    {
+                        console.SearchRegex = new Regex(console.SearchString.Trim());
+                    }
+                    else
+                    {
+                        console.SearchRegex = new Regex(console.SearchString.Trim(), RegexOptions.IgnoreCase);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
     }
 }
