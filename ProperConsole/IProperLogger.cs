@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace ProperLogger
 {
-    internal interface IProperLogger
+    internal interface IProperLogger : ILogObserver
     {
         bool IsGame { get; }
         GUISkin Skin { get; }
         ConfigsProvider Config { get; }
+        bool Listening { get; set; }
+        CustomLogHandler LogHandler { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -41,5 +44,10 @@ namespace ProperLogger
         GUIStyle CollapseBubbleErrorStyle { get; set; }
         GUIStyle ToolbarIconButtonStyle { get; set; }
         GUIStyle InspectorTextStyle { get; set; }
+
+        List<ConsoleLogEntry> CollapsedEntries { get; set; }
+        List<PendingContext> PendingContexts { get; set; }
+
+        void Listener(string condition, string stackTrace, LogType type);
     }
 }

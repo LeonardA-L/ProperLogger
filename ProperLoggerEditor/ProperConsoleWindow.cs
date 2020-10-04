@@ -54,15 +54,14 @@ namespace ProperLogger
 
         private List<ConsoleLogEntry> m_entries = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
-        private List<ConsoleLogEntry> m_collapsedEntries = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
+        public List<ConsoleLogEntry> CollapsedEntries { get; set; } = null;
         private bool m_triggerFilteredEntryComputation = false;
         private bool m_triggerSyncWithUnityComputation = false;
-        private CustomLogHandler m_logHandler = null;
-        private List<PendingContext> m_pendingContexts = null;
+        public CustomLogHandler LogHandler { get; set; } = null;
+        public List<PendingContext> PendingContexts { get; set; } = null;
         private object m_entriesLock = null;
-        private bool m_listening = false;
-
+        public bool Listening { get; set; } = false;
         #region Filters
 
         private string m_searchString = null;
@@ -212,6 +211,9 @@ namespace ProperLogger
         private MethodInfo SetUnityConsoleFlag => setUnityConsoleFlag ?? (setUnityConsoleFlag = LogEntries.GetMethod(Strings.SetUnityConsoleFlag));
 
 
+
+
+
         #endregion Properties
 
         #region Editor Window
@@ -250,14 +252,14 @@ namespace ProperLogger
         private void OnEnable()
         {
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
-            m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
+            PendingContexts = PendingContexts ?? new List<PendingContext>();
             m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
-            m_listening = false;
+            Listening = false;
             m_entriesLock = new object();
             m_instance = this;
             m_triggerFilteredEntryComputation = true;
             EditorApplication.playModeStateChanged += ModeChanged;
-            InitListener();
+            C.InitListener(this);
             LoadIcons();
             C.CacheGUIContents(this);
             C.ClearStyles(this);
@@ -271,7 +273,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
-            RemoveListener();
+            C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
             C.ClearGUIContents(this);
@@ -433,14 +435,14 @@ namespace ProperLogger
 
         private void ExitingPlayMode()
         {
-            RemoveListener();
-            m_pendingContexts?.Clear();
+            C.RemoveListener(this);
+            PendingContexts?.Clear();
         }
 
         private void EnteredEditMode()
         {
-            InitListener();
-            m_pendingContexts?.Clear();
+            C.InitListener(this);
+            PendingContexts?.Clear();
         }
 
         #endregion Mode Changes
@@ -448,36 +450,6 @@ namespace ProperLogger
         #endregion Editor Window
 
         #region Logs
-
-        public void InitListener()
-        {
-            if (!m_listening)
-            {
-                if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
-                {
-                    customLogHandler.RemoveObserver(this);
-                    customLogHandler.AddObserver(this);
-                }
-                else
-                {
-                    m_logHandler = new CustomLogHandler(Debug.unityLogger.logHandler);
-                    m_logHandler.AddObserver(this);
-                    Debug.unityLogger.logHandler = m_logHandler;
-                }
-                Application.logMessageReceivedThreaded += Listener;
-                m_listening = true;
-            }
-        }
-
-        public void RemoveListener()
-        {
-            Application.logMessageReceivedThreaded -= Listener;
-            if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
-            {
-                customLogHandler.RemoveObserver(this);
-            }
-            m_listening = false;
-        }
 
         private static bool IsError(int mode)
         {
@@ -655,7 +627,7 @@ namespace ProperLogger
             }
         }
 
-        private void Listener(string condition, string stackTrace, LogType type)
+        public void Listener(string condition, string stackTrace, LogType type)
         {
             Listener(condition, stackTrace, type, null, null);
         }
@@ -666,12 +638,12 @@ namespace ProperLogger
             lock (m_entriesLock)
             {
                 UnityEngine.Object context = null;
-                for (int i = 0; i < m_pendingContexts.Count; i++)
+                for (int i = 0; i < PendingContexts.Count; i++)
                 {
-                    if (m_pendingContexts[i].message.Equals(condition) && m_pendingContexts[i].logType == type)
+                    if (PendingContexts[i].message.Equals(condition) && PendingContexts[i].logType == type)
                     {
-                        context = m_pendingContexts[i].context;
-                        m_pendingContexts.RemoveAt(i);
+                        context = PendingContexts[i].context;
+                        PendingContexts.RemoveAt(i);
                         break;
                     }
                 }
@@ -732,20 +704,6 @@ namespace ProperLogger
             return newConsoleEntry;
         }
 
-        public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
-        {
-            m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
-            if (context != null && args.Length > 0)
-            {
-                m_pendingContexts.Add(new PendingContext()
-                {
-                    logType = type,
-                    context = context,
-                    message = args[0] as string
-                });
-            }
-        }
-
         internal void Clear()
         {
             lock (m_entriesLock)
@@ -754,7 +712,7 @@ namespace ProperLogger
                 //m_warningCounter = 0;
                 //m_errorCounter = 0;
                 //m_entries.Clear();
-                m_pendingContexts.Clear();
+                PendingContexts.Clear();
                 m_selectedEntries.Clear();
 
                 ClearEntries.Invoke(null, null); // TODO check if this works in game
@@ -762,6 +720,11 @@ namespace ProperLogger
                 SyncWithUnityEntries();
             }
             m_triggerFilteredEntryComputation = true;
+        }
+
+        public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
+        {
+            C.ContextListener(this, type, context, format, args);
         }
 
         #endregion Logs
@@ -887,12 +850,12 @@ namespace ProperLogger
                 m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
                 if (m_configs.Collapse)
                 {
-                    ComputeCollapsedEntries(m_filteredEntries);
+                    C.ComputeCollapsedEntries(this, m_filteredEntries);
                 }
                 m_triggerFilteredEntryComputation = false;
             }
 
-            DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
+            DisplayList(m_configs.Collapse ? CollapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
 
             if (m_displayedEntries.Count < m_displayedEntriesCount)
             {
@@ -1007,17 +970,17 @@ namespace ProperLogger
             #region Debug Buttons
             if (GUILayout.Button("Log"))
             {
-                Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}\r\nA\nB\nC\nD", Camera.main);
+                Debug.Log($"Log {DateTime.Now.ToString()} {Listening}\r\nA\nB\nC\nD", Camera.main);
             }
 
             if (GUILayout.Button("Log Combat"))
             {
-                Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {Listening}", Camera.main);
             }
 
             if (GUILayout.Button("Log Performance"))
             {
-                Debug.Log($"[Performance] Log {DateTime.Now.ToString()} {m_listening}", Camera.main);
+                Debug.Log($"[Performance] Log {DateTime.Now.ToString()} {Listening}", Camera.main);
             }
 
             if (GUILayout.Button("LogException"))
@@ -1027,7 +990,7 @@ namespace ProperLogger
 
             if (GUILayout.Button("LogWarning"))
             {
-                Debug.LogWarning($"Warning {DateTime.Now.ToString()} {m_listening} {m_autoScroll}");
+                Debug.LogWarning($"Warning {DateTime.Now.ToString()} {Listening} {m_autoScroll}");
             }
 
             if (GUILayout.Button("LogError"))
@@ -1044,7 +1007,7 @@ namespace ProperLogger
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    Debug.Log($"Log {DateTime.Now.ToString()} {m_listening}");
+                    Debug.Log($"Log {DateTime.Now.ToString()} {Listening}");
                 }
             }
             if (GUILayout.Button("1000 syncs"))
@@ -1558,51 +1521,6 @@ namespace ProperLogger
 #endregion GUI
 
         #region Utilities
-
-        private void ComputeCollapsedEntries(List<ConsoleLogEntry> filteredEntries)
-        {
-            m_collapsedEntries = new List<ConsoleLogEntry>();
-
-            for (int i = 0; i < filteredEntries.Count; i++)
-            {
-                bool found = false;
-                int foundIdx = 0;
-                for (int j = 0; j < m_collapsedEntries.Count; j++)
-                {
-                    if (m_collapsedEntries[j].originalMessage == filteredEntries[i].originalMessage)
-                    {
-                        foundIdx = j;
-                        found = true;
-                    }
-                }
-                if (found)
-                {
-                    m_collapsedEntries[foundIdx] = new ConsoleLogEntry()
-                    {
-                        count = m_collapsedEntries[foundIdx].count + 1,
-                        date = m_collapsedEntries[foundIdx].date,
-                        message = m_collapsedEntries[foundIdx].message,
-                        level = m_collapsedEntries[foundIdx].level,
-                        stackTrace = m_collapsedEntries[foundIdx].stackTrace,
-                        timestamp = m_collapsedEntries[foundIdx].timestamp,
-                        messageLines = m_collapsedEntries[foundIdx].messageLines,
-                        traceLines = m_collapsedEntries[foundIdx].traceLines,
-                        categories = m_collapsedEntries[foundIdx].categories,
-                        context = m_collapsedEntries[foundIdx].context,
-                        assetPath = m_collapsedEntries[foundIdx].assetPath,
-                        assetLine = m_collapsedEntries[foundIdx].assetLine,
-                        originalStackTrace = m_collapsedEntries[foundIdx].originalStackTrace,
-                        originalMessage = m_collapsedEntries[foundIdx].originalMessage,
-                        unityIndex = m_collapsedEntries[foundIdx].unityIndex,
-                        unityMode = m_collapsedEntries[foundIdx].unityMode,
-                    };
-                }
-                else
-                {
-                    m_collapsedEntries.Add(filteredEntries[i]);
-                }
-            }
-        }
 
         private int GetFlagButtonWidthFromCounter(int counter)
         {

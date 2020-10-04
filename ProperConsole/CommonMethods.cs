@@ -43,7 +43,6 @@ namespace ProperLogger
                     return new GUIContent(icon, text);
             }
         }
-
         internal static void CacheGUIContents(IProperLogger console)
         {
             console.ClearButtonContent = CreateButtonGUIContent(console, console.ClearIcon, "Clear");
@@ -81,7 +80,6 @@ namespace ProperLogger
 
             console.InspectorTextStyle = null;
         }
-
         internal static void CacheStyles(IProperLogger console)
         {
             // TODO some styles don't need "new" style instantiation
@@ -117,6 +115,91 @@ namespace ProperLogger
             inspectorTextStyle.stretchWidth = false;
             inspectorTextStyle.clipping = TextClipping.Clip;
             console.InspectorTextStyle = inspectorTextStyle;
+        }
+        internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
+        {
+            console.CollapsedEntries = new List<ConsoleLogEntry>();
+
+            for (int i = 0; i < filteredEntries.Count; i++)
+            {
+                bool found = false;
+                int foundIdx = 0;
+                for (int j = 0; j < console.CollapsedEntries.Count; j++)
+                {
+                    if (console.CollapsedEntries[j].originalMessage == filteredEntries[i].originalMessage)
+                    {
+                        foundIdx = j;
+                        found = true;
+                    }
+                }
+                if (found)
+                {
+                    console.CollapsedEntries[foundIdx] = new ConsoleLogEntry()
+                    {
+                        count = console.CollapsedEntries[foundIdx].count + 1,
+                        date = console.CollapsedEntries[foundIdx].date,
+                        message = console.CollapsedEntries[foundIdx].message,
+                        level = console.CollapsedEntries[foundIdx].level,
+                        stackTrace = console.CollapsedEntries[foundIdx].stackTrace,
+                        timestamp = console.CollapsedEntries[foundIdx].timestamp,
+                        messageLines = console.CollapsedEntries[foundIdx].messageLines,
+                        traceLines = console.CollapsedEntries[foundIdx].traceLines,
+                        categories = console.CollapsedEntries[foundIdx].categories,
+                        context = console.CollapsedEntries[foundIdx].context,
+                        assetPath = console.CollapsedEntries[foundIdx].assetPath,
+                        assetLine = console.CollapsedEntries[foundIdx].assetLine,
+                        originalStackTrace = console.CollapsedEntries[foundIdx].originalStackTrace,
+                        originalMessage = console.CollapsedEntries[foundIdx].originalMessage,
+                        unityIndex = console.CollapsedEntries[foundIdx].unityIndex,
+                        unityMode = console.CollapsedEntries[foundIdx].unityMode,
+                    };
+                }
+                else
+                {
+                    console.CollapsedEntries.Add(filteredEntries[i]);
+                }
+            }
+        }
+        internal static void ContextListener(IProperLogger console, LogType type, UnityEngine.Object context, string format, params object[] args)
+        {
+            console.PendingContexts = console.PendingContexts ?? new List<PendingContext>();
+            if (context != null && args.Length > 0)
+            {
+                console.PendingContexts.Add(new PendingContext()
+                {
+                    logType = type,
+                    context = context,
+                    message = args[0] as string
+                });
+            }
+        }
+        internal static void InitListener(IProperLogger console)
+        {
+            if (!console.Listening)
+            {
+                if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
+                {
+                    customLogHandler.RemoveObserver(console);
+                    customLogHandler.AddObserver(console);
+                }
+                else
+                {
+                    console.LogHandler = new CustomLogHandler(Debug.unityLogger.logHandler);
+                    console.LogHandler.AddObserver(console);
+                    Debug.unityLogger.logHandler = console.LogHandler;
+                }
+                Application.logMessageReceivedThreaded += console.Listener;
+                console.Listening = true;
+            }
+        }
+        internal static void RemoveListener(IProperLogger console)
+        {
+            Application.logMessageReceivedThreaded -= console.Listener;
+            if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
+            {
+                customLogHandler.RemoveObserver(console);
+            }
+            console.Listening = false;
         }
     }
 }

@@ -50,14 +50,15 @@ namespace ProperLogger
 
         private List<ConsoleLogEntry> m_entries = null;
         private List<ConsoleLogEntry> m_filteredEntries = null;
-        private List<ConsoleLogEntry> m_collapsedEntries = null;
         private List<ConsoleLogEntry> m_displayedEntries = null;
+        public List<ConsoleLogEntry> CollapsedEntries { get; set; } = null;
         private bool m_triggerFilteredEntryComputation = false;
         private bool m_triggerSyncWithUnityComputation = false;
         private CustomLogHandler m_logHandler = null;
-        private List<PendingContext> m_pendingContexts = null;
+        public CustomLogHandler LogHandler { get; set; } = null;
+        public List<PendingContext> PendingContexts { get; set; } = null;
         private object m_entriesLock = null;
-        private bool m_listening = false;
+        public bool Listening { get; set; } = false;
 
         #region Filters
 
@@ -202,36 +203,17 @@ namespace ProperLogger
 
         #endregion Caches
 
-
-        private GUIContent CreateButtonGUIContent(Texture2D icon, string text)
-        {
-            if (icon == null)
-            {
-                return new GUIContent(text);
-            }
-            switch (m_configs.DisplayIcons)
-            {
-                case 0: // Name Only
-                default:
-                    return new GUIContent(text);
-                case 1: // Name and Icon
-                    return new GUIContent($" {text}", icon);
-                case 2: // Icon Only
-                    return new GUIContent(icon, text);
-            }
-        }
-
         [Obfuscation(Exclude = true)]
         protected override void Awake()
         {
             base.Awake();
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
-            m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
+            PendingContexts = PendingContexts ?? new List<PendingContext>();
             m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
-            m_listening = false;
+            Listening = false;
             m_entriesLock = new object();
             m_triggerFilteredEntryComputation = true;
-            InitListener();
+            C.InitListener(this);
             m_autoScroll = true;
 
             m_needRegexRecompile = true;
@@ -240,7 +222,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         protected override void OnDestroy()
         {
-            RemoveListener();
+            C.RemoveListener(this);
             C.ClearGUIContents(this);
             base.OnDestroy();
         }
@@ -283,36 +265,6 @@ namespace ProperLogger
             // TODO code below will not execute if regex compilation failed
         }
 
-        public void InitListener()
-        {
-            if (!m_listening)
-            {
-                if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
-                {
-                    customLogHandler.RemoveObserver(this);
-                    customLogHandler.AddObserver(this);
-                }
-                else
-                {
-                    m_logHandler = new CustomLogHandler(Debug.unityLogger.logHandler);
-                    m_logHandler.AddObserver(this);
-                    Debug.unityLogger.logHandler = m_logHandler;
-                }
-                Application.logMessageReceivedThreaded += Listener;
-                m_listening = true;
-            }
-        }
-
-        public void RemoveListener()
-        {
-            Application.logMessageReceivedThreaded -= Listener;
-            if (Debug.unityLogger.logHandler is CustomLogHandler customLogHandler)
-            {
-                customLogHandler.RemoveObserver(this);
-            }
-            m_listening = false;
-        }
-
         protected override void OnWindowEnabled()
         {
             ShowCategoryFilter = false;
@@ -337,7 +289,7 @@ namespace ProperLogger
                 m_warnLog = 0;
                 m_errLog = 0;
                 m_entries.Clear();
-                m_pendingContexts.Clear();
+                PendingContexts.Clear();
                 m_selectedEntries.Clear();
             }
             m_triggerFilteredEntryComputation = true;
@@ -441,12 +393,12 @@ namespace ProperLogger
                 m_filteredEntries = m_entries.FindAll(e => ValidFilter(e));
                 if (m_configs.Collapse)
                 {
-                    ComputeCollapsedEntries(m_filteredEntries);
+                    C.ComputeCollapsedEntries(this, m_filteredEntries);
                 }
                 m_triggerFilteredEntryComputation = false;
             }
 
-            DisplayList(m_configs.Collapse ? m_collapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
+            DisplayList(m_configs.Collapse ? CollapsedEntries : m_filteredEntries, out m_displayedEntries, totalWidth);
 
             if (m_displayedEntries.Count < m_displayedEntriesCount)
             {
@@ -1116,52 +1068,6 @@ namespace ProperLogger
         #region Search
 
         // TODO this is a copy of the editor one. Unify with a static tool
-        private void ComputeCollapsedEntries(List<ConsoleLogEntry> filteredEntries)
-        {
-            m_collapsedEntries = new List<ConsoleLogEntry>();
-
-            for (int i = 0; i < filteredEntries.Count; i++)
-            {
-                bool found = false;
-                int foundIdx = 0;
-                for (int j = 0; j < m_collapsedEntries.Count; j++)
-                {
-                    if (m_collapsedEntries[j].originalMessage == filteredEntries[i].originalMessage)
-                    {
-                        foundIdx = j;
-                        found = true;
-                    }
-                }
-                if (found)
-                {
-                    m_collapsedEntries[foundIdx] = new ConsoleLogEntry()
-                    {
-                        count = m_collapsedEntries[foundIdx].count + 1,
-                        date = m_collapsedEntries[foundIdx].date,
-                        message = m_collapsedEntries[foundIdx].message,
-                        level = m_collapsedEntries[foundIdx].level,
-                        stackTrace = m_collapsedEntries[foundIdx].stackTrace,
-                        timestamp = m_collapsedEntries[foundIdx].timestamp,
-                        messageLines = m_collapsedEntries[foundIdx].messageLines,
-                        traceLines = m_collapsedEntries[foundIdx].traceLines,
-                        categories = m_collapsedEntries[foundIdx].categories,
-                        context = m_collapsedEntries[foundIdx].context,
-                        assetPath = m_collapsedEntries[foundIdx].assetPath,
-                        assetLine = m_collapsedEntries[foundIdx].assetLine,
-                        originalStackTrace = m_collapsedEntries[foundIdx].originalStackTrace,
-                        originalMessage = m_collapsedEntries[foundIdx].originalMessage,
-                        unityIndex = m_collapsedEntries[foundIdx].unityIndex,
-                        unityMode = m_collapsedEntries[foundIdx].unityMode,
-                    };
-                }
-                else
-                {
-                    m_collapsedEntries.Add(filteredEntries[i]);
-                }
-            }
-        }
-
-        // TODO this is a copy of the editor one. Unify with a static tool
         private bool ValidFilter(ConsoleLogEntry e)
         {
             bool valid = true;
@@ -1233,19 +1139,10 @@ namespace ProperLogger
 
         public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
         {
-            m_pendingContexts = m_pendingContexts ?? new List<PendingContext>();
-            if (context != null && args.Length > 0)
-            {
-                m_pendingContexts.Add(new PendingContext()
-                {
-                    logType = type,
-                    context = context,
-                    message = args[0] as string
-                });
-            }
+            C.ContextListener(this, type, context, format, args);
         }
 
-        private void Listener(string condition, string stackTrace, LogType type)
+        public void Listener(string condition, string stackTrace, LogType type)
         {
             Listener(condition, stackTrace, type, null, null);
         }
@@ -1256,12 +1153,12 @@ namespace ProperLogger
             lock (m_entriesLock)
             {
                 UnityEngine.Object context = null;
-                for (int i = 0; i < m_pendingContexts.Count; i++)
+                for (int i = 0; i < PendingContexts.Count; i++)
                 {
-                    if (m_pendingContexts[i].message.Equals(condition) && m_pendingContexts[i].logType == type)
+                    if (PendingContexts[i].message.Equals(condition) && PendingContexts[i].logType == type)
                     {
-                        context = m_pendingContexts[i].context;
-                        m_pendingContexts.RemoveAt(i);
+                        context = PendingContexts[i].context;
+                        PendingContexts.RemoveAt(i);
                         break;
                     }
                 }
