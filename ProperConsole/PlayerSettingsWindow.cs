@@ -80,7 +80,7 @@ namespace ProperLogger
             {
                 if(ProperConsoleGameWindow.Instance != null)
                 {
-                    ProperConsoleGameWindow.Instance.ClearStyles();
+                    CommonMethods.ClearStyles(ProperConsoleGameWindow.Instance);
                 }
             }
             base.DoGui(windowID);

@@ -17,11 +17,13 @@ namespace ProperLogger
     //[Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver, IProperLogger
     {
+        public bool IsGame => false;
+
         #region Members
         #region Consts
 
         private GUISkin m_skin = null;
-        private GUISkin Skin => m_skin ?? (m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
+        public GUISkin Skin => m_skin ?? (m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
 
         [NonSerialized]
         private float m_doubleClickSpeed = 300 * 10000; // Could be a config ?
@@ -33,6 +35,8 @@ namespace ProperLogger
         #region Configs
 
         private ConfigsProvider m_configs = new EditorConfigs();
+        public ConfigsProvider Config => m_configs;
+
 
         private bool m_autoScroll = true;
         
@@ -107,14 +111,14 @@ namespace ProperLogger
 
         private static Texture2D m_iconConsole;
 
-        private static Texture2D m_clearIcon;
-        private static Texture2D m_collapseIcon;
-        private static Texture2D m_clearOnPlayIcon;
-        private static Texture2D m_clearOnBuildIcon;
-        private static Texture2D m_errorPauseIcon;
-        private static Texture2D m_regexSearchIcon;
-        private static Texture2D m_caseSensitiveIcon;
-        private static Texture2D m_advancedSearchIcon;
+        public Texture2D ClearIcon { get; set; } = null;
+        public Texture2D CollapseIcon { get; set; } = null;
+        public Texture2D ClearOnPlayIcon { get; set; } = null;
+        public Texture2D ClearOnBuildIcon { get; set; } = null;
+        public Texture2D ErrorPauseIcon { get; set; } = null;
+        public Texture2D RegexSearchIcon { get; set; } = null;
+        public Texture2D CaseSensitiveIcon { get; set; } = null;
+        public Texture2D AdvancedSearchIcon { get; set; } = null;
 
         private Texture2D m_exceptionIcon;
         private Texture2D m_assertIcon;
@@ -176,18 +180,18 @@ namespace ProperLogger
         public GUIContent SearchInStackTraceButtonContent { get; set; } = null;
         public GUIContent PluginSettingsButtonContent { get; set; } = null;
 
-        private GUIStyle m_oddEntry = null;
-        private GUIStyle m_selectedEntry = null;
-        private GUIStyle m_selectedEntryLabel = null;
-        private GUIStyle m_evenEntry = null;
-        private GUIStyle m_evenEntryLabel = null;
-        private GUIStyle m_categoryNameStyle = null;
-        private GUIStyle m_categoryColorStrip = null;
-        private GUIStyle m_collapseBubbleStyle = null;
-        private GUIStyle m_collapseBubbleWarningStyle = null;
-        private GUIStyle m_collapseBubbleErrorStyle = null;
-        private GUIStyle m_toolbarIconButtonStyle = null;
-        private GUIStyle m_inspectorTextStyle = null;
+        public GUIStyle OddEntry { get; set; } = null;
+        public GUIStyle SelectedEntry { get; set; } = null;
+        public GUIStyle SelectedEntryLabel { get; set; } = null;
+        public GUIStyle EvenEntry { get; set; } = null;
+        public GUIStyle EvenEntryLabel { get; set; } = null;
+        public GUIStyle CategoryNameStyle { get; set; } = null;
+        public GUIStyle CategoryColorStrip { get; set; } = null;
+        public GUIStyle CollapseBubbleStyle { get; set; } = null;
+        public GUIStyle CollapseBubbleWarningStyle { get; set; } = null;
+        public GUIStyle CollapseBubbleErrorStyle { get; set; } = null;
+        public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
+        public GUIStyle InspectorTextStyle { get; set; } = null;
 
         private Regex m_categoryParse = null;
         private Regex CategoryParse => m_categoryParse ?? (m_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
@@ -207,9 +211,6 @@ namespace ProperLogger
         private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod(Strings.Clear));
         private MethodInfo SetUnityConsoleFlag => setUnityConsoleFlag ?? (setUnityConsoleFlag = LogEntries.GetMethod(Strings.SetUnityConsoleFlag));
 
-        private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
-                                  + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
-                                  + 8; // padding
 
         #endregion Properties
 
@@ -258,8 +259,8 @@ namespace ProperLogger
             EditorApplication.playModeStateChanged += ModeChanged;
             InitListener();
             LoadIcons();
-            CacheGUIContents();
-            ClearStyles();
+            C.CacheGUIContents(this);
+            C.ClearStyles(this);
             m_autoScroll = true;
             ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, m_iconConsole);
             ResetUnityConsoleFlags();
@@ -273,7 +274,7 @@ namespace ProperLogger
             RemoveListener();
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
-            C.ClearGUIContents(this,false);
+            C.ClearGUIContents(this);
         }
 
         private void ResetUnityConsoleFlags()
@@ -316,79 +317,6 @@ namespace ProperLogger
             }
         }
 
-        internal void CacheGUIContents()
-        {
-            ClearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
-            CollapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
-            ClearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
-            ClearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
-            ErrorPauseButtonContent = CreateButtonGUIContent(m_errorPauseIcon, "Error Pause");
-
-            AdvancedSearchButtonContent = new GUIContent(m_advancedSearchIcon, "Advanced Search");
-            CategoriesButtonContent = new GUIContent("Categories");
-            RegexSearchButtonNameOnlyContent = CreateButtonGUIContent(m_regexSearchIcon, "Regex Search");
-            CaseSensitiveButtonContent = CreateButtonGUIContent(m_caseSensitiveIcon, "Case Sensitive");
-            SearchInLogMessageButtonContent = new GUIContent("Search in Log Message");
-            SearchInObjectNameButtonContent = new GUIContent("Search in Object Name");
-            SearchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
-            PluginSettingsButtonContent = new GUIContent("Plugin Settings");
-        }
-
-        private void ClearStyles()
-        {
-            m_oddEntry = null;
-            m_selectedEntry = null;
-            m_selectedEntryLabel = null;
-            m_evenEntry = null;
-            m_evenEntryLabel = null;
-
-            m_categoryNameStyle = null;
-
-            m_categoryColorStrip = null;
-
-            m_collapseBubbleStyle = null;
-            m_collapseBubbleWarningStyle = null;
-            m_collapseBubbleErrorStyle = null;
-
-            m_toolbarIconButtonStyle = null;
-
-            m_inspectorTextStyle = null;
-        }
-
-        private void CacheStyles()
-        {
-            // TODO some styles don't need "new" style instantiation
-
-            m_oddEntry = new GUIStyle(Skin.FindStyle("OddEntry"));
-            m_selectedEntry = new GUIStyle(Skin.FindStyle("SelectedEntry"));
-            m_selectedEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabelSelected"));
-            m_evenEntry = new GUIStyle(Skin.FindStyle("EvenEntry"));
-            m_evenEntryLabel = new GUIStyle(Skin.FindStyle("EntryLabel"));
-
-            m_categoryNameStyle = new GUIStyle(m_evenEntryLabel);
-            m_categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
-            m_categoryNameStyle.alignment = TextAnchor.MiddleCenter;
-            m_categoryNameStyle.fontSize = m_configs.LogEntryStackTraceFontSize;
-            m_categoryNameStyle.padding.top = (int)((ItemHeight / 2f) - m_categoryNameStyle.fontSize);
-            m_categoryNameStyle.fontStyle = FontStyle.Bold;
-            m_categoryNameStyle.fontSize = m_configs.LogEntryMessageFontSize;
-
-            m_categoryColorStrip = new GUIStyle(Skin.FindStyle("CategoryColorStrip"));
-
-            m_collapseBubbleStyle = new GUIStyle(Skin.FindStyle("CollapseBubble"));
-            m_collapseBubbleWarningStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleWarning"));
-            m_collapseBubbleErrorStyle = new GUIStyle(Skin.FindStyle("CollapseBubbleError"));
-
-            m_toolbarIconButtonStyle = new GUIStyle(Strings.ToolbarButton);
-
-            m_inspectorTextStyle = new GUIStyle(GUI.skin.label);
-            m_inspectorTextStyle.richText = true;
-            m_inspectorTextStyle.fontSize = m_configs.InspectorMessageFontSize;
-            m_inspectorTextStyle.wordWrap = true;
-            m_inspectorTextStyle.stretchWidth = false;
-            m_inspectorTextStyle.clipping = TextClipping.Clip;
-        }
-
         private void LoadIcons()
         {
             // TODO check out EditorGUIUtility.Load
@@ -402,14 +330,14 @@ namespace ProperLogger
 
             m_iconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
 
-            m_clearIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (m_isDarkSkin ? "_d" : ""));
-            m_collapseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (m_isDarkSkin ? "_d" : ""));
-            m_clearOnBuildIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (m_isDarkSkin ? "_d" : ""));
-            m_clearOnPlayIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (m_isDarkSkin ? "_d" : ""));
-            m_errorPauseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon + (m_isDarkSkin ? "_d" : ""));
-            m_regexSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
-            m_caseSensitiveIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
-            m_advancedSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
+            ClearIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (m_isDarkSkin ? "_d" : ""));
+            CollapseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (m_isDarkSkin ? "_d" : ""));
+            ClearOnBuildIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (m_isDarkSkin ? "_d" : ""));
+            ClearOnPlayIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (m_isDarkSkin ? "_d" : ""));
+            ErrorPauseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ErrorPauseIcon + (m_isDarkSkin ? "_d" : ""));
+            RegexSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.RegexSearchIcon + (m_isDarkSkin ? "_d" : ""));
+            CaseSensitiveIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CaseSensitiveIcon + (m_isDarkSkin ? "_d" : ""));
+            AdvancedSearchIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.AdvancedSearchIcon + (m_isDarkSkin ? "_d" : ""));
 
             m_exceptionIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ExceptionIcon + (m_isDarkSkin ? "_d" : ""));
             m_assertIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.AssertIcon + (m_isDarkSkin ? "_d" : ""));
@@ -898,9 +826,9 @@ namespace ProperLogger
             HandleCopyToClipboard();
             EditorSelectableLabelInvisible();
 
-            if(m_inspectorTextStyle == null)
+            if(InspectorTextStyle == null)
             {
-                CacheStyles();
+                C.CacheStyles(this);
             }
 
             m_callForRepaint = false;
@@ -1041,25 +969,25 @@ namespace ProperLogger
                     if (m_configs.CategoryDisplay.HasFlag(ECategoryDisplay.InInspector))
                     {
                         string format = "<color=#{1}>[{0}]</color> ";
-                        categoriesString = string.Join(string.Empty, entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, m_inspectorTextStyle.normal.textColor, m_configs.CategoryNameColorize)))));
+                        categoriesString = string.Join(string.Empty, entry.categories.Select(c =>string.Format(format, c.Name, ColorUtility.ToHtmlStringRGB(Color.Lerp(c.Color, InspectorTextStyle.normal.textColor, m_configs.CategoryNameColorize)))));
                     }
                 }
 
-                SelectableLabel($"{categoriesString}{entry.message}", m_inspectorTextStyle, currentX); 
+                SelectableLabel($"{categoriesString}{entry.message}", InspectorTextStyle, currentX); 
 
                 if (entry.context != null)
                 {
-                    Color txtColor = m_inspectorTextStyle.normal.textColor;
+                    Color txtColor = InspectorTextStyle.normal.textColor;
                     if (!m_configs.ObjectNameColor.Equals(txtColor))
                     {
-                        m_inspectorTextStyle.normal.textColor = m_configs.ObjectNameColor;
+                        InspectorTextStyle.normal.textColor = m_configs.ObjectNameColor;
                     }
-                    SelectableLabel(entry.context.name, m_inspectorTextStyle, currentX);
-                    m_inspectorTextStyle.normal.textColor = txtColor;
+                    SelectableLabel(entry.context.name, InspectorTextStyle, currentX);
+                    InspectorTextStyle.normal.textColor = txtColor;
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
-                    SelectableLabel(entry.stackTrace, m_inspectorTextStyle, currentX);
+                    SelectableLabel(entry.stackTrace, InspectorTextStyle, currentX);
                 }
             }
             GUILayout.EndScrollView();
@@ -1164,11 +1092,11 @@ namespace ProperLogger
             if (m_isDarkSkin != EditorGUIUtility.isProSkin)
             {
                 m_isDarkSkin = EditorGUIUtility.isProSkin;
-                ClearStyles();
-                C.ClearGUIContents(this, false);
+                C.ClearStyles(this);
+                C.ClearGUIContents(this);
                 LoadIcons();
-                CacheStyles();
-                CacheGUIContents();
+                C.CacheStyles(this);
+                C.CacheGUIContents(this);
             }
 #endif // UNITY_EDITOR
         }
@@ -1181,9 +1109,9 @@ namespace ProperLogger
             // Only display elements that are in view
             if (m_outerScrollableHeight + 100 <= m_innerScrollableHeight)
             {
-                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / ItemHeight) - 1, 0, filteredEntries.Count);
-                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / ItemHeight) + 1, 0, filteredEntries.Count);
-                GUILayout.Space(firstVisibleIdx * ItemHeight);
+                int firstVisibleIdx = Mathf.Clamp((int)(m_entryListScrollPosition.y / C.ItemHeight(this)) - 1, 0, filteredEntries.Count);
+                lastVisibleIdx = Mathf.Clamp((int)((m_entryListScrollPosition.y + m_outerScrollableHeight) / C.ItemHeight(this)) + 1, 0, filteredEntries.Count);
+                GUILayout.Space(firstVisibleIdx * C.ItemHeight(this));
                 startI = firstVisibleIdx;
                 endI = lastVisibleIdx;
             }
@@ -1195,7 +1123,7 @@ namespace ProperLogger
 
             if (lastVisibleIdx != 0)
             {
-                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * ItemHeight);
+                GUILayout.Space((filteredEntries.Count - lastVisibleIdx) * C.ItemHeight(this));
             }
             displayedEntries = filteredEntries;
         }
@@ -1206,22 +1134,22 @@ namespace ProperLogger
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
 
-            if (GUILayout.Button(ClearButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(ClearButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 Clear();
                 GUIUtility.keyboardControl = 0;
             }
             bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, CollapseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, CollapseButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_selectedEntries.Clear();
             }
-            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, ClearOnPlayButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, ClearOnBuildButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, ErrorPauseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, ClearOnPlayButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, ClearOnBuildButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, ErrorPauseButtonContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
 
@@ -1304,7 +1232,7 @@ namespace ProperLogger
 
             GUILayout.BeginHorizontal(Strings.Toolbar);
             bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if(lastRegexSearch != m_configs.RegexSearch)
             {
                 m_needRegexRecompile = true;
@@ -1346,11 +1274,11 @@ namespace ProperLogger
 
         private void DisplayEntry(ConsoleLogEntry entry, int idx, float totalWidth)
         {
-            GUIStyle currentStyle = m_oddEntry;
-            GUIStyle textStyle = m_evenEntryLabel;
+            GUIStyle currentStyle = OddEntry;
+            GUIStyle textStyle = EvenEntryLabel;
             textStyle.normal.textColor = GUI.skin.label.normal.textColor;
 
-            float imageSize = Math.Min(ItemHeight - (2 * 3), 32); // We clamp it in case we display 3+ lines
+            float imageSize = Math.Min(C.ItemHeight(this) - (2 * 3), 32); // We clamp it in case we display 3+ lines
             imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = m_configs.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
@@ -1374,7 +1302,7 @@ namespace ProperLogger
                 if (categoryColumn)
                 {
                     var categoryString = string.Join(" ", entry.categories.Take(Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count)).Select(c=>c.Name));
-                    categoryColumnWidth = m_categoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
+                    categoryColumnWidth = CategoryNameStyle.CalcSize(new GUIContent(categoryString)).x + 10;
                 }
                 if (displayCategoryStrips)
                 {
@@ -1392,12 +1320,12 @@ namespace ProperLogger
             
             if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
             {
-                currentStyle = m_selectedEntry;
-                textStyle = m_selectedEntryLabel;
+                currentStyle = SelectedEntry;
+                textStyle = SelectedEntryLabel;
             }
             else if (idx % 2 == 0)
             {
-                currentStyle = m_evenEntry;
+                currentStyle = EvenEntry;
             }
 
             var guiColor = GUI.color;
@@ -1407,7 +1335,7 @@ namespace ProperLogger
                 GUI.color = new Color(1, 1, 1, 0.28f);
             }
 #endif // UNITY_EDITOR
-            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight));
+            GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(C.ItemHeight(this)));
             {
             GUI.color = guiColor;
                 //GUI.color = saveColor;
@@ -1450,10 +1378,10 @@ namespace ProperLogger
                     for (int i=0;i< Mathf.Min(m_configs.CategoryCountInLogList, entry.categories.Count);i++)
                     {
                         var category = entry.categories[i];
-                        var categoryColor = m_categoryNameStyle.normal.textColor;
-                        m_categoryNameStyle.normal.textColor = Color.Lerp(m_categoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), m_categoryNameStyle, GUILayout.ExpandWidth(true));
-                        m_categoryNameStyle.normal.textColor = categoryColor;
+                        var categoryColor = CategoryNameStyle.normal.textColor;
+                        CategoryNameStyle.normal.textColor = Color.Lerp(CategoryNameStyle.normal.textColor, category.Color, m_configs.CategoryNameInLogListColorize);
+                        GUILayout.Label(category.Name.ToString(), CategoryNameStyle, GUILayout.ExpandWidth(true));
+                        CategoryNameStyle.normal.textColor = categoryColor;
                     }
                     GUILayout.EndHorizontal();
                     /*
@@ -1481,7 +1409,7 @@ namespace ProperLogger
                         GUI.color = category.Color;
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
-                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight), string.Empty, m_categoryColorStrip);
+                        GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, C.ItemHeight(this)), string.Empty, CategoryColorStrip);
                         GUILayout.Space(categoryStripWidth);
                         i++;
                     }
@@ -1550,14 +1478,14 @@ namespace ProperLogger
             switch (level)
             {
                 case LogLevel.Log:
-                    style = m_collapseBubbleStyle;
+                    style = CollapseBubbleStyle;
                     break;
                 case LogLevel.Warning:
-                    style = m_collapseBubbleWarningStyle;
+                    style = CollapseBubbleWarningStyle;
                     break;
                 case LogLevel.Error:
                 default:
-                    style = m_collapseBubbleErrorStyle;
+                    style = CollapseBubbleErrorStyle;
                     break;
             }
             GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
@@ -1583,7 +1511,7 @@ namespace ProperLogger
         {
             bool hasFlag = (m_configs.LogLevelFilter & level) != 0;
             bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
-                m_toolbarIconButtonStyle,
+                ToolbarIconButtonStyle,
                 GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
                 );
             if (hasFlag != newFlagValue)

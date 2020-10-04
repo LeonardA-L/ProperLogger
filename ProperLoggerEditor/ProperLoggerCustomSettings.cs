@@ -208,8 +208,8 @@ namespace ProperLogger
             {
                 if(ProperConsoleWindow.Instance != null)
                 {
-                    CommonMethods.ClearGUIContents(ProperConsoleWindow.Instance, false);
-                    ProperConsoleWindow.Instance.CacheGUIContents();
+                    CommonMethods.ClearGUIContents(ProperConsoleWindow.Instance);
+                    CommonMethods.CacheGUIContents(ProperConsoleWindow.Instance);
                 }
             }
             GUILayout.EndHorizontal();
