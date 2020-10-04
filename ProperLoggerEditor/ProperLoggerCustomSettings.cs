@@ -208,7 +208,7 @@ namespace ProperLogger
             {
                 if(ProperConsoleWindow.Instance != null)
                 {
-                    ProperConsoleWindow.Instance.ClearGUIContents();
+                    CommonMethods.ClearGUIContents(ProperConsoleWindow.Instance, false);
                     ProperConsoleWindow.Instance.CacheGUIContents();
                 }
             }

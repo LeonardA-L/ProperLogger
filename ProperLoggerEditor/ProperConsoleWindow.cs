@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Linq;
 using System.IO;
+using C = ProperLogger.CommonMethods;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLogger")]
 
@@ -161,19 +162,19 @@ namespace ProperLogger
         private int m_warnLog = 0;
         private int m_errLog = 0;
 
-        private GUIContent m_collapseButtonContent = null;
-        private GUIContent m_clearOnPlayButtonContent = null;
-        private GUIContent m_clearOnBuildButtonContent = null;
-        private GUIContent m_errorPauseButtonContent = null;
-
-        private GUIContent m_advancedSearchButtonContent = null;
-        private GUIContent m_categoriesButtonContent = null;
-        private GUIContent m_regexSearchButtonNameOnlyContent = null;
-        private GUIContent m_caseSensitiveButtonContent = null;
-        private GUIContent m_searchInLogMessageButtonContent = null;
-        private GUIContent m_searchInObjectNameButtonContent = null;
-        private GUIContent m_searchInStackTraceButtonContent = null;
-        private GUIContent m_pluginSettingsButtonContent = null;
+        public GUIContent ClearButtonContent { get; set; } = null;
+        public GUIContent CollapseButtonContent { get; set; } = null;
+        public GUIContent ErrorPauseButtonContent { get; set; } = null;
+        public GUIContent ClearOnPlayButtonContent { get; set; } = null;
+        public GUIContent ClearOnBuildButtonContent { get; set; } = null;
+        public GUIContent AdvancedSearchButtonContent { get; set; } = null;
+        public GUIContent CategoriesButtonContent { get; set; } = null;
+        public GUIContent RegexSearchButtonNameOnlyContent { get; set; } = null;
+        public GUIContent CaseSensitiveButtonContent { get; set; } = null;
+        public GUIContent SearchInLogMessageButtonContent { get; set; } = null;
+        public GUIContent SearchInObjectNameButtonContent { get; set; } = null;
+        public GUIContent SearchInStackTraceButtonContent { get; set; } = null;
+        public GUIContent PluginSettingsButtonContent { get; set; } = null;
 
         private GUIStyle m_oddEntry = null;
         private GUIStyle m_selectedEntry = null;
@@ -209,8 +210,6 @@ namespace ProperLogger
         private float ItemHeight => (m_configs.LogEntryMessageFontSize + (m_configs.LogEntryMessageFontSize < 15 ? 3 : 4)) * m_configs.LogEntryMessageLineCount
                                   + (m_configs.LogEntryStackTraceFontSize + (m_configs.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * m_configs.LogEntryStackTraceLineCount
                                   + 8; // padding
-
-        public GUIContent ClearButtonContent { get; set; } = null;
 
         #endregion Properties
 
@@ -274,7 +273,7 @@ namespace ProperLogger
             RemoveListener();
             EditorApplication.playModeStateChanged -= ModeChanged;
             m_instance = null;
-            ClearGUIContents();
+            C.ClearGUIContents(this,false);
         }
 
         private void ResetUnityConsoleFlags()
@@ -299,24 +298,6 @@ namespace ProperLogger
             }
         }
 
-        internal void ClearGUIContents()
-        {
-            ClearButtonContent = null;
-            m_collapseButtonContent = null;
-            m_clearOnPlayButtonContent = null;
-            m_clearOnBuildButtonContent = null;
-            m_errorPauseButtonContent = null;
-
-            m_advancedSearchButtonContent = null;
-            m_categoriesButtonContent = null;
-            m_regexSearchButtonNameOnlyContent = null;
-            m_caseSensitiveButtonContent = null;
-            m_searchInLogMessageButtonContent = null;
-            m_searchInObjectNameButtonContent = null;
-            m_searchInStackTraceButtonContent = null;
-            m_pluginSettingsButtonContent = null;
-        }
-
         private GUIContent CreateButtonGUIContent(Texture2D icon, string text)
         {
             if(icon == null)
@@ -338,19 +319,19 @@ namespace ProperLogger
         internal void CacheGUIContents()
         {
             ClearButtonContent = CreateButtonGUIContent(m_clearIcon, "Clear");
-            m_collapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
-            m_clearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
-            m_clearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
-            m_errorPauseButtonContent = CreateButtonGUIContent(m_errorPauseIcon, "Error Pause");
+            CollapseButtonContent = CreateButtonGUIContent(m_collapseIcon, "Collapse");
+            ClearOnPlayButtonContent = CreateButtonGUIContent(m_clearOnPlayIcon, "Clear on Play");
+            ClearOnBuildButtonContent = CreateButtonGUIContent(m_clearOnBuildIcon, "Clear on Build");
+            ErrorPauseButtonContent = CreateButtonGUIContent(m_errorPauseIcon, "Error Pause");
 
-            m_advancedSearchButtonContent = new GUIContent(m_advancedSearchIcon, "Advanced Search");
-            m_categoriesButtonContent = new GUIContent("Categories");
-            m_regexSearchButtonNameOnlyContent = CreateButtonGUIContent(m_regexSearchIcon, "Regex Search");
-            m_caseSensitiveButtonContent = CreateButtonGUIContent(m_caseSensitiveIcon, "Case Sensitive");
-            m_searchInLogMessageButtonContent = new GUIContent("Search in Log Message");
-            m_searchInObjectNameButtonContent = new GUIContent("Search in Object Name");
-            m_searchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
-            m_pluginSettingsButtonContent = new GUIContent("Plugin Settings");
+            AdvancedSearchButtonContent = new GUIContent(m_advancedSearchIcon, "Advanced Search");
+            CategoriesButtonContent = new GUIContent("Categories");
+            RegexSearchButtonNameOnlyContent = CreateButtonGUIContent(m_regexSearchIcon, "Regex Search");
+            CaseSensitiveButtonContent = CreateButtonGUIContent(m_caseSensitiveIcon, "Case Sensitive");
+            SearchInLogMessageButtonContent = new GUIContent("Search in Log Message");
+            SearchInObjectNameButtonContent = new GUIContent("Search in Object Name");
+            SearchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
+            PluginSettingsButtonContent = new GUIContent("Plugin Settings");
         }
 
         private void ClearStyles()
@@ -1184,7 +1165,7 @@ namespace ProperLogger
             {
                 m_isDarkSkin = EditorGUIUtility.isProSkin;
                 ClearStyles();
-                ClearGUIContents();
+                C.ClearGUIContents(this, false);
                 LoadIcons();
                 CacheStyles();
                 CacheGUIContents();
@@ -1231,16 +1212,16 @@ namespace ProperLogger
                 GUIUtility.keyboardControl = 0;
             }
             bool lastCollapse = m_configs.Collapse;
-            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, m_collapseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.Collapse = GUILayout.Toggle(m_configs.Collapse, CollapseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             callForRepaint = m_configs.Collapse != lastCollapse;
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_selectedEntries.Clear();
             }
-            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, m_clearOnPlayButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, m_clearOnBuildButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, m_errorPauseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnPlay = GUILayout.Toggle(m_configs.ClearOnPlay, ClearOnPlayButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ClearOnBuild = GUILayout.Toggle(m_configs.ClearOnBuild, ClearOnBuildButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.ErrorPause = GUILayout.Toggle(m_configs.ErrorPause, ErrorPauseButtonContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
 
             string lastSearchTerm = m_searchString;
 
@@ -1278,10 +1259,10 @@ namespace ProperLogger
                 }
             }
 
-            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, m_advancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.AdvancedSearchToolbar = GUILayout.Toggle(m_configs.AdvancedSearchToolbar, AdvancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             Rect dropdownRect = GUILayoutUtility.GetLastRect();
 
-            if (GUILayout.Button(m_categoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
                 Vector2 dropdownOffset = new Vector2(40, 23);
                 //Rect dropDownPosition = new Rect(Event.current.mousePosition.x + this.position.x, Event.current.mousePosition.y + this.position.y, dropdownOffset.x, m_showCategoriesButtonRect.height + dropdownOffset.y);
@@ -1323,39 +1304,39 @@ namespace ProperLogger
 
             GUILayout.BeginHorizontal(Strings.Toolbar);
             bool lastRegexSearch = m_configs.RegexSearch;
-            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, m_regexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
+            m_configs.RegexSearch = GUILayout.Toggle(m_configs.RegexSearch, RegexSearchButtonNameOnlyContent, m_toolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if(lastRegexSearch != m_configs.RegexSearch)
             {
                 m_needRegexRecompile = true;
             }
             bool lastCaseSensitive = m_configs.CaseSensitive;
-            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, m_caseSensitiveButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.CaseSensitive = GUILayout.Toggle(m_configs.CaseSensitive, CaseSensitiveButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastCaseSensitive != m_configs.CaseSensitive)
             {
                 m_triggerFilteredEntryComputation = true;
                 m_needRegexRecompile = true;
             }
             bool lastSearchMessage = m_searchMessage;
-            m_searchMessage = GUILayout.Toggle(m_searchMessage, m_searchInLogMessageButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_searchMessage = GUILayout.Toggle(m_searchMessage, SearchInLogMessageButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchMessage != m_searchMessage)
             {
                 m_triggerFilteredEntryComputation = true;
             }
             bool lastSearchObjectName = m_configs.SearchObjectName;
-            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, m_searchInObjectNameButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.SearchObjectName = GUILayout.Toggle(m_configs.SearchObjectName, SearchInObjectNameButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchObjectName != m_configs.SearchObjectName)
             {
                 m_triggerFilteredEntryComputation = true;
             }
             bool lastSearchStackTRace = m_configs.SearchInStackTrace;
-            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, m_searchInStackTraceButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            m_configs.SearchInStackTrace = GUILayout.Toggle(m_configs.SearchInStackTrace, SearchInStackTraceButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
             if (lastSearchStackTRace != m_configs.SearchInStackTrace)
             {
                 m_triggerFilteredEntryComputation = true;
             }
             GUILayout.FlexibleSpace();
 #if UNITY_EDITOR
-            if (GUILayout.Button(m_pluginSettingsButtonContent))
+            if (GUILayout.Button(PluginSettingsButtonContent))
             {
                 SettingsService.OpenUserPreferences(ProperLoggerCustomSettingsProvider.s_pathToPreferences);
             }
