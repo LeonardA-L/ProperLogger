@@ -95,36 +95,81 @@ namespace ProperLogger
         #region Loaded Textures
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconInfo;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconWarning;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconError;
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconInfoGray;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconWarningGray;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_iconErrorGray;
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_clearIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_collapseIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_clearOnPlayIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_errorPauseIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_regexSearchIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_caseSensitiveIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_advancedSearchIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_exceptionIcon;
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_assertIcon;
 
         #endregion Loaded Textures

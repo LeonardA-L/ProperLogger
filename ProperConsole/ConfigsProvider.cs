@@ -112,7 +112,7 @@ namespace ProperLogger
         {
             get
             {
-                return GetInt("ProperConsole.CategoryCountInLogList", 1);
+                return GetInt("ProperConsole.CategoryCountInLogList", 3);
             }
             set
             {

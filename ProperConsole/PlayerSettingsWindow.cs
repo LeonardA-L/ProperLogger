@@ -246,7 +246,7 @@ namespace ProperLogger
             GUILayout.Space(12);
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Log List Category Count", GUILayout.Width(m_labelWidth));
+            GUILayout.Label("Log List Category Count Limit", GUILayout.Width(m_labelWidth));
             float parseResult = 0;
             float.TryParse(GUILayout.TextField("" + m_configs.CategoryCountInLogList), out parseResult);
             m_configs.CategoryCountInLogList = (int)Mathf.Max(0, parseResult);
