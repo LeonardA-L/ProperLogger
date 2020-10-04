@@ -10,6 +10,9 @@ namespace ProperLogger
         ConfigsProvider Config { get; }
         bool Listening { get; set; }
         CustomLogHandler LogHandler { get; set; }
+        bool LastCLickIsDisplayList { get; set; }
+        Rect ListDisplay { get; set; }
+        List<ConsoleLogEntry> SelectedEntries { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -200,6 +201,40 @@ namespace ProperLogger
                 customLogHandler.RemoveObserver(console);
             }
             console.Listening = false;
+        }
+        // TODO This doesn't work in play mode
+        internal static void HandleCopyToClipboard(IProperLogger console)
+        {
+            if (console.LastCLickIsDisplayList && console.SelectedEntries != null && console.SelectedEntries.Count > 0)
+            {
+                if (Event.current.type == EventType.ValidateCommand && Event.current.commandName == Strings.CopyCommandName)
+                {
+                    Event.current.Use();
+                }
+                else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == Strings.CopyCommandName)
+                {
+                    CopySelection(console);
+                }
+            }
+            if (Event.current.type == EventType.MouseDown)
+            {
+                if (!console.ListDisplay.Contains(Event.current.mousePosition))
+                {
+                    console.LastCLickIsDisplayList = false;
+                }
+            }
+        }
+        internal static void CopySelection(IProperLogger console)
+        {
+            // TODO check if this works in game
+            string result = string.Empty;
+
+            foreach (var entry in console.SelectedEntries)
+            {
+                result += entry.GetExportString() + Environment.NewLine + Environment.NewLine;
+            }
+
+            GUIUtility.systemCopyBuffer = result;
         }
     }
 }

@@ -73,7 +73,7 @@ namespace ProperLogger
         #region Layout
 
         //private int m_selectedIndex = -1;
-        private List<ConsoleLogEntry> m_selectedEntries = null;
+        public List<ConsoleLogEntry> SelectedEntries { get; set; } = null;
         private int m_displayedEntriesCount = -1;
         private DateTime m_lastClick = default;
 
@@ -87,12 +87,12 @@ namespace ProperLogger
         private float m_outerScrollableHeight = 0;
 
         private Rect m_showCategoriesButtonRect = default;
-        private Rect m_listDisplay = default;
+        public Rect ListDisplay { get; set; } = default;
 
         private Rect m_searchFieldRect = default;
         private Rect m_resetSearchButtonRect = default;
 
-        private bool m_lastCLickIsDisplayList = false;
+        public bool LastCLickIsDisplayList { get; set; } = false;
 
         #endregion Layout
 
@@ -209,7 +209,7 @@ namespace ProperLogger
             base.Awake();
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
-            m_selectedEntries = m_selectedEntries ?? new List<ConsoleLogEntry>();
+            SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
             Listening = false;
             m_entriesLock = new object();
             m_triggerFilteredEntryComputation = true;
@@ -290,32 +290,9 @@ namespace ProperLogger
                 m_errLog = 0;
                 m_entries.Clear();
                 PendingContexts.Clear();
-                m_selectedEntries.Clear();
+                SelectedEntries.Clear();
             }
             m_triggerFilteredEntryComputation = true;
-        }
-
-        // This doesn't work in play mode
-        public void HandleCopyToClipboard()
-        {
-            if (m_lastCLickIsDisplayList && m_selectedEntries != null && m_selectedEntries.Count > 0)
-            {
-                if (Event.current.type == EventType.ValidateCommand && Event.current.commandName == Strings.CopyCommandName)
-                {
-                    Event.current.Use();
-                }
-                else if (Event.current.type == EventType.ExecuteCommand && Event.current.commandName == Strings.CopyCommandName)
-                {
-                    CopySelection();
-                }
-            }
-            if (Event.current.type == EventType.MouseDown)
-            {
-                if (!m_listDisplay.Contains(Event.current.mousePosition))
-                {
-                    m_lastCLickIsDisplayList = false;
-                }
-            }
         }
 
         [Obfuscation(Exclude = true)]
@@ -330,7 +307,7 @@ namespace ProperLogger
 
         protected override void DoGui(int windowID)
         {
-            HandleCopyToClipboard();
+            C.HandleCopyToClipboard(this);
 
             if (InspectorTextStyle == null)
             {
@@ -402,7 +379,7 @@ namespace ProperLogger
 
             if (m_displayedEntries.Count < m_displayedEntriesCount)
             {
-                m_selectedEntries.Clear();
+                SelectedEntries.Clear();
             }
             m_displayedEntriesCount = m_displayedEntries.Count;
 
@@ -430,7 +407,7 @@ namespace ProperLogger
             GUILayout.EndVertical(); // Display list
             if (repaint)
             {
-                m_listDisplay = GUILayoutUtility.GetLastRect();
+                ListDisplay = GUILayoutUtility.GetLastRect();
             }
             #endregion DisplayList
 
@@ -462,9 +439,9 @@ namespace ProperLogger
                 GUILayout.MinHeight(m_splitterPosition));
                 m_inspectorScrollPosition = GUILayout.BeginScrollView(m_inspectorScrollPosition);
             }
-            if (m_selectedEntries.Count > 0)
+            if (SelectedEntries.Count > 0)
             {
-                var entry = m_selectedEntries[0];
+                var entry = SelectedEntries[0];
 
                 GUILayout.Space(1);
                 float currentX = (GUILayoutUtility.GetLastRect()).xMin;
@@ -555,7 +532,7 @@ namespace ProperLogger
             if (m_configs.Collapse != lastCollapse)
             {
                 m_triggerFilteredEntryComputation = true;
-                m_selectedEntries.Clear();
+                SelectedEntries.Clear();
             }
 
 #if UNITY_EDITOR
@@ -835,7 +812,7 @@ namespace ProperLogger
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
 
 
-            if (m_selectedEntries.Count > 0 && m_selectedEntries.Contains(entry))
+            if (SelectedEntries.Count > 0 && SelectedEntries.Contains(entry))
             {
                 currentStyle = SelectedEntry;
                 textStyle = SelectedEntryLabel;
@@ -941,45 +918,45 @@ namespace ProperLogger
                     EditorGUIUtility.PingObject(entry.context);
 #endif
                 }
-                if (m_selectedEntries.Count > 0 && m_selectedEntries[0] == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
+                if (SelectedEntries.Count > 0 && SelectedEntries[0] == entry && DateTime.Now.Ticks - m_lastClick.Ticks < m_doubleClickSpeed)
                 {
                     HandleDoubleClick(entry);
                 }
                 m_lastClick = DateTime.Now;
 
-                if (Event.current.shift && m_selectedEntries != null && m_selectedEntries.Count > 0)
+                if (Event.current.shift && SelectedEntries != null && SelectedEntries.Count > 0)
                 {
-                    int startIdx = m_displayedEntries.IndexOf(m_selectedEntries[m_selectedEntries.Count - 1]);
+                    int startIdx = m_displayedEntries.IndexOf(SelectedEntries[SelectedEntries.Count - 1]);
                     int thisIdx = idx;
                     for (int i = startIdx; i <= thisIdx; i++)
                     {
-                        if (!m_selectedEntries.Contains(m_displayedEntries[i]))
+                        if (!SelectedEntries.Contains(m_displayedEntries[i]))
                         {
-                            m_selectedEntries.Add(m_displayedEntries[i]);
+                            SelectedEntries.Add(m_displayedEntries[i]);
                         }
                     }
                 }
                 else if (Event.current.control)
                 {
-                    if (m_selectedEntries.Contains(entry))
+                    if (SelectedEntries.Contains(entry))
                     {
-                        m_selectedEntries.Remove(entry);
+                        SelectedEntries.Remove(entry);
                     }
                     else
                     {
-                        m_selectedEntries.Add(entry);
+                        SelectedEntries.Add(entry);
                     }
                 }
                 else
                 {
-                    m_selectedEntries.Clear();
-                    m_selectedEntries.Add(entry);
+                    SelectedEntries.Clear();
+                    SelectedEntries.Add(entry);
                 }
-                m_lastCLickIsDisplayList = true;
+                LastCLickIsDisplayList = true;
 
                 if (m_configs.CopyOnSelect)
                 {
-                    CopySelection();
+                    C.CopySelection(this);
                 }
             }
         }
@@ -1002,19 +979,6 @@ namespace ProperLogger
             }
             GUILayout.Label(count.ToString(), style, GUILayout.ExpandWidth(false), GUILayout.Width(collapseBubbleSize), GUILayout.Height(23));
             GUILayout.Space(sidePaddings);
-        }
-
-        private void CopySelection()
-        {
-            // TODO check if this works in game
-            string result = string.Empty;
-
-            foreach (var entry in m_selectedEntries)
-            {
-                result += entry.GetExportString() + Environment.NewLine + Environment.NewLine;
-            }
-
-            GUIUtility.systemCopyBuffer = result;
         }
 
         private Texture GetEntryIcon(ConsoleLogEntry entry)
