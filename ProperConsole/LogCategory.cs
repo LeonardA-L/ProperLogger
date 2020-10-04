@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace ProperLogger
 {
     [System.Serializable]
+    [Obfuscation(Exclude = true, ApplyToMembers = false)]
     public class LogCategory
     {
         /*internal static List<Color> s_categoryColors = new List<Color>()
@@ -18,9 +20,9 @@ namespace ProperLogger
             new Color(124f / 255f, 219f / 255f, 105f / 255f, 1f),
         };*/ // TODO const
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private string m_name = null;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Color m_color = Color.red;
         /*[SerializeField]
         private Sprite m_icon = null;*/

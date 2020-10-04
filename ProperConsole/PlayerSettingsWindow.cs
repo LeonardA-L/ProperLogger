@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace ProperLogger
 {
     // TODO mutualize
+    [Obfuscation(Exclude = true, ApplyToMembers = false)]
     public class PlayerSettingsWindow : ImGuiWindow<PlayerSettingsWindow>
     {
         private GUIContent m_resetButtonContent = null;
@@ -16,7 +18,7 @@ namespace ProperLogger
         private float m_labelWidth = 280f;
         private Vector2 m_scrollPos = new Vector2();
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_resetIcon = null;
         protected override string WindowName => "Console Settings";
 

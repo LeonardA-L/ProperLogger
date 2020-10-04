@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using System.Reflection;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif //UNITY_EDITOR
@@ -7,13 +8,15 @@ using UnityEditor;
 namespace ProperLogger
 {
     // TODO mutualize
+    [Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class CategoriesFilterGameWindow : MonoBehaviour
     {
         private ConfigsProvider m_configs = null;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         protected int m_depth = 1;
 
+        [Obfuscation(Exclude = true)]
         private void OnGUI()
         {
             if(ProperConsoleGameWindow.Instance == null)

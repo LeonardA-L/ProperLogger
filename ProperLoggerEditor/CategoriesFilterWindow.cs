@@ -8,6 +8,7 @@ namespace ProperLogger
     {
         private ConfigsProvider m_configs = null;
 
+        [System.Reflection.Obfuscation(Exclude = true)]
         private void OnGUI()
         {
             m_configs = m_configs ?? new EditorConfigs();

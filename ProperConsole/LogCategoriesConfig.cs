@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 
 namespace ProperLogger
 {
     [CreateAssetMenu(menuName = "Proper Logger/Categories")]
+    [Obfuscation(Exclude = true, ApplyToMembers = false)]
     public class LogCategoriesConfig : ScriptableObject
     {
         private static LogCategoriesConfig m_instance = null;
         public static LogCategoriesConfig Instance => m_instance;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         protected List<LogCategory> m_categories = null;
 
         //[System.NonSerialized]

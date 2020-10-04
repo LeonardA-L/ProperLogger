@@ -13,6 +13,7 @@ using System.IO;
 
 namespace ProperLogger
 {
+    //[Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver, IProperLogger
     {
         #region Members
@@ -245,6 +246,7 @@ namespace ProperLogger
             }
         }
 
+        [Obfuscation(Exclude = true)]
         private void OnEnable()
         {
             m_entries = m_entries ?? new List<ConsoleLogEntry>();
@@ -266,6 +268,7 @@ namespace ProperLogger
             m_needRegexRecompile = true;
         }
 
+        [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
             RemoveListener();
@@ -908,6 +911,7 @@ namespace ProperLogger
 
         #region GUI
 
+        [Obfuscation(Exclude = true)]
         void OnGUI()
         {
             HandleCopyToClipboard();
@@ -1644,7 +1648,7 @@ namespace ProperLogger
 
 #endregion GUI
 
-                #region Utilities
+        #region Utilities
 
         private void ComputeCollapsedEntries(List<ConsoleLogEntry> filteredEntries)
         {
@@ -1752,7 +1756,7 @@ namespace ProperLogger
             return m_iconError;
         }
 
-                #endregion Utilities
+        #endregion Utilities
 
         private void CheckForUnitySync()
         {
@@ -1774,6 +1778,7 @@ namespace ProperLogger
             }
         }
 
+        [Obfuscation(Exclude = true)]
         private void Update()
         {
             CheckForUnitySync();

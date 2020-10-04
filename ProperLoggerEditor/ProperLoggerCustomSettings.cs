@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -48,6 +49,7 @@ namespace ProperLogger
             m_currentSelectedTab = idx;
         }
 
+        [Obfuscation(Exclude = true)]
         public override void OnGUI(string searchContext)
         {
             m_configs = m_configs ?? new EditorConfigs();

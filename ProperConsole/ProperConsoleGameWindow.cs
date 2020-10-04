@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,11 +10,11 @@ using UnityEditor;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLoggerEditor")]
-[assembly: System.Reflection.ObfuscateAssemblyAttribute(true)]
+[assembly: ObfuscateAssembly(true)]
 
 namespace ProperLogger
 {
-    [System.Reflection.Obfuscation(Exclude = true, ApplyToMembers = false)]
+    [Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver, IProperLogger
     {
         [NonSerialized]
@@ -92,44 +93,44 @@ namespace ProperLogger
 
         #region Loaded Textures
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconInfo;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconWarning;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconError;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconInfoGray;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconWarningGray;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_iconErrorGray;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_clearIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_collapseIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_clearOnPlayIcon;
-        [SerializeField]
-        private Texture2D m_clearOnBuildIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
+        private Texture2D m_clearOnBuildIcon; // TODO not needed
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_errorPauseIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_regexSearchIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_caseSensitiveIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_advancedSearchIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_exceptionIcon;
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private Texture2D m_assertIcon;
 
         #endregion Loaded Textures
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private LogCategoriesConfig m_categoriesAsset = null;
         public LogCategoriesConfig CategoriesAsset
         {
@@ -140,10 +141,10 @@ namespace ProperLogger
             }
         }
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private bool m_hideUnityBuiltInConsole = true;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private bool m_openConsoleOnError = true;
 
         #region Caches
@@ -312,6 +313,7 @@ namespace ProperLogger
             m_inspectorTextStyle.clipping = TextClipping.Clip;
         }
 
+        [Obfuscation(Exclude = true)]
         protected override void Awake()
         {
             base.Awake();
@@ -327,6 +329,7 @@ namespace ProperLogger
             m_needRegexRecompile = true;
         }
 
+        [Obfuscation(Exclude = true)]
         protected override void OnDestroy()
         {
             RemoveListener();
@@ -334,6 +337,7 @@ namespace ProperLogger
             base.OnDestroy();
         }
 
+        [Obfuscation(Exclude = true)]
         protected override void OnDisable()
         {
             if (m_active)
@@ -343,6 +347,7 @@ namespace ProperLogger
             base.OnDisable();
         }
 
+        [Obfuscation(Exclude = true)]
         protected override void Update()
         {
             base.Update();
@@ -453,6 +458,7 @@ namespace ProperLogger
             }
         }
 
+        [Obfuscation(Exclude = true)]
         protected override void OnGUI()
         {
             if (m_hideUnityBuiltInConsole)

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace ProperLogger
@@ -9,25 +10,25 @@ namespace ProperLogger
         private static T m_instance = null;
         public static T Instance => m_instance;
 
-#if ENABLE_LEGACY_INPUT_MANAGER
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         private KeyCode m_triggerKey = KeyCode.None;
-#endif
-        [SerializeField]
+
+        [SerializeField, Obfuscation(Exclude = true)]
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin;
 
         protected bool m_active = false;
         private int m_windowID = 0;
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
 
-        [SerializeField]
+        [SerializeField, Obfuscation(Exclude = true)]
         protected int m_depth = 1;
 
         protected abstract string WindowName {get;}
 
+        [Obfuscation(Exclude = true)]
         protected virtual void Awake()
         {
             m_instance = this as T;
@@ -39,10 +40,12 @@ namespace ProperLogger
             }
         }
 
+        [Obfuscation(Exclude = true)]
         protected virtual void OnDestroy()
         {
         }
 
+        [Obfuscation(Exclude = true)]
         protected virtual void OnDisable()
         {
             if (m_active)
@@ -51,17 +54,16 @@ namespace ProperLogger
             }
         }
 
+        [Obfuscation(Exclude = true)]
         protected virtual void Update()
         {
 #if ENABLE_INPUT_SYSTEM
             // TODO implement and test this
 #endif
-#if ENABLE_LEGACY_INPUT_MANAGER
             if (m_triggerKey != KeyCode.None && Input.GetKeyDown(m_triggerKey))
             {
                 Toggle();
             }
-#endif
         }
 
         internal virtual void Toggle()
@@ -94,6 +96,7 @@ namespace ProperLogger
         {
         }
 
+        [Obfuscation(Exclude = true)]
         protected virtual void OnGUI()
         {
             if (!m_active)
