@@ -586,6 +586,10 @@ namespace ProperLogger
                 SyncWithUnityEntries();
             }
             TriggerFilteredEntryComputation = true;
+            if(ProperConsoleGameWindow.Instance != null)
+            {
+                ProperConsoleGameWindow.Instance.Clear();
+            }
         }
 
         public void ContextListener(LogType type, UnityEngine.Object context, string format, params object[] args)
