@@ -53,5 +53,20 @@ namespace ProperLogger
             var newCat = new LogCategory(name);
             m_categories.Add(newCat);
         }
+
+        public LogCategory this[string n]
+        {
+            get
+            {
+                foreach (var category in Categories)
+                {
+                    if(category.Name == n)
+                    {
+                        return category;
+                    }
+                }
+                return null;
+            }
+        }
     }
 }

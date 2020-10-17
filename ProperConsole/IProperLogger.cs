@@ -33,7 +33,7 @@ namespace ProperLogger
         bool SearchMessage { get; set; }
         Regex SearchRegex { get; set; }
         string[] SearchWords { get; set; }
-        List<LogCategory> InactiveCategories { get; set; }
+        List<string> InactiveCategories { get; set; }
         Rect SplitterRect { get; set; }
         bool NeedRegexRecompile { get; set; }
         System.DateTime LastRegexRecompile { get; set; }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 namespace ProperLogger
@@ -26,6 +28,9 @@ namespace ProperLogger
         private Color m_color = Color.red;
         /*[SerializeField]
         private Sprite m_icon = null;*/
+        [SerializeField, Obfuscation(Exclude = true)]
+        [CategoryParent]
+        private string m_parentCategory = null;
 
         public LogCategory(string name)
         {
@@ -35,5 +40,6 @@ namespace ProperLogger
         //public Sprite Icon => m_icon;
         public string Name => m_name;
         public Color Color => m_color;
+        public string Parent => m_parentCategory;
     }
 }

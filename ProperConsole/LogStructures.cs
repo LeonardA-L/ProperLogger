@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ProperLogger
@@ -28,6 +29,8 @@ namespace ProperLogger
         public string assetLine;
         public string assetPath;
         public List<LogCategory> categories;
+        public List<string> categoriesStringsCache = null;
+        public List<string> categoriesStrings => categoriesStringsCache ?? (categoriesStringsCache = categories.Select(c=>c.Name).ToList());
         public string originalMessage;
         public string originalStackTrace;
         public int unityMode;

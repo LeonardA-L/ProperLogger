@@ -79,6 +79,11 @@ namespace ProperLogger
                                 inactiveCategories.Add(category);
                                 m_configs.InactiveCategories = inactiveCategories;
                             }
+                            if(ProperConsoleGameWindow.Instance != null)
+                            {
+                                ProperConsoleGameWindow.Instance.TriggerFilteredEntryComputation = true;
+                                ProperConsoleGameWindow.Instance.TriggerRepaint();
+                            }
                         }
                     }
                     GUI.color = defaultColor;

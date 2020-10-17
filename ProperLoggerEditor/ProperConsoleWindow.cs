@@ -63,7 +63,7 @@ namespace ProperLogger
 
         public string SearchString { get; set; } = null;
         public string[] SearchWords { get; set; } = null;
-        public List<LogCategory> InactiveCategories { get; set; } = null;
+        public List<string> InactiveCategories { get; set; } = null;
 
         #endregion Filters
 
@@ -512,9 +512,9 @@ namespace ProperLogger
 
             startGettingEntries.Invoke(null, null);
             int firstIndex = 0;
+            object entry = Activator.CreateInstance(logEntry);
             for (int i = 0; i < count; i++)
             {
-                object entry = Activator.CreateInstance(logEntry);
                 object[] objparameters = new object[] { i, entry };
                 bool result = (bool)getEntryInternal.Invoke(null, objparameters);
                 if (result)
@@ -724,7 +724,7 @@ namespace ProperLogger
 
         public void TriggerRepaint()
         {
-            Repaint();
+            EditorApplication.delayCall += new EditorApplication.CallbackFunction(Repaint);
         }
 
         public void ToggleSettings()

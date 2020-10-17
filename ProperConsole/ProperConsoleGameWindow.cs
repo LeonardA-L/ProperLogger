@@ -60,7 +60,7 @@ namespace ProperLogger
 
         public string SearchString { get; set; } = null;
         public string[] SearchWords { get; set; } = null;
-        public List<LogCategory> InactiveCategories { get; set; } = null;
+        public List<string> InactiveCategories { get; set; } = null;
 
         #endregion Filters
 

@@ -399,6 +399,25 @@ namespace ProperLogger
 #endif //UNITY_EDITOR
             return newConsoleEntry;
         }
+
+        private static bool IsActiveCategory(LogCategory category, string[] inactiveRoots, List<string> observed, LogCategoriesConfig config)
+        {
+            if (category == null || observed.Contains(category.Name))
+            {
+                return true;
+            }
+            if (inactiveRoots.Contains(category.Name))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(category.Parent))
+            {
+                return true;
+            }
+            observed.Add(category.Name);
+            return IsActiveCategory(config[category.Parent], inactiveRoots, observed, config);
+        }
+
         internal static bool ValidFilter(IProperLogger console, ConsoleLogEntry e)
         {
             bool valid = true;
@@ -437,7 +456,7 @@ namespace ProperLogger
             // Categories
             if (console.InactiveCategories.Count > 0)
             {
-                valid &= console.InactiveCategories.Intersect(e.categories).Count() == 0;
+                valid &= console.InactiveCategories.Intersect(e.categoriesStrings).Count() == 0;
                 if (!valid)
                 {
                     return false;
@@ -917,9 +936,6 @@ namespace ProperLogger
             bool callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
-            console.InactiveCategories?.Clear();
-            console.InactiveCategories = console.Config.InactiveCategories;
-
             if (console.IsGame)
             {
                 if (console.ExternalDisplayCloseButton())
@@ -980,6 +996,21 @@ namespace ProperLogger
 
             if (console.TriggerFilteredEntryComputation)
             {
+                console.InactiveCategories?.Clear();
+
+                if (console.Config.CurrentCategoriesConfig != null && console.Config.CurrentCategoriesConfig.Categories != null)
+                {
+                    console.InactiveCategories = new List<string>();
+                    var inactiveCategoryConfig = console.Config.InactiveCategories.Select(s => s.Name).ToArray();
+                    foreach (var category in console.Config.CurrentCategoriesConfig.Categories)
+                    {
+                        if (!IsActiveCategory(category, inactiveCategoryConfig, new List<string>(), console.Config.CurrentCategoriesConfig))
+                        {
+                            console.InactiveCategories.Add(category.Name);
+                        }
+                    }
+                }
+
                 console.FilteredEntries = console.Entries.FindAll(e => ValidFilter(console, e));
                 if (console.Config.Collapse)
                 {
@@ -1113,6 +1144,16 @@ namespace ProperLogger
                 if (GUILayout.Button("Log Combat"))
                 {
                     Debug.Log($"[Combat] [Performance] Log {DateTime.Now.ToString()} {console.Listening}", Camera.main);
+                }
+
+                if (GUILayout.Button("Log Dialogue"))
+                {
+                    Debug.Log($"[Dialogue] Log {DateTime.Now.ToString()} {console.Listening}", Camera.main);
+                }
+
+                if (GUILayout.Button("Log Performance2"))
+                {
+                    Debug.Log($"[Performance2] Log {DateTime.Now.ToString()} {console.Listening}", Camera.main);
                 }
 
                 if (GUILayout.Button("Log Performance"))
