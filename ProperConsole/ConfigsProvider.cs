@@ -5,8 +5,23 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    internal abstract class ConfigsProvider
+    internal abstract class ConfigsProvider<T> : ConfigsProvider where T : new()
     {
+        private static T s_instance = default;
+        internal static T Instance
+        {
+            get
+            {
+                if (s_instance == null)
+                {
+                    s_instance = new T();
+                }
+                return s_instance;
+            }
+        }
+    }
+
+    internal abstract class ConfigsProvider { 
         protected abstract void Save();
 
         protected abstract float GetFloat(string key, float defaultValue);
@@ -70,19 +85,28 @@ namespace ProperLogger
             }
         }
 
+        private bool ColorStripWidthIsCached = false;
+        private int ColorStripWidthCache = 1;
         internal void ResetColorStripWidth()
         {
             Reset("ProperConsole.ColorStripWidth");
+            ColorStripWidthIsCached = false;
         }
         internal int ColorStripWidth
         {
             get
             {
-                return GetInt("ProperConsole.ColorStripWidth", 5);
+                if (!ColorStripWidthIsCached)
+                {
+                    ColorStripWidthCache = GetInt("ProperConsole.ColorStripWidth", 5);
+                    ColorStripWidthIsCached = true;
+                }
+                return ColorStripWidthCache;
             }
             set
             {
                 SetInt("ProperConsole.ColorStripWidth", value);
+                ColorStripWidthCache = value;
                 Save();
             }
         }
@@ -138,18 +162,27 @@ namespace ProperLogger
             }
         }
 
+        private bool CategoryDisplayIsCached = false;
+        private ECategoryDisplay CategoryDisplayCache = (ECategoryDisplay.NameColumn | ECategoryDisplay.ColorStrip | ECategoryDisplay.InInspector);
         internal void ResetCategoryDisplay()
         {
             Reset("ProperConsole.CategoryDisplay");
+            CategoryDisplayIsCached = false;
         }
         internal ECategoryDisplay CategoryDisplay
         {
             get
             {
-                return (ECategoryDisplay)GetInt("ProperConsole.CategoryDisplay", (int)(ECategoryDisplay.NameColumn | ECategoryDisplay.ColorStrip | ECategoryDisplay.InInspector));
+                if (!CategoryDisplayIsCached)
+                {
+                    CategoryDisplayCache = (ECategoryDisplay)GetInt("ProperConsole.CategoryDisplay", (int)(ECategoryDisplay.NameColumn | ECategoryDisplay.ColorStrip | ECategoryDisplay.InInspector));
+                    CategoryDisplayIsCached = true;
+                }
+                return CategoryDisplayCache;
             }
             set
             {
+                CategoryDisplayCache = value;
                 SetInt("ProperConsole.CategoryDisplay", (int)value);
                 Save();
             }
@@ -199,69 +232,105 @@ namespace ProperLogger
             get;set;
         }
 
+        private bool LogEntryMessageLineCountIsCached = false;
+        private int LogEntryMessageLineCountCache = 1;
         internal void ResetLogEntryMessageLineCount()
         {
             Reset("ProperConsole.LogEntryMessageLineCount");
+            LogEntryMessageLineCountIsCached = false;
         }
         internal int LogEntryMessageLineCount
         {
             get
             {
-                return GetInt("ProperConsole.LogEntryMessageLineCount", 1);
+                if (!LogEntryMessageLineCountIsCached)
+                {
+                    LogEntryMessageLineCountCache = GetInt("ProperConsole.LogEntryMessageLineCount", 1);
+                    LogEntryMessageLineCountIsCached = true;
+                }
+                return LogEntryMessageLineCountCache;
             }
             set
             {
+                LogEntryMessageLineCountCache = value;
                 SetInt("ProperConsole.LogEntryMessageLineCount", value);
                 Save();
             }
         }
 
+        private bool LogEntryStackTraceLineCountIsCached = false;
+        private int LogEntryStackTraceLineCountCache = 1;
         internal void ResetLogEntryStackTraceLineCount()
         {
             Reset("ProperConsole.LogEntryStackTraceLineCount");
+            LogEntryStackTraceLineCountIsCached = false;
         }
         internal int LogEntryStackTraceLineCount
         {
             get
             {
-                return GetInt("ProperConsole.LogEntryStackTraceLineCount", 1);
+                if (!LogEntryStackTraceLineCountIsCached)
+                {
+                    LogEntryStackTraceLineCountCache = GetInt("ProperConsole.LogEntryStackTraceLineCount", 1);
+                    LogEntryStackTraceLineCountIsCached = true;
+                }
+                return LogEntryStackTraceLineCountCache;
             }
             set
             {
+                LogEntryStackTraceLineCountCache = value;
                 SetInt("ProperConsole.LogEntryStackTraceLineCount", value);
                 Save();
             }
         }
 
+        private bool LogEntryMessageFontSizeIsCached = false;
+        private int LogEntryMessageFontSizeCache = 14;
         internal void ResetLogEntryMessageFontSize()
         {
             Reset("ProperConsole.LogEntryMessageFontSize");
+            LogEntryMessageFontSizeIsCached = false;
         }
         internal int LogEntryMessageFontSize
         {
             get
             {
-                return GetInt("ProperConsole.LogEntryMessageFontSize", 14);
+                if (!LogEntryMessageFontSizeIsCached)
+                {
+                    LogEntryMessageFontSizeCache = GetInt("ProperConsole.LogEntryMessageFontSize", 14);
+                    LogEntryMessageFontSizeIsCached = true;
+                }
+                return LogEntryMessageFontSizeCache;
             }
             set
             {
+                LogEntryMessageFontSizeCache = value;
                 SetInt("ProperConsole.LogEntryMessageFontSize", value);
                 Save();
             }
         }
 
+        private bool LogEntryStackTraceFontSizeIsCached = false;
+        private int LogEntryStackTraceFontSizeCache = 12;
         internal void ResetLogEntryStackTraceFontSize()
         {
             Reset("ProperConsole.LogEntryStackTraceFontSize");
+            LogEntryStackTraceFontSizeIsCached = false;
         }
         internal int LogEntryStackTraceFontSize
         {
             get
             {
-                return GetInt("ProperConsole.LogEntryStackTraceFontSize", 12);
+                if (!LogEntryStackTraceFontSizeIsCached)
+                {
+                    LogEntryStackTraceFontSizeCache = GetInt("ProperConsole.LogEntryStackTraceFontSize", 12);
+                    LogEntryStackTraceFontSizeIsCached = true;
+                }
+                return LogEntryStackTraceFontSizeCache;
             }
             set
             {
+                LogEntryStackTraceFontSizeCache = value;
                 SetInt("ProperConsole.LogEntryStackTraceFontSize", value);
                 Save();
             }

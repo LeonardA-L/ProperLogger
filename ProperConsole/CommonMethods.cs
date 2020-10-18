@@ -12,6 +12,7 @@ namespace ProperLogger
 {
     internal class CommonMethods
     {
+        private static Color s_darkerColor = new Color(1, 1, 1, 0.28f);
         private static float s_doubleClickSpeed = 300 * 10000; // Could be a config ?
         private static float s_regexCompileDebounce => 200 * 10000;
         private static Regex s_categoryParse = null;
@@ -126,6 +127,8 @@ namespace ProperLogger
             inspectorTextStyle.stretchWidth = true;
             inspectorTextStyle.clipping = TextClipping.Clip;
             console.InspectorTextStyle = inspectorTextStyle;
+
+            console.EntryIconStyle = new GUIStyle(console.Skin.FindStyle("EntryIcon"));
         }
         internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
         {
@@ -737,7 +740,6 @@ namespace ProperLogger
 
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
 
-
             if (console.SelectedEntries.Count > 0 && console.SelectedEntries.Contains(entry))
             {
                 currentStyle = console.SelectedEntry;
@@ -751,53 +753,53 @@ namespace ProperLogger
             var guiColor = GUI.color;
             if (console.IsGame)
             {
-                GUI.color = new Color(1, 1, 1, 0.28f);
+                GUI.color = s_darkerColor;
             }
             else
             {
 #if UNITY_EDITOR
                 if (EditorGUIUtility.isProSkin)
                 {
-                    GUI.color = new Color(1, 1, 1, 0.28f);
+                    GUI.color = s_darkerColor;
                 }
 #endif // UNITY_EDITOR
             }
             GUILayout.BeginHorizontal(currentStyle, GUILayout.Height(ItemHeight(console)));
             {
                 GUI.color = guiColor;
-                //GUI.color = saveColor;
                 // Picto space
-                GUILayout.BeginHorizontal(GUILayout.Width(imageSize + sidePaddings));
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Box(GetEntryIcon(console, entry), GUIStyle.none, GUILayout.Width(imageSize), GUILayout.Height(imageSize));
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.EndHorizontal();
+                GUILayout.Box(GetEntryIcon(console, entry), console.EntryIconStyle, GUILayout.Width(imageSize), GUILayout.Height(imageSize)); // TODO cache
                 // Text space
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(GUILayout.Width(entrywidth));
                 {
                     textStyle.fontSize = console.Config.LogEntryMessageFontSize;
-                    GUILayout.Label($"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false)}", textStyle, GUILayout.Width(entrywidth));
+                    if (string.IsNullOrEmpty(entry.cachedFirstLine) || console.PurgeGetLinesCache)
+                    {
+                        entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false)}";
+                    }
+                    GUILayout.Label(entry.cachedFirstLine, textStyle);
                     textStyle.fontSize = console.Config.LogEntryStackTraceFontSize;
                     if (console.Config.LogEntryStackTraceLineCount > 0)
                     {
-                        if (console.Config.ShowContextNameInsteadOfStack && entry.context != null)
+                        if (string.IsNullOrEmpty(entry.cachedSecondLine) || console.PurgeGetLinesCache)
                         {
-                            GUILayout.Label($"{entry.context.name}", textStyle, GUILayout.Width(entrywidth));
+                            if (console.Config.ShowContextNameInsteadOfStack && entry.context != null)
+                            {
+                                entry.cachedSecondLine = entry.context.name;
+                            }
+                            else if (!string.IsNullOrEmpty(entry.stackTrace))
+                            {
+                                entry.cachedSecondLine = $"{Utils.GetFirstLines(entry.traceLines, 0, console.Config.LogEntryStackTraceLineCount, true)}";
+                            }
+                            else
+                            {
+                                entry.cachedSecondLine = $"{Utils.GetFirstLines(entry.messageLines, console.Config.LogEntryMessageLineCount, console.Config.LogEntryStackTraceLineCount, false)}";
+                            }
                         }
-                        else if (!string.IsNullOrEmpty(entry.stackTrace))
-                        {
-                            GUILayout.Label($"{Utils.GetFirstLines(entry.traceLines, 0, console.Config.LogEntryStackTraceLineCount, true)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
-                        }
-                        else
-                        {
-                            GUILayout.Label($"{Utils.GetFirstLines(entry.messageLines, console.Config.LogEntryMessageLineCount, console.Config.LogEntryStackTraceLineCount, false)}", textStyle, GUILayout.Width(entrywidth)); // TODO cache this line
-                        }
+                        GUILayout.Label(entry.cachedSecondLine, textStyle);
                     }
                 }
                 GUILayout.EndVertical();
-                GUILayout.FlexibleSpace();
                 // First Category space
                 if (categoryColumn && entry.categories != null && entry.categories.Count > 0)
                 {
@@ -807,16 +809,10 @@ namespace ProperLogger
                         var category = entry.categories[i];
                         var categoryColor = console.CategoryNameStyle.normal.textColor;
                         console.CategoryNameStyle.normal.textColor = Color.Lerp(console.CategoryNameStyle.normal.textColor, category.Color, console.Config.CategoryNameInLogListColorize);
-                        GUILayout.Label(category.Name.ToString(), console.CategoryNameStyle, GUILayout.ExpandWidth(true));
+                        GUILayout.Label(category.Name, console.CategoryNameStyle);
                         console.CategoryNameStyle.normal.textColor = categoryColor;
                     }
                     GUILayout.EndHorizontal();
-                    /*
-                    if (displayCategoryIconInColumn && category.Icon != null)
-                    {
-                        //GUILayout.Box(category.Icon, GUILayout.Width(categoryColumnWidth - 20));
-                    }
-                    */
                 }
                 // Collapse Space
                 if (console.Config.Collapse)
@@ -1253,6 +1249,7 @@ namespace ProperLogger
                 }
 #endif // UNITY_EDITOR
             }
+            console.PurgeGetLinesCache = false;
         }
 
     }

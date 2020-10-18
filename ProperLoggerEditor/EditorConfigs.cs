@@ -2,7 +2,7 @@
 
 namespace ProperLogger
 {
-    internal class EditorConfigs : ConfigsProvider
+    internal class EditorConfigs : ConfigsProvider<EditorConfigs>
     {
         protected override bool GetBool(string key, bool defaultValue)
         {

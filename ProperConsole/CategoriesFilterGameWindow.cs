@@ -45,7 +45,7 @@ namespace ProperLogger
 
             GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, (GUIStyle)"Box");
 
-            m_configs = m_configs ?? new PlayerConfigs();
+            m_configs = m_configs ?? PlayerConfigs.Instance;
 
             if(m_configs.CurrentCategoriesConfig == null)
             {

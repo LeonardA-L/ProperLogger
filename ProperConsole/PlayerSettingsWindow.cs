@@ -28,7 +28,7 @@ namespace ProperLogger
 
             m_resetButtonContent = new GUIContent(m_resetIcon);
             m_resetButtonOptions = new GUILayoutOption[] { GUILayout.Height(20), GUILayout.Width(20), GUILayout.ExpandWidth(false) };
-            m_configs = new PlayerConfigs();
+            m_configs = PlayerConfigs.Instance;
             m_scrollPos = new Vector2();
 
             if(ProperConsoleGameWindow.Instance != null)
@@ -80,6 +80,7 @@ namespace ProperLogger
             {
                 if(ProperConsoleGameWindow.Instance != null)
                 {
+                    ProperConsoleGameWindow.Instance.PurgeGetLinesCache = true;
                     CommonMethods.ClearStyles(ProperConsoleGameWindow.Instance);
                 }
             }
@@ -259,6 +260,11 @@ namespace ProperLogger
             if (GUILayout.Button(new GUIContent("  Reset Everything to Default Values", m_resetIcon), GUILayout.Height(25)))
             {
                 m_configs.ResetAll();
+                if (ProperConsoleGameWindow.Instance != null)
+                {
+                    ProperConsoleGameWindow.Instance.PurgeGetLinesCache = true;
+                    CommonMethods.ClearStyles(ProperConsoleGameWindow.Instance);
+                }
             }
             GUILayout.EndHorizontal();
         }

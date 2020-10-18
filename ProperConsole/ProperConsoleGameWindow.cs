@@ -24,7 +24,7 @@ namespace ProperLogger
 
         #region Configs
 
-        private ConfigsProvider m_configs = new PlayerConfigs();
+        private ConfigsProvider m_configs = PlayerConfigs.Instance;
         public ConfigsProvider Config => m_configs;
 
         public bool AutoScroll { get; set; } = true;
@@ -32,6 +32,8 @@ namespace ProperLogger
         public bool SearchMessage { get; set; } = true;
 
         public bool IsDarkSkin { get; set; } = false;
+
+        public bool PurgeGetLinesCache { get; set; } = true;
 
         #endregion Configs
 
@@ -246,6 +248,7 @@ namespace ProperLogger
         public GUIStyle CollapseBubbleErrorStyle { get; set; } = null;
         public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
         public GUIStyle InspectorTextStyle { get; set; } = null;
+        public GUIStyle EntryIconStyle { get; set; } = null;
 
         public bool ShowCategoryFilter { get; set; } = false;
         public Rect CategoryFilterRect { get; private set; } = default;

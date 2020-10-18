@@ -30,7 +30,7 @@ namespace ProperLogger
         #region Configs
         public Rect WindowRect => default;
 
-        private ConfigsProvider m_configs = new EditorConfigs();
+        private ConfigsProvider m_configs = EditorConfigs.Instance;
         public ConfigsProvider Config => m_configs;
 
 
@@ -39,6 +39,8 @@ namespace ProperLogger
         public bool SearchMessage { get; set; } = true;
 
         public bool IsDarkSkin { get; set; } = false;
+
+        public bool PurgeGetLinesCache { get; set; } = true;
 
         #endregion Configs
 
@@ -186,6 +188,7 @@ namespace ProperLogger
         public GUIStyle CollapseBubbleErrorStyle { get; set; } = null;
         public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
         public GUIStyle InspectorTextStyle { get; set; } = null;
+        public GUIStyle EntryIconStyle { get; set; } = null;
 
         #endregion Caches
         #endregion Members

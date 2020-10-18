@@ -21,6 +21,8 @@ namespace ProperLogger
         public string timestamp;
         public string message;
         public string[] messageLines;
+        public string cachedFirstLine;
+        public string cachedSecondLine;
         public LogLevel level;
         public string stackTrace;
         public string[] traceLines;

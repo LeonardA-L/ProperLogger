@@ -17,7 +17,7 @@ namespace ProperLogger
 
             public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
             {
-                m_configs = m_configs ?? new EditorConfigs();
+                m_configs = m_configs ?? EditorConfigs.Instance;
                 var categoriesConfig = m_configs.CurrentCategoriesConfig;
                 if(categoriesConfig == null)
                 {

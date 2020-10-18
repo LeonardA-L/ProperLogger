@@ -32,11 +32,7 @@ namespace ProperLogger
 
         internal static string GetFirstLines(string[] lines, int skip, int count, bool isCallStack)
         {
-            if (lines == null)
-            {
-                return string.Empty;
-            }
-            if (lines.Length == 0)
+            if (lines == null || lines.Length == 0)
             {
                 return string.Empty;
             }

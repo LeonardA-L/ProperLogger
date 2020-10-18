@@ -45,6 +45,7 @@ namespace ProperLogger
         int DisplayedEntriesCount { get; set; }
         bool IsDarkSkin { get; set; }
         Rect WindowRect { get; }
+        bool PurgeGetLinesCache { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
@@ -89,6 +90,7 @@ namespace ProperLogger
         GUIStyle CollapseBubbleErrorStyle { get; set; }
         GUIStyle ToolbarIconButtonStyle { get; set; }
         GUIStyle InspectorTextStyle { get; set; }
+        GUIStyle EntryIconStyle { get; set; }
 
         List<ConsoleLogEntry> CollapsedEntries { get; set; }
         List<PendingContext> PendingContexts { get; set; }

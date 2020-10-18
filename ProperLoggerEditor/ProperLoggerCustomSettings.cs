@@ -52,7 +52,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         public override void OnGUI(string searchContext)
         {
-            m_configs = m_configs ?? new EditorConfigs();
+            m_configs = m_configs ?? EditorConfigs.Instance;
             if(m_subtitleStyle == null)
             {
                 m_subtitleStyle = new GUIStyle();
@@ -118,6 +118,8 @@ namespace ProperLogger
 
             if (EditorGUI.EndChangeCheck() && ProperConsoleWindow.Instance != null)
             {
+                ProperConsoleWindow.Instance.PurgeGetLinesCache = true;
+                CommonMethods.ClearStyles(ProperConsoleWindow.Instance);
                 ProperConsoleWindow.Instance.Repaint();
             }
 

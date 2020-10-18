@@ -2,7 +2,7 @@
 
 namespace ProperLogger
 {
-    internal class PlayerConfigs : ConfigsProvider
+    internal class PlayerConfigs : ConfigsProvider<PlayerConfigs>
     {
 
         protected override bool GetBool(string key, bool defaultValue)

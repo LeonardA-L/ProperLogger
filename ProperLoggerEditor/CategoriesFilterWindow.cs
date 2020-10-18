@@ -11,7 +11,7 @@ namespace ProperLogger
         [System.Reflection.Obfuscation(Exclude = true)]
         private void OnGUI()
         {
-            m_configs = m_configs ?? new EditorConfigs();
+            m_configs = m_configs ?? EditorConfigs.Instance;
 
             if(m_configs.CurrentCategoriesConfig == null)
             {
