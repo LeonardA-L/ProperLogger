@@ -918,6 +918,24 @@ namespace ProperLogger
             GUILayout.Space(sidePaddings);
         }
 
+        private static void ComputeInactiveCategories(IProperLogger console)
+        {
+            console.InactiveCategories?.Clear();
+            console.InactiveCategories = new List<string>();
+
+            if (console.Config.CurrentCategoriesConfig != null && console.Config.CurrentCategoriesConfig.Categories != null)
+            {
+                var inactiveCategoryConfig = console.Config.InactiveCategories.Select(s => s.Name).ToArray();
+                foreach (var category in console.Config.CurrentCategoriesConfig.Categories)
+                {
+                    if (!IsActiveCategory(category, inactiveCategoryConfig, new List<string>(), console.Config.CurrentCategoriesConfig))
+                    {
+                        console.InactiveCategories.Add(category.Name);
+                    }
+                }
+            }
+        }
+
         internal static void DoGui(IProperLogger console)
         {
             HandleCopyToClipboard(console);
@@ -996,19 +1014,9 @@ namespace ProperLogger
 
             if (console.TriggerFilteredEntryComputation)
             {
-                console.InactiveCategories?.Clear();
-
-                if (console.Config.CurrentCategoriesConfig != null && console.Config.CurrentCategoriesConfig.Categories != null)
+                if(console.InactiveCategories == null)
                 {
-                    console.InactiveCategories = new List<string>();
-                    var inactiveCategoryConfig = console.Config.InactiveCategories.Select(s => s.Name).ToArray();
-                    foreach (var category in console.Config.CurrentCategoriesConfig.Categories)
-                    {
-                        if (!IsActiveCategory(category, inactiveCategoryConfig, new List<string>(), console.Config.CurrentCategoriesConfig))
-                        {
-                            console.InactiveCategories.Add(category.Name);
-                        }
-                    }
+                    ComputeInactiveCategories(console);
                 }
 
                 console.FilteredEntries = console.Entries.FindAll(e => ValidFilter(console, e));

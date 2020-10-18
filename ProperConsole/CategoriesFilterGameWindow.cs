@@ -81,6 +81,7 @@ namespace ProperLogger
                             }
                             if(ProperConsoleGameWindow.Instance != null)
                             {
+                                ProperConsoleGameWindow.Instance.InactiveCategories = null;
                                 ProperConsoleGameWindow.Instance.TriggerFilteredEntryComputation = true;
                                 ProperConsoleGameWindow.Instance.TriggerRepaint();
                             }
