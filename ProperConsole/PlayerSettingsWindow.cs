@@ -19,6 +19,9 @@ namespace ProperLogger
         private Vector2 m_scrollPos = new Vector2();
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         private Texture2D m_resetIcon = null;
         protected override string WindowName => "Console Settings";
 

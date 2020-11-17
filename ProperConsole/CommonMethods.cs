@@ -252,9 +252,9 @@ namespace ProperLogger
         internal static void FlagButton(IProperLogger console, LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (console.Config.LogLevelFilter & level) != 0;
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent($" {(counter > 999 ? Strings.NineNineNinePlus : counter.ToString())}", (counter > 0 ? icon : iconGray)),
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent((counter > 999 ? Strings.NineNineNinePlus : counter.ToString()), (counter > 0 ? icon : iconGray)),
                 console.ToolbarIconButtonStyle
-                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter)), GUILayout.ExpandWidth(false)
+                , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter))
                 );
             if (hasFlag != newFlagValue)
             {
@@ -384,7 +384,21 @@ namespace ProperLogger
 
             if (console.IsGame)
             {
-                if (console.OpenConsoleOnError && !console.Active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
+                bool openConsoleOnError = false;
+                switch (console.OpenConsoleOnError)
+                {
+                    case EOpenOnError.Never:
+                    default:
+                        openConsoleOnError = false;
+                        break;
+                    case EOpenOnError.Always:
+                        openConsoleOnError = true;
+                        break;
+                    case EOpenOnError.DebugBuild:
+                        openConsoleOnError = Debug.isDebugBuild;
+                        break;
+                }
+                if (openConsoleOnError && !console.Active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
                 {
                     console.ExternalToggle();
                 }

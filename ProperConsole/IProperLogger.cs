@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace ProperLogger
 {
+    internal enum EOpenOnError
+    {
+        Never,
+        DebugBuild,
+        Always,
+    }
+
     internal interface IProperLogger : ILogObserver
     {
         bool IsGame { get; }
@@ -28,7 +35,7 @@ namespace ProperLogger
         bool TriggerSyncWithUnityComputation { get; set; }
         object EntriesLock { get; set; }
         List<ConsoleLogEntry> Entries { get; set; }
-        bool OpenConsoleOnError { get; }
+        EOpenOnError OpenConsoleOnError { get; }
         bool Active { get; }
         bool SearchMessage { get; set; }
         Regex SearchRegex { get; set; }

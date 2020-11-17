@@ -177,6 +177,7 @@ namespace ProperLogger
         #endregion Loaded Textures
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("Categories Asset. This should be injected automatically when opening plugin settings in editor")]
         private LogCategoriesConfig m_categoriesAsset = null;
         public LogCategoriesConfig CategoriesAsset
         {
@@ -188,11 +189,13 @@ namespace ProperLogger
         }
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("When checked, this option will attempt to close the Unity built in dev-console that usually opens on error")]
         private bool m_hideUnityBuiltInConsole = true;
 
         [SerializeField, Obfuscation(Exclude = true)]
-        private bool m_openConsoleOnError = true;
-        public bool OpenConsoleOnError => m_openConsoleOnError;
+        [Tooltip("This console will open automatically at the first error log")]
+        private EOpenOnError m_openConsoleOnError = EOpenOnError.DebugBuild;
+        public EOpenOnError OpenConsoleOnError => m_openConsoleOnError;
         public bool Active => m_active;
         public Rect WindowRect => m_windowRect;
 

@@ -145,18 +145,27 @@ namespace ProperLogger
             }
         }
 
+        private bool CategoryNameInLogListColorizeIsCached = false;
+        private float CategoryNameInLogListColorizeCache = 0.4f;
         internal void ResetCategoryNameInLogListColorize()
         {
             Reset("ProperConsole.CategoryNameInLogListColorize");
+            CategoryNameInLogListColorizeIsCached = false;
         }
         internal float CategoryNameInLogListColorize
         {
             get
             {
-                return GetFloat("ProperConsole.CategoryNameInLogListColorize", 0.4f);
+                if (!CategoryNameInLogListColorizeIsCached)
+                {
+                    CategoryNameInLogListColorizeCache = GetFloat("ProperConsole.CategoryNameInLogListColorize", 0.4f);
+                    CategoryNameInLogListColorizeIsCached = true;
+                }
+                return CategoryNameInLogListColorizeCache;
             }
             set
             {
+                CategoryNameInLogListColorizeCache = value;
                 SetFloat("ProperConsole.CategoryNameInLogListColorize", value);
                 Save();
             }
@@ -378,18 +387,28 @@ namespace ProperLogger
             }
         }
 
+
+        private bool LogLevelFilterIsCached = false;
+        private int LogLevelFilterCache = (int)LogLevel.All;
         internal void ResetLogLevelFilter()
         {
             Reset("ProperConsole.LogLevelFilter");
+            LogLevelFilterIsCached = false;
         }
         internal LogLevel LogLevelFilter
         {
             get
             {
-                return (LogLevel) GetInt("ProperConsole.LogLevelFilter", (int)LogLevel.All);
+                if (!LogLevelFilterIsCached)
+                {
+                    LogLevelFilterCache = GetInt("ProperConsole.LogLevelFilter", (int)LogLevel.All);
+                    LogLevelFilterIsCached = true;
+                }
+                return (LogLevel)LogLevelFilterCache;
             }
             set
             {
+                LogLevelFilterCache = (int)value;
                 SetInt("ProperConsole.LogLevelFilter", (int)value);
                 Save();
             }
@@ -412,18 +431,28 @@ namespace ProperLogger
             }
         }
 
+
+        private bool ShowContextNameInsteadOfStackIsCached = false;
+        private bool ShowContextNameInsteadOfStackCache = true;
         internal void ResetshowContextNameInsteadOfStack()
         {
             Reset("ProperConsole.showContextNameInsteadOfStack");
+            ShowContextNameInsteadOfStackIsCached = false;
         }
         internal bool ShowContextNameInsteadOfStack
         {
             get
             {
-                return GetBool("ProperConsole.showContextNameInsteadOfStack", true);
+                if (!ShowContextNameInsteadOfStackIsCached)
+                {
+                    ShowContextNameInsteadOfStackCache = GetBool("ProperConsole.showContextNameInsteadOfStack", true);
+                    ShowContextNameInsteadOfStackIsCached = true;
+                }
+                return ShowContextNameInsteadOfStackCache;
             }
             set
             {
+                ShowContextNameInsteadOfStackCache = value;
                 SetBool("ProperConsole.showContextNameInsteadOfStack", value);
                 Save();
             }

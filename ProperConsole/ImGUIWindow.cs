@@ -11,9 +11,11 @@ namespace ProperLogger
         public static T Instance => m_instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("The window will open when this key is pressed")]
         private KeyCode m_triggerKey = KeyCode.None;
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("GUI Skin Override")]
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin;
 
@@ -21,9 +23,13 @@ namespace ProperLogger
         private int m_windowID = 0;
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("Size and Position of this window")]
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         protected int m_depth = 1;
 
         protected abstract string WindowName {get;}
