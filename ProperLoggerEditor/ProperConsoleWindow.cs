@@ -168,6 +168,10 @@ namespace ProperLogger
         private int m_warnLog = 0;
         private int m_errLog = 0;
 
+        public int LogLog { get => m_logLog; set { m_logLog = value; } }
+        public int WarnLog { get => m_warnLog; set { m_warnLog = value; } }
+        public int ErrLog { get => m_errLog; set { m_errLog = value; } }
+
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
         public GUIContent ErrorPauseButtonContent { get; set; } = null;
@@ -622,12 +626,12 @@ namespace ProperLogger
         private void CheckForUnitySync()
         {
             int logLogRef = 0, warnLogRef = 0, errLogRef = 0;
-            object[] counters = new object[] { logLogRef, warnLogRef, errLogRef };
+            object[] counters = new object[] { warnLogRef, errLogRef, logLogRef };
             GetCountsByType.Invoke(null, counters); // TODO check if this works in game
 
-            int logLog  = (int)counters[0];
+            int logLog  = (int)counters[2];
             int warnLog = (int)counters[1];
-            int errLog  = (int)counters[2];
+            int errLog  = (int)counters[0];
 
             if (m_logLog != logLog || m_warnLog != warnLog || m_errLog != errLog)
             {

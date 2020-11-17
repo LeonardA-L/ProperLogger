@@ -102,6 +102,10 @@ namespace ProperLogger
         List<ConsoleLogEntry> CollapsedEntries { get; set; }
         List<PendingContext> PendingContexts { get; set; }
 
+        int LogLog { get; set; }
+        int WarnLog { get; set; }
+        int ErrLog { get; set; }
+
         void Clear();
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();

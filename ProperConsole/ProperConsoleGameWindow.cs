@@ -92,6 +92,10 @@ namespace ProperLogger
 
         public bool LastCLickIsDisplayList { get; set; } = false;
 
+        public int LogLog { get; set; }
+        public int WarnLog { get; set; }
+        public int ErrLog { get; set; }
+
         #endregion Layout
 
         #region Loaded Textures

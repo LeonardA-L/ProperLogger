@@ -252,7 +252,7 @@ namespace ProperLogger
         internal static void FlagButton(IProperLogger console, LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (console.Config.LogLevelFilter & level) != 0;
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent((counter > 999 ? Strings.NineNineNinePlus : counter.ToString()), (counter > 0 ? icon : iconGray)),
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent((counter > 999 ? Strings.NineNineNinePlus : counter.ToString()), (counter > 0 ? icon : iconGray), counter.ToString()),
                 console.ToolbarIconButtonStyle
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter))
                 );
@@ -378,6 +378,22 @@ namespace ProperLogger
                 };
 
                 console.Entries.Add(newConsoleEntry);
+
+                switch (type)
+                {
+                    case LogType.Warning:
+                        console.WarnLog++;
+                        break;
+                    case LogType.Assert:
+                    case LogType.Error:
+                    case LogType.Exception:
+                        console.ErrLog++;
+                        break;
+                    case LogType.Log:
+                    default:
+                        console.LogLog++;
+                        break;
+                }
             }
 
             console.TriggerFilteredEntryComputation = true;
