@@ -492,9 +492,9 @@ namespace ProperLogger
         public void SyncWithUnityEntries()
         {
             List<ConsoleLogEntry> newConsoleEntries = new List<ConsoleLogEntry>();
-            int count = (int)GetCount.Invoke(null);
+            int count = (int)GetCount(null);
 
-            StartGettingEntries.Invoke(null);
+            StartGettingEntries(null);
             int firstIndex = -1;
             object entry = LogEntry.CreateInstance();
             for (int i = 0; i < count; i++)
@@ -503,7 +503,7 @@ namespace ProperLogger
                 bool result = (bool)GetEntryInternal.Invoke(null, objparameters);
                 if (result)
                 {
-                    CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, logEntry);
+                    CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, LogEntry);
                     bool found = false;
                     for(int j = firstIndex+1; j < Entries.Count; j++)
                     {
@@ -534,7 +534,7 @@ namespace ProperLogger
                 }
             }
 
-            EndGettingEntries.Invoke(null);
+            EndGettingEntries(null);
 
             //lock (m_entries)
             {
