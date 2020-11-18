@@ -625,7 +625,6 @@ namespace ProperLogger
             EditorGUI.SelectableLabel(new Rect(0,0,0,0), string.Empty);
         }
 
-
         #endregion GUI Components
 
         #endregion GUI
@@ -634,30 +633,29 @@ namespace ProperLogger
 
         #endregion Utilities
 
-        private void CheckForUnitySync()
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnScriptsReloaded()
         {
-            int logLogRef = 0, warnLogRef = 0, errLogRef = 0;
-            object[] counters = new object[] { warnLogRef, errLogRef, logLogRef };
-            GetCountsByType.Invoke(null, counters);
-
-            int logLog  = (int)counters[2];
-            int warnLog = (int)counters[1];
-            int errLog  = (int)counters[0];
-
-            if (LogLog != logLog || WarnLog != warnLog || ErrLog != errLog)
+            EditorApplication.delayCall += () =>
             {
-                TriggerSyncWithUnityComputation = true;
+                Debug.Log("Reloaded Scripts");
+                Instance.TriggerSyncWithUnityComputation = true;
+            };
+        }
 
-                LogLog = logLog;
-                WarnLog = warnLog;
-                ErrLog = errLog;
-            }
+        internal void AfterAssetProcess()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                Debug.Log("Reloaded Assets");
+                Instance.TriggerSyncWithUnityComputation = true;
+            };
         }
 
         [Obfuscation(Exclude = true)]
         private void Update()
         {
-            CheckForUnitySync();
+            //CheckForUnitySync();
 
             if (CallForRepaint)
             {

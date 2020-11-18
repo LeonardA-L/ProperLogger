@@ -281,6 +281,8 @@ namespace ProperLogger
                 return 52;
             }
         }
+
+        // TODO is there not a faster way? Like just caching this at all time?
         internal static void GetCounters(List<ConsoleLogEntry> entries, out int logCounter, out int warnCounter, out int errCounter)
         {
             if (entries == null || entries.Count == 0)
