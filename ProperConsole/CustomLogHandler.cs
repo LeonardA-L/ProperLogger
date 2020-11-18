@@ -15,7 +15,17 @@ namespace ProperLogger
         internal CustomLogHandler(ILogHandler host)
         {
             m_originalHandler = host;
+#if DEBUG
             Debug.Log("Created Handler");
+#endif
+        }
+
+        ~CustomLogHandler()
+        {
+#if DEBUG
+            Debug.Assert(m_observers.Count == 0, "There is more than one log handler remaining");
+#endif
+            RemoveAllObservers();
         }
 
         public void LogException(System.Exception exception, UnityEngine.Object context)
@@ -46,6 +56,17 @@ namespace ProperLogger
             if(m_observers.Count == 0)
             {
                 Debug.unityLogger.logHandler = OriginalHandler;
+            }
+        }
+
+        private void RemoveAllObservers()
+        {
+#if DEBUG
+            Debug.Log($"Remaining observers: {m_observers.Count}");
+#endif
+            for (int i = m_observers.Count - 1; i >= 0; i--)
+            {
+                RemoveObserver(m_observers[i]);
             }
         }
     }
