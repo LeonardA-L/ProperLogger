@@ -1232,6 +1232,10 @@ namespace ProperLogger
                         }
                     }
                 }
+                if (GUILayout.Button("Trigger Sync"))
+                {
+                    console.TriggerSyncWithUnityComputation = true;
+                }
             }
 #endregion Debug Buttons
 #endif // DEBUG

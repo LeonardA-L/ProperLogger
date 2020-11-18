@@ -505,7 +505,7 @@ namespace ProperLogger
                 {
                     CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, LogEntry);
                     bool found = false;
-                    for(int j = firstIndex+1; j < Entries.Count; j++)
+                    for(int j = firstIndex + 1; j < Entries.Count; j++)
                     {
                         var consoleEntry = Entries[j];
                         if (CompareEntries(unityEntry, consoleEntry))
@@ -516,10 +516,7 @@ namespace ProperLogger
                             consoleEntry.unityMode = unityEntry.mode;
                             consoleEntry.unityIndex = i;
                             newConsoleEntries.Add(consoleEntry);
-                            if(j == firstIndex)
-                            {
-                                firstIndex++;
-                            }
+                            firstIndex++;
                             break;
                         }
                     }
