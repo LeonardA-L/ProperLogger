@@ -52,8 +52,7 @@ namespace ProperLogger
 
         public List<ConsoleLogEntry> Entries { get; set; } = null;
         public List<ConsoleLogEntry> FilteredEntries { get; set; } = null;
-        private List<ConsoleLogEntry> m_displayedEntries = null;
-        public List<ConsoleLogEntry> DisplayedEntries { get => m_displayedEntries; set { m_displayedEntries = value; } }
+        public List<ConsoleLogEntry> DisplayedEntries { get; set; }
         public List<ConsoleLogEntry> CollapsedEntries { get; set; } = null;
         public bool TriggerFilteredEntryComputation { get; set; } = false;
         public bool TriggerSyncWithUnityComputation { get; set; } = false;
@@ -124,48 +123,43 @@ namespace ProperLogger
         #region Caches
 
         //Reflection
-        MethodInfo _loadIcon = null;
+        MethodInfo m_loadIcon = null;
         MethodInfo LoadIcon
         {
             get
             {
-                if(_loadIcon != null)
+                if(m_loadIcon != null)
                 {
-                    return _loadIcon;
+                    return m_loadIcon;
                 }
                 Type editorGuiUtility = typeof(EditorGUIUtility);
-                _loadIcon = editorGuiUtility.GetMethod("LoadIcon", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
-                return _loadIcon;
+                m_loadIcon = editorGuiUtility.GetMethod("LoadIcon", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+                return m_loadIcon;
             }
         }
 
         public Regex SearchRegex { get; set; } = null;
 
+        private Assembly m_assembly = null;
+        private Type m_logEntries = null;
+        private Type m_logEntry = null;
+        private MethodInfo m_startGettingEntries = null;
+        private MethodInfo m_endGettingEntries = null;
+        private MethodInfo m_getEntryInternal = null;
+        private MethodInfo m_getCountsByType = null;
+        private MethodInfo m_getCount = null;
+        private MethodInfo m_rowGotDoubleClicked = null;
+        private MethodInfo m_clearEntries = null;
+        private MethodInfo m_setUnityConsoleFlag = null;
 
-        private Assembly assembly = null;
-        private Type logEntries = null;
-        private Type logEntry = null;
-        private MethodInfo startGettingEntries = null;
-        private MethodInfo endGettingEntries = null;
-        private MethodInfo getEntryInternal = null;
-        private MethodInfo getCountsByType = null;
-        private MethodInfo getCount = null;
-        private MethodInfo rowGotDoubleClicked = null;
-        private MethodInfo clearEntries = null;
-        private MethodInfo setUnityConsoleFlag = null;
+        private FieldInfo m_messageField = null;
+        private FieldInfo m_fileField = null;
+        private FieldInfo m_lineField = null;
+        private FieldInfo m_modeField = null;
 
-        private FieldInfo messageField = null;
-        private FieldInfo fileField = null;
-        private FieldInfo lineField = null;
-        private FieldInfo modeField = null;
-
-        private int m_logLog = 0;
-        private int m_warnLog = 0;
-        private int m_errLog = 0;
-
-        public int LogLog { get => m_logLog; set { m_logLog = value; } }
-        public int WarnLog { get => m_warnLog; set { m_warnLog = value; } }
-        public int ErrLog { get => m_errLog; set { m_errLog = value; } }
+        public int LogLog { get; set; } = 0;
+        public int WarnLog { get; set; } = 0;
+        public int ErrLog { get; set; } = 0;
 
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
@@ -200,21 +194,21 @@ namespace ProperLogger
 
         #region Properties
 
-        private static ProperConsoleWindow m_instance = null;
-        internal static ProperConsoleWindow Instance => m_instance;
-        private Type LogEntries => logEntries ?? (logEntries = UnityAssembly.GetType(Strings.LogEntries));
-        private Type LogEntry => logEntry ?? (logEntry = UnityAssembly.GetType(Strings.LogEntry));
-        private Assembly UnityAssembly => assembly ?? (assembly = Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)));
-        private MethodInfo GetCountsByType => getCountsByType ?? (getCountsByType = LogEntries.GetMethod(Strings.GetCountsByType));
-        private MethodInfo GetCount => getCount ?? (getCount = LogEntries.GetMethod(Strings.GetCount));
-        private MethodInfo RowGotDoubleClicked => rowGotDoubleClicked ?? (rowGotDoubleClicked = LogEntries.GetMethod(Strings.RowGotDoubleClicked, new[] { typeof(int) }));
-        private MethodInfo ClearEntries => clearEntries ?? (clearEntries = LogEntries.GetMethod(Strings.Clear));
-        private MethodInfo SetUnityConsoleFlag => setUnityConsoleFlag ?? (setUnityConsoleFlag = LogEntries.GetMethod(Strings.SetUnityConsoleFlag, new[] { typeof(int), typeof(bool) }));
+        private static ProperConsoleWindow s_instance = null;
+        internal static ProperConsoleWindow Instance => s_instance;
+        private Type LogEntries => m_logEntries ?? (m_logEntries = UnityAssembly.GetType(Strings.LogEntries));
+        private Type LogEntry => m_logEntry ?? (m_logEntry = UnityAssembly.GetType(Strings.LogEntry));
+        private Assembly UnityAssembly => m_assembly ?? (m_assembly = Assembly.GetAssembly(typeof(UnityEditor.ActiveEditorTracker)));
+        private MethodInfo GetCountsByType => m_getCountsByType ?? (m_getCountsByType = LogEntries.GetMethod(Strings.GetCountsByType));
+        private MethodInfo GetCount => m_getCount ?? (m_getCount = LogEntries.GetMethod(Strings.GetCount));
+        private MethodInfo RowGotDoubleClicked => m_rowGotDoubleClicked ?? (m_rowGotDoubleClicked = LogEntries.GetMethod(Strings.RowGotDoubleClicked, new[] { typeof(int) }));
+        private MethodInfo ClearEntries => m_clearEntries ?? (m_clearEntries = LogEntries.GetMethod(Strings.Clear));
+        private MethodInfo SetUnityConsoleFlag => m_setUnityConsoleFlag ?? (m_setUnityConsoleFlag = LogEntries.GetMethod(Strings.SetUnityConsoleFlag, new[] { typeof(int), typeof(bool) }));
 
 
-        private MethodInfo GetEntryInternal => getEntryInternal ?? (getEntryInternal = LogEntries.GetMethod(Strings.GetEntryInternal, new[] { typeof(int), LogEntry }));
-        private MethodInfo StartGettingEntries => startGettingEntries ?? (startGettingEntries = LogEntries.GetMethod(Strings.StartGettingEntries));
-        private MethodInfo EndGettingEntries => endGettingEntries ?? (endGettingEntries = LogEntries.GetMethod(Strings.EndGettingEntries));
+        private MethodInfo GetEntryInternal => m_getEntryInternal ?? (m_getEntryInternal = LogEntries.GetMethod(Strings.GetEntryInternal, new[] { typeof(int), LogEntry }));
+        private MethodInfo StartGettingEntries => m_startGettingEntries ?? (m_startGettingEntries = LogEntries.GetMethod(Strings.StartGettingEntries));
+        private MethodInfo EndGettingEntries => m_endGettingEntries ?? (m_endGettingEntries = LogEntries.GetMethod(Strings.EndGettingEntries));
 
         // Unused
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;
@@ -228,29 +222,29 @@ namespace ProperLogger
         static void Init()
         {
             // Get existing open window or if none, make a new one:
-            if (ProperConsoleWindow.m_instance != null)
+            if (ProperConsoleWindow.s_instance != null)
             {
-                ProperConsoleWindow.m_instance.Show(true);
+                ProperConsoleWindow.s_instance.Show(true);
             }
             else
             {
                 ShowWindow();
             }
-            ProperConsoleWindow.m_instance.Focus();
+            ProperConsoleWindow.s_instance.Focus();
         }
 
-        public static void ShowWindow()
+        internal static void ShowWindow()
         {
-            if (m_instance != null)
+            if (s_instance != null)
             {
-                m_instance.Show(true);
-                m_instance.Focus();
+                s_instance.Show(true);
+                s_instance.Focus();
             }
             else
             {
-                m_instance = ScriptableObject.CreateInstance<ProperConsoleWindow>();
-                m_instance.Show(true);
-                m_instance.Focus();
+                s_instance = ScriptableObject.CreateInstance<ProperConsoleWindow>();
+                s_instance.Show(true);
+                s_instance.Focus();
             }
         }
 
@@ -262,7 +256,7 @@ namespace ProperLogger
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
             Listening = false;
             EntriesLock = new object();
-            m_instance = this;
+            s_instance = this;
             TriggerFilteredEntryComputation = true;
             EditorApplication.playModeStateChanged += ModeChanged;
             C.InitListener(this);
@@ -270,7 +264,7 @@ namespace ProperLogger
             C.CacheGUIContents(this);
             C.ClearStyles(this);
             AutoScroll = true;
-            ProperConsoleWindow.m_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
+            ProperConsoleWindow.s_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
             ResetUnityConsoleFlags();
 
             NeedRegexRecompile = true;
@@ -281,7 +275,7 @@ namespace ProperLogger
         {
             C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
-            m_instance = null;
+            s_instance = null;
             C.ClearGUIContents(this);
         }
 
@@ -299,7 +293,7 @@ namespace ProperLogger
             SetUnityConsoleFlag.Invoke(null, new object[] { 512 , true }); // LogLevelError
         }
 
-        public void OnBuild()
+        internal void OnBuild()
         {
             if (m_configs.ClearOnBuild)
             {
@@ -474,42 +468,39 @@ namespace ProperLogger
 
         private void PopulateLogEntryFields(Type type)
         {
-            if (messageField == null || fileField == null || lineField == null || modeField == null)
+            if (m_messageField == null || m_fileField == null || m_lineField == null || m_modeField == null)
             {
                 var props = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance);
                 foreach (var prop in props)
                 {
                     if (prop.Name == "message") // TODO no string, cache properties directly instead of array
                     {
-                        messageField = prop;
+                        m_messageField = prop;
                     }
                     if (prop.Name == "file")
                     {
-                        fileField = prop;
+                        m_fileField = prop;
                     }
                     if (prop.Name == "line")
                     {
-                        lineField = prop;
+                        m_lineField = prop;
                     }
                     if (prop.Name == "mode")
                     {
-                        modeField = prop;
+                        m_modeField = prop;
                     }
                 }
             }
         }
-        public CustomLogEntry ConvertUnityLogEntryToCustomLogEntry(object unityLogEntry, Type type)
+        public CustomLogEntry ConvertUnityLogEntryToCustomLogEntry(object unityLogEntry)
         {
-            PopulateLogEntryFields(type);
-
-            var ret = new CustomLogEntry();
-
-            ret.line = (int)lineField.GetValue(unityLogEntry); // TODO only call when needed ?
-            ret.message = (string)messageField.GetValue(unityLogEntry);
-            ret.file = (string)fileField.GetValue(unityLogEntry); // TODO only call when needed ?
-            ret.mode = (int)modeField.GetValue(unityLogEntry);
-
-            return ret;
+            return new CustomLogEntry()
+            {
+                line = (int)m_lineField.GetValue(unityLogEntry), // TODO only call when needed ?
+                message = (string)m_messageField.GetValue(unityLogEntry),
+                file = (string)m_fileField.GetValue(unityLogEntry),
+                mode = (int)m_modeField.GetValue(unityLogEntry),
+            };
         }
 
         public void SyncWithUnityEntries()
@@ -520,13 +511,13 @@ namespace ProperLogger
             StartGettingEntries.Invoke(null, null);
             int firstIndex = 0;
             object entry = Activator.CreateInstance(LogEntry);
+            PopulateLogEntryFields(LogEntry);
             for (int i = 0; i < count; i++)
             {
                 object[] objparameters = new object[] { i, entry };
-                bool result = (bool)GetEntryInternal.Invoke(null, objparameters);
-                if (result)
+                if ((bool)GetEntryInternal.Invoke(null, objparameters))
                 {
-                    CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry, LogEntry);
+                    CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry);
                     bool found = false;
                     for(int j = firstIndex; j < Entries.Count; j++)
                     {
@@ -635,9 +626,9 @@ namespace ProperLogger
         }
 
 
-#endregion GUI Components
+        #endregion GUI Components
 
-#endregion GUI
+        #endregion GUI
 
         #region Utilities
 
@@ -647,19 +638,19 @@ namespace ProperLogger
         {
             int logLogRef = 0, warnLogRef = 0, errLogRef = 0;
             object[] counters = new object[] { warnLogRef, errLogRef, logLogRef };
-            GetCountsByType.Invoke(null, counters); // TODO check if this works in game
+            GetCountsByType.Invoke(null, counters);
 
             int logLog  = (int)counters[2];
             int warnLog = (int)counters[1];
             int errLog  = (int)counters[0];
 
-            if (m_logLog != logLog || m_warnLog != warnLog || m_errLog != errLog)
+            if (LogLog != logLog || WarnLog != warnLog || ErrLog != errLog)
             {
                 TriggerSyncWithUnityComputation = true;
 
-                m_logLog = logLog;
-                m_warnLog = warnLog;
-                m_errLog = errLog;
+                LogLog = logLog;
+                WarnLog = warnLog;
+                ErrLog = errLog;
             }
         }
 

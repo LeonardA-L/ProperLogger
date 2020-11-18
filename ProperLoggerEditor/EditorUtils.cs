@@ -18,6 +18,7 @@ namespace ProperLogger
             }
             return null;
         }
+
         internal static string FindAssetPath<T>(string assetName) where T : UnityEngine.Object
         {
             string[] guids = AssetDatabase.FindAssets(assetName, null);

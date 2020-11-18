@@ -13,7 +13,7 @@ namespace ProperLogger
         public class CategoryParentDrawer : PropertyDrawer
         {
             private static string s_none = "<None>";
-            private static ConfigsProvider m_configs = null;
+            private ConfigsProvider m_configs = null;
 
             public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
             {

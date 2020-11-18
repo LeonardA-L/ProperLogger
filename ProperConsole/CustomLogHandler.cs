@@ -46,11 +46,12 @@ namespace ProperLogger
             m_originalHandler.LogFormat(logType, context, format, args);
         }
 
-        public void AddObserver(ILogObserver observer)
+        internal void AddObserver(ILogObserver observer)
         {
             m_observers.Add(observer);
         }
-        public void RemoveObserver(ILogObserver observer)
+
+        internal void RemoveObserver(ILogObserver observer)
         {
             m_observers.Remove(observer);
             if(m_observers.Count == 0)

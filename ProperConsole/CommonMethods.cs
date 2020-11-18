@@ -1029,6 +1029,7 @@ namespace ProperLogger
             {
                 if (console.TriggerSyncWithUnityComputation)
                 {
+                    Debug.Log("Trigger Unity Sync");
                     lock (console.Entries)
                     {
                         console.SyncWithUnityEntries();
@@ -1224,6 +1225,8 @@ namespace ProperLogger
                 }
                 if (GUILayout.Button("1000 syncs"))
                 {
+                    var watch = new System.Diagnostics.Stopwatch();
+                    watch.Start();
                     lock (console.EntriesLock)
                     {
                         for (int i = 0; i < 10000; i++)
@@ -1231,6 +1234,8 @@ namespace ProperLogger
                             console.SyncWithUnityEntries();
                         }
                     }
+                    watch.Stop();
+                    Debug.Log($"Elapsed: {watch.ElapsedMilliseconds}");
                 }
                 if (GUILayout.Button("Trigger Sync"))
                 {
