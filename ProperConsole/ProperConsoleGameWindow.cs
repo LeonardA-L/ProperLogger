@@ -240,8 +240,8 @@ namespace ProperLogger
         public Texture2D RegexSearchIcon { get => m_regexSearchIcon; set { } }
         public Texture2D CaseSensitiveIcon { get => m_caseSensitiveIcon; set { } }
         public Texture2D AdvancedSearchIcon { get => m_advancedSearchIcon; set { } }
-        public Texture2D ExceptionIcon { get=>m_exceptionIcon; set { } }
-        public Texture2D AssertIcon { get=>m_assertIcon; set { } }
+        public Texture2D ExceptionIcon { get => m_exceptionIcon; set { } }
+        public Texture2D AssertIcon { get => m_assertIcon; set { } }
 
         public GUIStyle OddEntry { get; set; } = null;
         public GUIStyle SelectedEntry { get; set; } = null;
@@ -256,6 +256,7 @@ namespace ProperLogger
         public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
         public GUIStyle InspectorTextStyle { get; set; } = null;
         public GUIStyle EntryIconStyle { get; set; } = null;
+        public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
 
         public bool ShowCategoryFilter { get; set; } = false;
         public Rect CategoryFilterRect { get; private set; } = default;
@@ -423,7 +424,7 @@ namespace ProperLogger
         {
             if (SettingsWindow != null)
             {
-                if (GUILayout.Button(PluginSettingsButtonContent))
+                if (GUILayout.Button(PluginSettingsButtonContent, GUILayout.ExpandWidth(false)))
                 {
                     SettingsWindow.Toggle();
                 }
@@ -437,5 +438,6 @@ namespace ProperLogger
         {
             return DisplayCloseButton();
         }
+        public void ShowRemoteConnectionUtility() { }
     }
 }

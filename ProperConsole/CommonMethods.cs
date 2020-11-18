@@ -129,6 +129,9 @@ namespace ProperLogger
             console.InspectorTextStyle = inspectorTextStyle;
 
             console.EntryIconStyle = new GUIStyle(console.Skin.FindStyle("EntryIcon"));
+
+            console.RemoteConnectionUtilityStyle = new GUIStyle("ToolbarDropDown");
+            console.RemoteConnectionUtilityStyle.stretchWidth = true;
         }
         internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
         {
@@ -695,6 +698,9 @@ namespace ProperLogger
             {
                 console.TriggerFilteredEntryComputation = true;
             }
+
+            console.ShowRemoteConnectionUtility();
+
             GUILayout.FlexibleSpace();
 
             console.ToggleSettings();

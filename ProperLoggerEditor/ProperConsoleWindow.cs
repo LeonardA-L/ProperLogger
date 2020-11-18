@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Linq;
 using System.IO;
 using C = ProperLogger.CommonMethods;
+using UnityEngine.Networking.PlayerConnection;
+using UnityEditor.Networking.PlayerConnection;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLogger")]
 
@@ -188,8 +190,12 @@ namespace ProperLogger
         public GUIStyle ToolbarIconButtonStyle { get; set; } = null;
         public GUIStyle InspectorTextStyle { get; set; } = null;
         public GUIStyle EntryIconStyle { get; set; } = null;
+        public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
 
         #endregion Caches
+
+        IConnectionState m_attachProfilerState;
+
         #endregion Members
 
         #region Properties
@@ -267,12 +273,15 @@ namespace ProperLogger
             ProperConsoleWindow.s_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
             ResetUnityConsoleFlags();
 
+            m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
+
             NeedRegexRecompile = true;
         }
 
         [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
+            m_attachProfilerState.Dispose();
             C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
             s_instance = null;
@@ -727,5 +736,15 @@ namespace ProperLogger
             EditorSelectableLabelInvisible();
         }
         public bool ExternalDisplayCloseButton() => false;
+
+        private void OnRemotePlayerAttached(string player)
+        {
+            Debug.Log($"Successfuly connected to {player}");
+        }
+
+        public void ShowRemoteConnectionUtility()
+        {
+            PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
+        }
     }
 }

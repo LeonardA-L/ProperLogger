@@ -98,6 +98,7 @@ namespace ProperLogger
         GUIStyle ToolbarIconButtonStyle { get; set; }
         GUIStyle InspectorTextStyle { get; set; }
         GUIStyle EntryIconStyle { get; set; }
+        GUIStyle RemoteConnectionUtilityStyle { get; set; }
 
         List<ConsoleLogEntry> CollapsedEntries { get; set; }
         List<PendingContext> PendingContexts { get; set; }
@@ -118,5 +119,6 @@ namespace ProperLogger
         void SyncWithUnityEntries();
         void LoadIcons();
         bool ExternalDisplayCloseButton();
+        void ShowRemoteConnectionUtility();
     }
 }
