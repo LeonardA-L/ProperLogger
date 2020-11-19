@@ -121,4 +121,10 @@ namespace ProperLogger
         bool ExternalDisplayCloseButton();
         void ShowRemoteConnectionUtility();
     }
+
+    internal interface ICategoryWindow
+    {
+        ConfigsProvider Config { get; }
+        IProperLogger Console { get; }
+    }
 }

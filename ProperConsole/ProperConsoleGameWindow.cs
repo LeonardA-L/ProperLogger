@@ -24,8 +24,7 @@ namespace ProperLogger
 
         #region Configs
 
-        private ConfigsProvider m_configs = PlayerConfigs.Instance;
-        public ConfigsProvider Config => m_configs;
+        public ConfigsProvider Config => PlayerConfigs.Instance;
 
         public bool AutoScroll { get; set; } = true;
 

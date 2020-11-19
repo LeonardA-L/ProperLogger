@@ -29,8 +29,11 @@ namespace ProperLogger
         /*[SerializeField]
         private Sprite m_icon = null;*/
         [SerializeField, Obfuscation(Exclude = true)]
-        [CategoryParent]
+        //[CategoryParent]
         private string m_parentCategory = null;
+
+        [NonSerialized]
+        private List<LogCategory> m_children = null;
 
         public LogCategory(string name)
         {
@@ -41,5 +44,20 @@ namespace ProperLogger
         public string Name => m_name;
         public Color Color => m_color;
         public string Parent => m_parentCategory;
+        public List<LogCategory> Children => m_children ?? (m_children = new List<LogCategory>());
+
+        public void ClearChildren()
+        {
+            m_children?.Clear();
+            m_children = new List<LogCategory>();
+        }
+
+        public void AddChild(LogCategory category)
+        {
+            if (!m_children.Contains(category))
+            {
+                m_children.Add(category);
+            }
+        }
     }
 }

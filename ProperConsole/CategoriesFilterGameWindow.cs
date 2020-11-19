@@ -4,14 +4,16 @@ using System.Reflection;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif //UNITY_EDITOR
+using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
     // TODO mutualize
     [Obfuscation(Exclude = true, ApplyToMembers = false)]
-    internal class CategoriesFilterGameWindow : MonoBehaviour
+    internal class CategoriesFilterGameWindow : MonoBehaviour, ICategoryWindow
     {
-        private ConfigsProvider m_configs = null;
+        public ConfigsProvider Config => PlayerConfigs.Instance;
+        public IProperLogger Console => ProperConsoleGameWindow.Instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
         protected int m_depth = 1;
@@ -45,49 +47,21 @@ namespace ProperLogger
 
             GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, (GUIStyle)"Box");
 
-            m_configs = m_configs ?? PlayerConfigs.Instance;
-
-            if(m_configs.CurrentCategoriesConfig == null)
+            if(Config.CurrentCategoriesConfig == null)
             {
-                GUILayout.Label("No categories asset have been configured.\nOpen plugin settings in the editor\nto fix this.");
+                GUILayout.Label("No categories asset have been configured.\nPlease open the preference window\nto setup categories."); // TODO style
 
                 GUILayout.Space(15);
             }
             else
             {
-                if(m_configs.CurrentCategoriesConfig.Categories == null || m_configs.CurrentCategoriesConfig.Categories.Count == 0)
+                if(Config.CurrentCategoriesConfig.Categories == null || Config.CurrentCategoriesConfig.Categories.Count == 0)
                 {
                     GUILayout.Label("No categories found.");
                 }
                 else
                 {
-                    Color defaultColor = GUI.color;
-                    var inactiveCategories = m_configs.InactiveCategories;
-                    foreach (var category in m_configs.CurrentCategoriesConfig.Categories)
-                    {
-                        bool lastActive = !inactiveCategories.Contains(category);
-                        GUI.color = Color.Lerp(category.Color, defaultColor, m_configs.CategoryNameColorize);
-                        bool isActive = GUILayout.Toggle(lastActive, category.Name);
-                        if (isActive != lastActive)
-                        {
-                            if (isActive)
-                            {
-                                inactiveCategories.Remove(category);
-                                m_configs.InactiveCategories = inactiveCategories;
-                            } else
-                            {
-                                inactiveCategories.Add(category);
-                                m_configs.InactiveCategories = inactiveCategories;
-                            }
-                            if(ProperConsoleGameWindow.Instance != null)
-                            {
-                                ProperConsoleGameWindow.Instance.InactiveCategories = null;
-                                ProperConsoleGameWindow.Instance.TriggerFilteredEntryComputation = true;
-                                ProperConsoleGameWindow.Instance.TriggerRepaint();
-                            }
-                        }
-                    }
-                    GUI.color = defaultColor;
+                    C.DisplayCategoryFilterContent(this);
                 }
 
                 GUILayout.Space(10);
@@ -100,7 +74,7 @@ namespace ProperLogger
 #if UNITY_EDITOR
                 if (GUILayout.Button("Open Categories Settings"))
                 {
-                    Selection.activeObject = m_configs.CurrentCategoriesConfig;
+                    Selection.activeObject = Config.CurrentCategoriesConfig;
                 }
 #endif //UNITY_EDITOR
             }

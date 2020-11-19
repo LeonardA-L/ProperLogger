@@ -641,6 +641,8 @@ namespace ProperLogger
                 Vector2 size = new Vector2(250, 150);
                 if (categoriesAsset != null)
                 {
+                    categoriesAsset.PopulateRootCategories();
+                    size.x = Mathf.Max(size.x, categoriesAsset.LongestName);
                     if (console.Config.CurrentCategoriesConfig.Categories == null || console.Config.CurrentCategoriesConfig.Categories.Count == 0)
                     {
                         size.y = 30;
@@ -650,6 +652,7 @@ namespace ProperLogger
                         size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 25; // TODO put this somewhere in a style
                     }
                 }
+
                 size.y += console.IsGame ? 45 : 25;
                 console.DrawCategoriesWindow(dropdownRect, size);
             }
@@ -1299,5 +1302,50 @@ namespace ProperLogger
             console.PurgeGetLinesCache = false;
         }
 
+        public static void DisplayCategoryFilterContent(ICategoryWindow categoryWindow)
+        {
+            Color defaultColor = GUI.color;
+            var inactiveCategories = categoryWindow.Config.InactiveCategories;
+            GoThroughCategoryTree(categoryWindow.Config.CurrentCategoriesConfig.RootCategories, 0, categoryWindow, inactiveCategories, defaultColor);
+            GUI.color = defaultColor;
+        }
+
+        private static void GoThroughCategoryTree(List<LogCategory> roots, int level, ICategoryWindow categoryWindow, List<LogCategory> inactiveCategories, Color defaultColor)
+        {
+            for (int i = 0; i < roots.Count; i++)
+            {
+                var category = roots[i];
+                bool lastActive = !inactiveCategories.Contains(category);
+                GUI.color = Color.Lerp(category.Color, defaultColor, categoryWindow.Config.CategoryNameColorize);
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(LogCategoriesConfig.s_categoryIndent * level);
+                bool isActive = GUILayout.Toggle(lastActive, category.Name);
+                GUILayout.EndHorizontal();
+                if (isActive != lastActive)
+                {
+                    if (isActive)
+                    {
+                        inactiveCategories.Remove(category);
+                        categoryWindow.Config.InactiveCategories = inactiveCategories;
+                    }
+                    else
+                    {
+                        inactiveCategories.Add(category);
+                        categoryWindow.Config.InactiveCategories = inactiveCategories;
+                    }
+                    if (categoryWindow.Console != null)
+                    {
+                        categoryWindow.Console.InactiveCategories = null;
+                        categoryWindow.Console.TriggerFilteredEntryComputation = true;
+                        categoryWindow.Console.TriggerRepaint();
+                    }
+                }
+
+                if(category.Children != null && category.Children.Count > 0)
+                {
+                    GoThroughCategoryTree(category.Children, level + 1, categoryWindow, inactiveCategories, defaultColor);
+                }
+            }
+        }
     }
 }
