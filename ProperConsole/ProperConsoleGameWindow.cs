@@ -80,6 +80,7 @@ namespace ProperLogger
         public float SplitterPosition { get; set; } = 0;
         public Rect SplitterRect { get; set; } = default;
         public bool SplitterDragging { get; set; } = false;
+        public Vector2 SplitterDragStartPosition { get; set; } = default;
         public float InnerScrollableHeight { get; set; } = 0;
         public float OuterScrollableHeight { get; set; } = 0;
 
@@ -418,6 +419,7 @@ namespace ProperLogger
         }
 
         public void TriggerRepaint() { }
+        public void RepaintImmediate() { }
 
         public void ToggleSettings()
         {

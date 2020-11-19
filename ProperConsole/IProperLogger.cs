@@ -20,6 +20,7 @@ namespace ProperLogger
         bool Listening { get; set; }
         CustomLogHandler LogHandler { get; set; }
         bool SplitterDragging { get; set; }
+        Vector2 SplitterDragStartPosition { get; set; }
         float InnerScrollableHeight { get; set; }
         float OuterScrollableHeight { get; set; }
         float SplitterPosition { get; set; }
@@ -111,6 +112,7 @@ namespace ProperLogger
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();
         void TriggerRepaint();
+        void RepaintImmediate();
         void SelectableLabel(string text, GUIStyle textStyle, float currentX);
         void HandleDoubleClick(ConsoleLogEntry entry);
         void DrawCategoriesWindow(Rect dropdownRect, Vector2 size);

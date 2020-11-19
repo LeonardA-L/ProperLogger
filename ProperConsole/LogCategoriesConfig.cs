@@ -88,7 +88,10 @@ namespace ProperLogger
             foreach (var category in Categories)
             {
                 category.ClearChildren();
-                categories.Add(category.Name, category);
+                if (!categories.ContainsKey(category.Name))
+                {
+                    categories.Add(category.Name, category);
+                }
                 m_rootCategories.Add(category);
             }
 

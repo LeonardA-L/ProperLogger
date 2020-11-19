@@ -649,7 +649,7 @@ namespace ProperLogger
                     }
                     else
                     {
-                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 25; // TODO put this somewhere in a style
+                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 18; // TODO put this somewhere in a style
                     }
                 }
 
@@ -1264,16 +1264,17 @@ namespace ProperLogger
                         if (console.SplitterRect.Contains(Event.current.mousePosition))
                         {
                             //Debug.Log("Start dragging");
+                            console.SplitterDragStartPosition = Event.current.mousePosition;
                             console.SplitterDragging = true;
                         }
                         break;
                     case EventType.MouseDrag:
-                        if (console.SplitterDragging)
+                        /*if (console.SplitterDragging)
                         {
                             //Debug.Log("moving splitter");
                             console.SplitterPosition -= console.Config.InspectorOnTheRight ? Event.current.delta.x : Event.current.delta.y;
                             console.TriggerRepaint();
-                        }
+                        }*/
                         break;
                     case EventType.MouseUp:
                         if (console.SplitterDragging)
@@ -1282,6 +1283,16 @@ namespace ProperLogger
                             console.SplitterDragging = false;
                         }
                         break;
+                }
+
+
+                if (console.SplitterDragging)
+                {
+                    //Debug.Log("moving splitter");
+                    var delta = Event.current.mousePosition - console.SplitterDragStartPosition;
+                    console.SplitterPosition += console.Config.InspectorOnTheRight ? -delta.x : -delta.y;
+                    console.SplitterDragStartPosition = Event.current.mousePosition;
+                    console.RepaintImmediate();
                 }
             }
 
