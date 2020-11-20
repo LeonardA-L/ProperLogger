@@ -1071,6 +1071,7 @@ namespace ProperLogger
                     ComputeCollapsedEntries(console, console.FilteredEntries);
                 }
                 console.TriggerFilteredEntryComputation = false;
+                console.TriggerRepaint();
                 console.RepaintImmediate();
             }
 
