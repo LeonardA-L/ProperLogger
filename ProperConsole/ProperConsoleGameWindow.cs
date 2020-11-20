@@ -207,10 +207,6 @@ namespace ProperLogger
 
         public Regex SearchRegex { get; set; } = null;
 
-        private int m_logLog = 0;
-        private int m_warnLog = 0;
-        private int m_errLog = 0;
-
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
         public GUIContent ErrorPauseButtonContent { get; set; } = null;
@@ -327,9 +323,6 @@ namespace ProperLogger
         {
             lock (EntriesLock)
             {
-                m_logLog = 0;
-                m_warnLog = 0;
-                m_errLog = 0;
                 Entries.Clear();
                 PendingContexts.Clear();
                 SelectedEntries.Clear();
