@@ -727,7 +727,15 @@ namespace ProperLogger
 
             for (int i = startI; i < endI; i++)
             {
-                DisplayEntry(console, filteredEntries[i], i, totalWidth);
+                try
+                {
+                    DisplayEntry(console, filteredEntries[i], i, totalWidth);
+                }
+                catch (ArgumentException)
+                {
+                    GUIUtility.ExitGUI();
+                    console.RepaintImmediate();
+                }
             }
 
             if (lastVisibleIdx != 0)
@@ -1063,6 +1071,7 @@ namespace ProperLogger
                     ComputeCollapsedEntries(console, console.FilteredEntries);
                 }
                 console.TriggerFilteredEntryComputation = false;
+                console.RepaintImmediate();
             }
 
             DisplayList(console, console.Config.Collapse ? console.CollapsedEntries : console.FilteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);
