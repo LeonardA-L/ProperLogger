@@ -619,7 +619,7 @@ namespace ProperLogger
                 }
                 float resetSearchButtonWidth = 15;
                 console.ResetSearchButtonRect = new Rect(console.SearchFieldRect.xMax - resetSearchButtonWidth, console.SearchFieldRect.y, resetSearchButtonWidth, console.SearchFieldRect.height);
-                if (GUI.Button(console.ResetSearchButtonRect, GUIContent.none, "SearchCancelButton"))
+                if (GUI.Button(console.ResetSearchButtonRect, GUIContent.none, "SearchCancelButton")) // TODO string
                 {
                     console.SearchString = null;
                     console.TriggerFilteredEntryComputation = true;
@@ -629,6 +629,10 @@ namespace ProperLogger
                         console.NeedRegexRecompile = true;
                     }
                     console.SearchWords = null;
+
+                    console.EntryListScrollPosition = new Vector2(console.EntryListScrollPosition.x, int.MaxValue);
+                    console.AutoScroll = true;
+                    console.RepaintImmediate();
                 }
             }
 
@@ -1071,6 +1075,7 @@ namespace ProperLogger
                     ComputeCollapsedEntries(console, console.FilteredEntries);
                 }
                 console.TriggerFilteredEntryComputation = false;
+                EditorApplication.delayCall += console.TriggerRepaint;
                 console.TriggerRepaint();
                 console.RepaintImmediate();
             }

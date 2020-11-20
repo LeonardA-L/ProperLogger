@@ -34,6 +34,11 @@ namespace ProperLogger
 
         protected abstract string WindowName {get;}
 
+
+
+        private float refScreenWidth = 1282f;
+        private float refScreenHeight = 772f;
+
         [Obfuscation(Exclude = true)]
         protected virtual void Awake()
         {
@@ -42,7 +47,7 @@ namespace ProperLogger
 
             if (m_windowRect.x < 0)
             {
-                m_windowRect.x += (Screen.width / (Screen.width / 1280f)) - m_windowRect.width;
+                m_windowRect.x += (Screen.width / (Screen.width / 1282f)) - m_windowRect.width;
             }
         }
 
@@ -116,9 +121,6 @@ namespace ProperLogger
             }
 
             GUI.depth = m_depth;
-
-            float refScreenWidth = 1280f;
-            float refScreenHeight = 768f;
 
             float xFactor = Screen.width / refScreenWidth;
             float yFactor = Screen.height / refScreenHeight;
