@@ -769,7 +769,7 @@ namespace ProperLogger
             imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = console.Config.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 25 + sidePaddings;
+            float empiricalPaddings = 30 + sidePaddings;
 
             bool displayCategoryNameInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
             bool displayCategoryIconInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
@@ -803,6 +803,17 @@ namespace ProperLogger
             }
 
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
+
+            { // TODO dirty hardcoded hack
+                if (console.Config.Collapse)
+                {
+                    entrywidth -= 9;
+                }
+                if (console.IsGame)
+                {
+                    entrywidth += 15;
+                }
+            }
 
             if (console.SelectedEntries.Count > 0 && console.SelectedEntries.Contains(entry))
             {
