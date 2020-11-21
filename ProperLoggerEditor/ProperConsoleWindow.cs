@@ -160,9 +160,14 @@ namespace ProperLogger
         private FieldInfo m_lineField = null;
         private FieldInfo m_modeField = null;
 
+        public LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
+
         public int LogLog { get; set; } = 0;
         public int WarnLog { get; set; } = 0;
         public int ErrLog { get; set; } = 0;
+
+        private System.Threading.Thread m_mainThread = null;
+        public System.Threading.Thread MainThread => m_mainThread;
 
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
@@ -258,6 +263,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnEnable()
         {
+            m_mainThread = System.Threading.Thread.CurrentThread;
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
@@ -277,6 +283,8 @@ namespace ProperLogger
             m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
 
             NeedRegexRecompile = true;
+
+            LastMainThreadCategoriesConfig = Config.CurrentCategoriesConfig;
         }
 
         [Obfuscation(Exclude = true)]

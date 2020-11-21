@@ -204,6 +204,7 @@ namespace ProperLogger
         public Rect WindowRect => m_windowRect;
 
         #region Caches
+        public LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
 
         public Regex SearchRegex { get; set; } = null;
 
@@ -258,12 +259,16 @@ namespace ProperLogger
         public Rect CategoryFilterRect { get; private set; } = default;
         public Rect CategoryToggleRect { get; private set; } = default;
 
+        private System.Threading.Thread m_mainThread = null;
+        public System.Threading.Thread MainThread => m_mainThread;
+
         #endregion Caches
 
         [Obfuscation(Exclude = true)]
         protected override void Awake()
         {
             base.Awake();
+            m_mainThread = System.Threading.Thread.CurrentThread;
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
@@ -274,6 +279,8 @@ namespace ProperLogger
             AutoScroll = true;
 
             NeedRegexRecompile = true;
+
+            LastMainThreadCategoriesConfig = Config.CurrentCategoriesConfig;
         }
 
         [Obfuscation(Exclude = true)]

@@ -341,7 +341,12 @@ namespace ProperLogger
                 }
 
                 List<LogCategory> categories = new List<LogCategory>();
-                var categoryAsset = console.Config.CurrentCategoriesConfig;
+                var categoryAsset = console.LastMainThreadCategoriesConfig;
+                if (Utils.IsMainThread(console.MainThread))
+                {
+                    categoryAsset = console.Config.CurrentCategoriesConfig;
+                    console.LastMainThreadCategoriesConfig = categoryAsset;
+                }
                 string categoryLessMessage = condition;
                 if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
                 {
@@ -429,9 +434,12 @@ namespace ProperLogger
 
 
 #if UNITY_EDITOR
-            if (EditorApplication.isPlaying && console.Config.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+            if (Utils.IsMainThread(console.MainThread))
             {
-                Debug.Break();
+                if (EditorApplication.isPlaying && console.Config.ErrorPause && (type == LogType.Assert || type == LogType.Error || type == LogType.Exception))
+                {
+                    Debug.Break();
+                }
             }
 #endif //UNITY_EDITOR
             return newConsoleEntry;

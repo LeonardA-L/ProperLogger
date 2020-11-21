@@ -108,6 +108,9 @@ namespace ProperLogger
         int WarnLog { get; set; }
         int ErrLog { get; set; }
 
+        LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
+        System.Threading.Thread MainThread { get; }
+
         void Clear();
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();
