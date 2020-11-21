@@ -299,7 +299,10 @@ namespace ProperLogger
         {
             base.Update();
 
-            Debug.developerConsoleVisible = false;
+            if (m_hideUnityBuiltInConsole)
+            {
+                Debug.developerConsoleVisible = false;
+            }
 
             C.RegexCompilation(this);
         }
@@ -412,6 +415,7 @@ namespace ProperLogger
         }
 
         public void TriggerRepaint() { }
+        public void DoubleTriggerRepaint() { }
         public void RepaintImmediate() { }
 
         public void ToggleSettings()

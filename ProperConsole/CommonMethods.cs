@@ -1075,9 +1075,12 @@ namespace ProperLogger
                     ComputeCollapsedEntries(console, console.FilteredEntries);
                 }
                 console.TriggerFilteredEntryComputation = false;
-                EditorApplication.delayCall += console.TriggerRepaint;
-                console.TriggerRepaint();
-                console.RepaintImmediate();
+                if (console.IsGame)
+                {
+                    console.DoubleTriggerRepaint();
+                    console.TriggerRepaint();
+                    console.RepaintImmediate();
+                }
             }
 
             DisplayList(console, console.Config.Collapse ? console.CollapsedEntries : console.FilteredEntries, out List<ConsoleLogEntry> displayedEntries, totalWidth);

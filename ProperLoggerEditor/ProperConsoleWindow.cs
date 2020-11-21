@@ -724,6 +724,11 @@ namespace ProperLogger
             EditorApplication.delayCall += new EditorApplication.CallbackFunction(Repaint);
         }
 
+        public void DoubleTriggerRepaint()
+        {
+            EditorApplication.delayCall += new EditorApplication.CallbackFunction(TriggerRepaint);
+        }
+
         public void RepaintImmediate()
         {
             Repaint();

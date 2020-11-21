@@ -111,6 +111,7 @@ namespace ProperLogger
         void Clear();
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();
+        void DoubleTriggerRepaint();
         void TriggerRepaint();
         void RepaintImmediate();
         void SelectableLabel(string text, GUIStyle textStyle, float currentX);
