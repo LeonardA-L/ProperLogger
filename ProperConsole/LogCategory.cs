@@ -10,7 +10,7 @@ namespace ProperLogger
     [Obfuscation(Exclude = true, ApplyToMembers = false)]
     public class LogCategory
     {
-        /*internal static List<Color> s_categoryColors = new List<Color>()
+        internal static readonly List<Color> s_categoryColors = new List<Color>()
         {
             new Color(50f / 255f, 168f / 255f, 82f / 255f, 1f),
             new Color(36f / 255f, 209f / 255f, 203f / 255f, 1f),
@@ -20,7 +20,7 @@ namespace ProperLogger
             new Color(217f / 255f, 35f / 255f, 35f / 255f, 1f),
             new Color(255f / 255f, 180f / 255f, 51f / 255f, 1f),
             new Color(124f / 255f, 219f / 255f, 105f / 255f, 1f),
-        };*/ // TODO const
+        };
 
         [SerializeField, Obfuscation(Exclude = true)]
         private string m_name = null;
@@ -42,7 +42,14 @@ namespace ProperLogger
 
         //public Sprite Icon => m_icon;
         public string Name => m_name;
-        public Color Color => m_color;
+        public Color Color
+        {
+            get => m_color;
+            set
+            {
+                m_color = value;
+            }
+        }
         public string Parent => m_parentCategory;
         public List<LogCategory> Children => m_children ?? (m_children = new List<LogCategory>());
 

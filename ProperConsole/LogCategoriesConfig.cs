@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace ProperLogger
 {
@@ -56,11 +59,21 @@ namespace ProperLogger
             return m_categoriesByName;
         }*/
 
-        public virtual void Add(string name)
+        public virtual LogCategory Add(string name, Color color)
         {
             m_categories = m_categories ?? new List<LogCategory>();
             var newCat = new LogCategory(name);
+            newCat.Color = color;
             m_categories.Add(newCat);
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
+            return newCat;
+        }
+
+        public virtual LogCategory Add(string name)
+        {
+            return Add(name, Color.red);
         }
 
         public LogCategory this[string n]

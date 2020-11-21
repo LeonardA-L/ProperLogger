@@ -8,7 +8,6 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-    // TODO mutualize
     [Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class CategoriesFilterGameWindow : MonoBehaviour, ICategoryWindow
     {
@@ -45,7 +44,7 @@ namespace ProperLogger
 
             GUI.depth = m_depth;
 
-            GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, (GUIStyle)"Box");
+            GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, Strings.Box);
 
             if(Config.CurrentCategoriesConfig == null)
             {

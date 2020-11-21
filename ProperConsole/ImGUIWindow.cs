@@ -142,7 +142,7 @@ namespace ProperLogger
         {
             GUI.depth = 0;
             var buttonRect = new Rect(m_windowRect.width - 20, 0, 20, 20);
-            if(GUI.Button(buttonRect, "x", (GUIStyle)"CloseWindowButton")) // TODO cache style
+            if(GUI.Button(buttonRect, Strings.x, Strings.CloseWindowButton))
             {
                 Toggle();
                 return true;

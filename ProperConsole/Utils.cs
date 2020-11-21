@@ -10,6 +10,7 @@ namespace ProperLogger
 {
     internal class Utils
     {
+        private static Regex s_linkMatchRegex = null;
 
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {
@@ -65,11 +66,14 @@ namespace ProperLogger
 
             string result = string.Empty;
 
-            Regex scriptMatch = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase); // TODO cache
+            if(s_linkMatchRegex == null)
+            {
+                s_linkMatchRegex = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase);
+            }
 
             for (int i = 0; i < split.Length; i++)
             {
-                Match m = scriptMatch.Match(split[i]);
+                Match m = s_linkMatchRegex.Match(split[i]);
                 if (m.Success)
                 {
                     List<string> groups = new List<string>();

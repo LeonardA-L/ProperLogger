@@ -6,6 +6,8 @@
         internal const string WindowTitle = "Proper Logger";
         internal const string CopyCommandName = "Copy";
         internal const string NineNineNinePlus = "999+";
+        internal const string x = "x";
+        internal const string ProperLogger = "ProperLogger";
         #endregion
 
         #region Resources
@@ -25,10 +27,13 @@
 
         #region Style Names
         internal const string Splitter = "Splitter";
+        internal const string Box = "Box";
         internal const string Toolbar = "Toolbar";
         internal const string ToolbarButton = "ToolbarButton";
         internal const string ToolbarSeachTextField = "ToolbarSeachTextField";
         internal const string ToolbarSearchTextField = "ToolbarSearchTextField";
+        internal const string SearchCancelButton = "SearchCancelButton";
+        internal const string CloseWindowButton = "CloseWindowButton";
         #endregion Style Names
 
         #region Reflection

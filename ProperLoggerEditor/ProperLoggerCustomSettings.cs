@@ -27,7 +27,7 @@ namespace ProperLogger
 
         private bool m_isDarkSkin = false;
 
-        private string PrefabPath => EditorUtils.FindAssetPath<ProperConsoleGameWindow>("ProperLogger"); // TODO string
+        private string PrefabPath => EditorUtils.FindAssetPath<ProperConsoleGameWindow>(Strings.ProperLogger);
 
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
@@ -131,7 +131,7 @@ namespace ProperLogger
 
             var inGamePrefab = PrefabUtility.LoadPrefabContents(PrefabPath);
             var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
-            Debug.Assert(prefabConsole != null); // TODO explicit message
+            Debug.Assert(prefabConsole != null, $"Could not find console prefab named {Strings.ProperLogger}. Try reimporting package.");
             if (prefabConsole != null)
             {
                 prefabConsole.CategoriesAsset = asset;
@@ -142,7 +142,6 @@ namespace ProperLogger
 
         private void DisplayCategoriesTab()
         {
-            // TODO all texts here were written late at night
             LogCategoriesConfig asset = m_configs.CurrentCategoriesConfig;
 
             GUILayout.BeginHorizontal();
@@ -157,17 +156,19 @@ namespace ProperLogger
             if (asset == null)
             {
                 GUILayout.Space(10);
-                if(GUILayout.Button("Create Asset", GUILayout.Height(60)))
+                if (GUILayout.Button("Create Asset", GUILayout.Height(60)))
                 {
                     asset = ScriptableObject.CreateInstance<LogCategoriesConfig>();
 
-                    asset.Add("Combat"); // TODO add color
-                    asset.Add("Dialogue");
-                    asset.Add("Performance");
+                    asset.Add("Combat", LogCategory.s_categoryColors[7]);
+                    asset.Add("Dialogue", LogCategory.s_categoryColors[1]);
+                    asset.Add("Performance", LogCategory.s_categoryColors[6]);
 
                     AssetDatabase.CreateAsset(asset, m_defaultPath);
                     AssetDatabase.SaveAssets();
                     SetCategoriesAsset(asset);
+                    EditorGUIUtility.PingObject(asset);
+                    Selection.activeObject = asset;
                 }
             }
             else

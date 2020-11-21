@@ -242,7 +242,6 @@ namespace ProperLogger
         }
         internal static void CopySelection(IProperLogger console)
         {
-            // TODO check if this works in game
             string result = string.Empty;
 
             foreach (var entry in console.SelectedEntries)
@@ -511,7 +510,7 @@ namespace ProperLogger
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false), GUILayout.Width(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box(string.Empty,
-                     console.IsGame ? (GUIStyle)Strings.Splitter : (GUIStyle)"Box", // TODO string
+                     console.IsGame ? (GUIStyle)Strings.Splitter : Strings.Box,
                      GUILayout.Width(1),
                      GUILayout.MaxWidth(1),
                      GUILayout.MinWidth(1),
@@ -524,7 +523,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical(GUILayout.ExpandHeight(false), GUILayout.Height(1 + 2 * splitterSize));
                 GUILayout.Space(splitterSize);
                 GUILayout.Box(string.Empty,
-                     console.IsGame ? (GUIStyle)Strings.Splitter : (GUIStyle)"Box", // TODO string
+                     console.IsGame ? (GUIStyle)Strings.Splitter : Strings.Box,
                      GUILayout.Height(1),
                      GUILayout.MaxHeight(1),
                      GUILayout.MinHeight(1),
@@ -619,7 +618,7 @@ namespace ProperLogger
                 }
                 float resetSearchButtonWidth = 15;
                 console.ResetSearchButtonRect = new Rect(console.SearchFieldRect.xMax - resetSearchButtonWidth, console.SearchFieldRect.y, resetSearchButtonWidth, console.SearchFieldRect.height);
-                if (GUI.Button(console.ResetSearchButtonRect, GUIContent.none, "SearchCancelButton")) // TODO string
+                if (GUI.Button(console.ResetSearchButtonRect, GUIContent.none, Strings.SearchCancelButton))
                 {
                     console.SearchString = null;
                     console.TriggerFilteredEntryComputation = true;

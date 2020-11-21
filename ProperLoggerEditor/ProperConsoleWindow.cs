@@ -313,7 +313,6 @@ namespace ProperLogger
 
         public void LoadIcons()
         {
-            // TODO check out EditorGUIUtility.Load
             IconInfo = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.infoicon" });
             IconWarning = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.warnicon" });
             IconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
@@ -344,7 +343,7 @@ namespace ProperLogger
         {
             if (entry.unityIndex >= 0)
             {
-                RowGotDoubleClicked.Invoke(null, new object[] { entry.unityIndex }); // TODO check if this works in game
+                RowGotDoubleClicked.Invoke(null, new object[] { entry.unityIndex });
                 return;
             }
 
@@ -483,7 +482,7 @@ namespace ProperLogger
                 var props = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance);
                 foreach (var prop in props)
                 {
-                    if (prop.Name == "message") // TODO no string, cache properties directly instead of array
+                    if (prop.Name == "message")
                     {
                         m_messageField = prop;
                     }
@@ -506,7 +505,7 @@ namespace ProperLogger
         {
             return new CustomLogEntry()
             {
-                line = (int)m_lineField.GetValue(unityLogEntry), // TODO only call when needed ?
+                line = (int)m_lineField.GetValue(unityLogEntry),
                 message = (string)m_messageField.GetValue(unityLogEntry),
                 file = (string)m_fileField.GetValue(unityLogEntry),
                 mode = (int)m_modeField.GetValue(unityLogEntry),
@@ -573,14 +572,10 @@ namespace ProperLogger
         {
             lock (EntriesLock)
             {
-                //m_logCounter = 0;
-                //m_warningCounter = 0;
-                //m_errorCounter = 0;
-                //m_entries.Clear();
                 PendingContexts.Clear();
                 SelectedEntries.Clear();
 
-                ClearEntries.Invoke(null, null); // TODO check if this works in game
+                ClearEntries.Invoke(null, null);
 
                 SyncWithUnityEntries();
             }

@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    // TODO mutualize
     [Obfuscation(Exclude = true, ApplyToMembers = false)]
     public class PlayerSettingsWindow : ImGuiWindow<PlayerSettingsWindow>
     {
