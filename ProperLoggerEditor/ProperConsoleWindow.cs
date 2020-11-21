@@ -529,7 +529,7 @@ namespace ProperLogger
             int count = (int)GetCount.Invoke(null, null);
 
             StartGettingEntries.Invoke(null, null);
-            int firstIndex = 0;
+            int firstIndex = -1;
             object entry = Activator.CreateInstance(LogEntry);
             PopulateLogEntryFields(LogEntry);
             for (int i = 0; i < count; i++)
@@ -539,7 +539,7 @@ namespace ProperLogger
                 {
                     CustomLogEntry unityEntry = ConvertUnityLogEntryToCustomLogEntry(entry);
                     bool found = false;
-                    for(int j = firstIndex; j < Entries.Count; j++)
+                    for(int j = firstIndex+1; j < Entries.Count; j++)
                     {
                         var consoleEntry = Entries[j];
                         if (CompareEntries(unityEntry, consoleEntry))
