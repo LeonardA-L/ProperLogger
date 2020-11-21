@@ -94,13 +94,11 @@ namespace ProperLogger
         }
         internal static void CacheStyles(IProperLogger console)
         {
-            // TODO some styles don't need "new" style instantiation
-
-            console.OddEntry = new GUIStyle(console.Skin.FindStyle("OddEntry"));
-            console.SelectedEntry = new GUIStyle(console.Skin.FindStyle("SelectedEntry"));
-            console.SelectedEntryLabel = new GUIStyle(console.Skin.FindStyle("EntryLabelSelected"));
-            console.EvenEntry = new GUIStyle(console.Skin.FindStyle("EvenEntry"));
-            console.EvenEntryLabel = new GUIStyle(console.Skin.FindStyle("EntryLabel"));
+            console.OddEntry = console.Skin.FindStyle("OddEntry");
+            console.SelectedEntry = console.Skin.FindStyle("SelectedEntry");
+            console.SelectedEntryLabel = console.Skin.FindStyle("EntryLabelSelected");
+            console.EvenEntry = console.Skin.FindStyle("EvenEntry");
+            console.EvenEntryLabel = console.Skin.FindStyle("EntryLabel");
 
             var categoryNameStyle = new GUIStyle(console.EvenEntryLabel);
             categoryNameStyle.normal.textColor = GUI.skin.label.normal.textColor;
@@ -111,16 +109,15 @@ namespace ProperLogger
             categoryNameStyle.fontSize = console.Config.LogEntryMessageFontSize;
             console.CategoryNameStyle = categoryNameStyle;
 
-            console.CategoryColorStrip = new GUIStyle(console.Skin.FindStyle("CategoryColorStrip"));
+            console.CategoryColorStrip = console.Skin.FindStyle("CategoryColorStrip");
 
-            console.CollapseBubbleStyle = new GUIStyle(console.Skin.FindStyle("CollapseBubble"));
-            console.CollapseBubbleWarningStyle = new GUIStyle(console.Skin.FindStyle("CollapseBubbleWarning"));
-            console.CollapseBubbleErrorStyle = new GUIStyle(console.Skin.FindStyle("CollapseBubbleError"));
+            console.CollapseBubbleStyle = console.Skin.FindStyle("CollapseBubble");
+            console.CollapseBubbleWarningStyle = console.Skin.FindStyle("CollapseBubbleWarning");
+            console.CollapseBubbleErrorStyle = console.Skin.FindStyle("CollapseBubbleError");
 
-            console.ToolbarIconButtonStyle = new GUIStyle(Strings.ToolbarButton);
+            console.ToolbarIconButtonStyle = Strings.ToolbarButton;
 
-            var inspectorTextStyle = new GUIStyle(console.EvenEntryLabel);
-            inspectorTextStyle = new GUIStyle(GUI.skin.label);
+            var inspectorTextStyle = new GUIStyle(GUI.skin.label);
             inspectorTextStyle.richText = true;
             inspectorTextStyle.fontSize = console.Config.InspectorMessageFontSize;
             inspectorTextStyle.wordWrap = true;
@@ -128,10 +125,13 @@ namespace ProperLogger
             inspectorTextStyle.clipping = TextClipping.Clip;
             console.InspectorTextStyle = inspectorTextStyle;
 
-            console.EntryIconStyle = new GUIStyle(console.Skin.FindStyle("EntryIcon"));
+            console.EntryIconStyle = console.Skin.FindStyle("EntryIcon");
 
-            console.RemoteConnectionUtilityStyle = new GUIStyle("ToolbarDropDown");
-            console.RemoteConnectionUtilityStyle.stretchWidth = true;
+            if (!console.IsGame)
+            {
+                console.RemoteConnectionUtilityStyle = new GUIStyle("ToolbarDropDown");
+                console.RemoteConnectionUtilityStyle.stretchWidth = true;
+            }
         }
         internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
         {
@@ -255,7 +255,7 @@ namespace ProperLogger
         internal static void FlagButton(IProperLogger console, LogLevel level, Texture2D icon, Texture2D iconGray, int counter)
         {
             bool hasFlag = (console.Config.LogLevelFilter & level) != 0;
-            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent((counter > 999 ? Strings.NineNineNinePlus : counter.ToString()), (counter > 0 ? icon : iconGray), counter.ToString()),
+            bool newFlagValue = GUILayout.Toggle(hasFlag, new GUIContent(" " + (counter > 999 ? Strings.NineNineNinePlus : counter.ToString()), (counter > 0 ? icon : iconGray), counter.ToString()),
                 console.ToolbarIconButtonStyle
                 , GUILayout.MaxWidth(GetFlagButtonWidthFromCounter(counter))
                 );

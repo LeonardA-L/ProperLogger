@@ -349,7 +349,6 @@ namespace ProperLogger
             base.DoGui(windowID);
         }
 
-
         private Vector2 ComputeCategoryDropdownPosition(Rect dropdownRect)
         {
             Vector2 dropdownOffset = new Vector2(29, 1);
