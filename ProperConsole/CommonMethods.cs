@@ -769,7 +769,7 @@ namespace ProperLogger
             imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = console.Config.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 30 + sidePaddings;
+            float empiricalPaddings = 25 + sidePaddings;
 
             bool displayCategoryNameInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
             bool displayCategoryIconInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);
@@ -841,7 +841,7 @@ namespace ProperLogger
                     {
                         entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false)}";
                     }
-                    GUILayout.Label(entry.cachedFirstLine, textStyle);
+                    GUILayout.Label(entry.cachedFirstLine, textStyle, GUILayout.MaxWidth(entrywidth));
                     textStyle.fontSize = console.Config.LogEntryStackTraceFontSize;
                     if (console.Config.LogEntryStackTraceLineCount > 0)
                     {
@@ -860,7 +860,7 @@ namespace ProperLogger
                                 entry.cachedSecondLine = $"{Utils.GetFirstLines(entry.messageLines, console.Config.LogEntryMessageLineCount, console.Config.LogEntryStackTraceLineCount, false)}";
                             }
                         }
-                        GUILayout.Label(entry.cachedSecondLine, textStyle);
+                        GUILayout.Label(entry.cachedSecondLine, textStyle, GUILayout.MaxWidth(entrywidth));
                     }
                 }
                 GUILayout.EndVertical();

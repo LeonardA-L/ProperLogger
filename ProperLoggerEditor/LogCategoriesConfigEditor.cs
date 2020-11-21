@@ -34,7 +34,10 @@ namespace ProperLogger
                 m_iconError = (Texture2D)LoadIcon.Invoke(null, new object[] { "console.erroricon" });
             }
 
-            DisplayErrors();
+            if (m_issues != null)
+            {
+                DisplayErrors();
+            }
 
             m_issues = new List<string>();
 
