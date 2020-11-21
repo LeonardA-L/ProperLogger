@@ -43,7 +43,15 @@ namespace ProperLogger
         }
 
         //public Sprite Icon => m_icon;
-        public string Name => m_name;
+        public string Name
+        {
+            get => m_name;
+            internal set
+            {
+                m_name = value;
+            }
+        }
+
         public Color Color
         {
             get => m_color;
@@ -52,7 +60,15 @@ namespace ProperLogger
                 m_color = value;
             }
         }
-        public string Parent => m_parentCategory;
+
+        public string Parent
+        {
+            get => m_parentCategory;
+            internal set
+            {
+                m_parentCategory = value;
+            }
+        }
         public List<LogCategory> Children => m_children ?? (m_children = new List<LogCategory>());
 
         public void ClearChildren()
