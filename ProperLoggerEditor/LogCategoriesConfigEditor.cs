@@ -12,7 +12,6 @@ namespace ProperLogger
     public class LogCategoriesConfigEditor : Editor
     {
         private List<string> m_parentOptions = null;
-        private GUIStyle m_boxStyle = null;
         private GUISkin m_consoleSkin = null;
         private GUIStyle m_categoryNameStyle = null;
 

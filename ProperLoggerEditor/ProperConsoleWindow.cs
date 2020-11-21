@@ -169,6 +169,8 @@ namespace ProperLogger
         private System.Threading.Thread m_mainThread = null;
         public System.Threading.Thread MainThread => m_mainThread;
 
+        public bool ShowCategoryFilter { get; set; } = false;
+
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
         public GUIContent ErrorPauseButtonContent { get; set; } = null;
@@ -285,6 +287,7 @@ namespace ProperLogger
             NeedRegexRecompile = true;
 
             LastMainThreadCategoriesConfig = Config.CurrentCategoriesConfig;
+            ShowCategoryFilter = false;
         }
 
         [Obfuscation(Exclude = true)]
@@ -619,6 +622,7 @@ namespace ProperLogger
 
         public void DrawCategoriesWindow(Rect dropdownRect, Vector2 size)
         {
+            ShowCategoryFilter = true;
             var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
             window.ShowAsDropDown(ComputeCategoryDropdownPosition(dropdownRect), size);
             window.Repaint();

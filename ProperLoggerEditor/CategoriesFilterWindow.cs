@@ -10,6 +10,11 @@ namespace ProperLogger
         public ConfigsProvider Config => EditorConfigs.Instance;
         public IProperLogger Console => ProperConsoleWindow.Instance;
 
+        private void OnDisable()
+        {
+            Console.ShowCategoryFilter = false;
+        }
+
         [System.Reflection.Obfuscation(Exclude = true)]
         private void OnGUI()
         {

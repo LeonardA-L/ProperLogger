@@ -648,24 +648,28 @@ namespace ProperLogger
 
             if (GUILayout.Button(console.CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
-                var categoriesAsset = console.Config.CurrentCategoriesConfig;
-                Vector2 size = new Vector2(250, 150);
-                if (categoriesAsset != null)
+                //if (!console.ShowCategoryFilter)
                 {
-                    categoriesAsset.PopulateRootCategories();
-                    size.x = Mathf.Max(size.x, categoriesAsset.LongestName);
-                    if (console.Config.CurrentCategoriesConfig.Categories == null || console.Config.CurrentCategoriesConfig.Categories.Count == 0)
+                        var categoriesAsset = console.Config.CurrentCategoriesConfig;
+                    Vector2 size = new Vector2(250, 150);
+                    if (categoriesAsset != null)
                     {
-                        size.y = 30;
+                        categoriesAsset.PopulateRootCategories();
+                        size.x = Mathf.Max(size.x, categoriesAsset.LongestName);
+                        if (console.Config.CurrentCategoriesConfig.Categories == null || console.Config.CurrentCategoriesConfig.Categories.Count == 0)
+                        {
+                            size.y = 30;
+                        }
+                        else
+                        {
+                            size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 18; // TODO put this somewhere in a style
+                        }
                     }
-                    else
-                    {
-                        size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 18; // TODO put this somewhere in a style
-                    }
-                }
 
-                size.y += console.IsGame ? 45 : 25;
-                console.DrawCategoriesWindow(dropdownRect, size);
+                    size.y += console.IsGame ? 45 : 25;
+                    console.DrawCategoriesWindow(dropdownRect, size);
+                    console.RepaintImmediate();
+                }
             }
             if (Event.current.type == EventType.Repaint) console.ShowCategoriesButtonRect = GUILayoutUtility.GetLastRect();
 

@@ -54,6 +54,7 @@ namespace ProperLogger
         bool IsDarkSkin { get; set; }
         Rect WindowRect { get; }
         bool PurgeGetLinesCache { get; set; }
+        bool ShowCategoryFilter { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }
