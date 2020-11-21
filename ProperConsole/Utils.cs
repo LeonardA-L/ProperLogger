@@ -121,7 +121,7 @@ namespace ProperLogger
 
         #endregion Text Manipulation
 
-        public static bool IsMainThread(System.Threading.Thread mainThread)
+        internal static bool IsMainThread(System.Threading.Thread mainThread)
         {
             return mainThread.Equals(System.Threading.Thread.CurrentThread);
         }

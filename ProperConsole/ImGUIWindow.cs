@@ -34,10 +34,8 @@ namespace ProperLogger
 
         protected abstract string WindowName {get;}
 
-
-
-        private float refScreenWidth = 1282f;
-        private float refScreenHeight = 772f;
+        private float m_refScreenWidth = 1282f;
+        private float m_refScreenHeight = 772f;
 
         [Obfuscation(Exclude = true)]
         protected virtual void Awake()
@@ -122,15 +120,15 @@ namespace ProperLogger
 
             GUI.depth = m_depth;
 
-            float xFactor = Screen.width / refScreenWidth;
-            float yFactor = Screen.height / refScreenHeight;
+            float xFactor = Screen.width / m_refScreenWidth;
+            float yFactor = Screen.height / m_refScreenHeight;
             GUIUtility.ScaleAroundPivot(new Vector2(xFactor, yFactor), Vector2.zero);
 
             m_windowID = GUIUtility.GetControlID(FocusType.Passive);
             m_windowRect = GUI.Window(m_windowID, m_windowRect, DoGui, WindowName);
 
-            m_windowRect.x = Mathf.Clamp(m_windowRect.x, -m_windowRect.width + 20, refScreenWidth - 20);
-            m_windowRect.y = Mathf.Clamp(m_windowRect.y, 0, refScreenHeight - 20);
+            m_windowRect.x = Mathf.Clamp(m_windowRect.x, -m_windowRect.width + 20, m_refScreenWidth - 20);
+            m_windowRect.y = Mathf.Clamp(m_windowRect.y, 0, m_refScreenHeight - 20);
         }
 
         protected virtual void DoGui(int windowID)

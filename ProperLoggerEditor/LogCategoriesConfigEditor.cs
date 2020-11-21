@@ -9,7 +9,7 @@ using System.Reflection;
 namespace ProperLogger
 {
     [CustomEditor(typeof(LogCategoriesConfig))]
-    public class LogCategoriesConfigEditor : Editor
+    internal class LogCategoriesConfigEditor : Editor
     {
         private List<string> m_parentOptions = null;
         private GUISkin m_consoleSkin = null;

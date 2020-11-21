@@ -4,7 +4,6 @@ namespace ProperLogger
 {
     internal class PlayerConfigs : ConfigsProvider<PlayerConfigs>
     {
-
         protected override bool GetBool(string key, bool defaultValue)
         {
             return PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;

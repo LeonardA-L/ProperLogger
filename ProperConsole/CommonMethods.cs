@@ -1353,7 +1353,7 @@ namespace ProperLogger
             console.PurgeGetLinesCache = false;
         }
 
-        public static void DisplayCategoryFilterContent(ICategoryWindow categoryWindow)
+        internal static void DisplayCategoryFilterContent(ICategoryWindow categoryWindow)
         {
             Color defaultColor = GUI.color;
             var inactiveCategories = categoryWindow.Config.InactiveCategories;

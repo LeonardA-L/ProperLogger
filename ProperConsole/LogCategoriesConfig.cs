@@ -17,7 +17,7 @@ namespace ProperLogger
         internal static int s_categoryIndent = 20;
         internal static int s_categoryCharacterSize = 6;
 
-        private static LogCategoriesConfig m_instance = null;
+        protected static LogCategoriesConfig m_instance = null;
         public static LogCategoriesConfig Instance => m_instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
@@ -28,37 +28,17 @@ namespace ProperLogger
         //protected Dictionary<string, LogCategory> m_categoriesByName = null;
         [NonSerialized]
         private int m_longestName;
-        public int LongestName => m_longestName;
+        internal int LongestName => m_longestName;
         [NonSerialized]
         protected List<LogCategory> m_rootCategories = null;
         public List<LogCategory> RootCategories => m_rootCategories;
 
         public List<LogCategory> Categories => m_categories;
-        //public Dictionary<string, LogCategory> CategoriesByName => m_categoriesByName ?? (m_categoriesByName = RebuildCategories());
 
         protected virtual void OnEnable()
         {
             m_instance = this;
-            //RebuildCategories();
         }
-        /*
-        internal Dictionary<string, LogCategory> RebuildCategories()
-        {
-            if(m_categories == null || m_categories.Count == 0)
-            {
-                return null;
-            }
-
-            m_categoriesByName?.Clear();
-            m_categoriesByName = new Dictionary<string, LogCategory>();
-
-            foreach (var category in m_categories)
-            {
-                m_categoriesByName.Add(category.Name, category);
-            }
-
-            return m_categoriesByName;
-        }*/
 
         public virtual LogCategory Add(string name, Color color)
         {

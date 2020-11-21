@@ -270,6 +270,5 @@ namespace ProperLogger
             }
             GUILayout.EndHorizontal();
         }
-
     }
 }
