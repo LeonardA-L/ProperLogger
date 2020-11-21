@@ -21,6 +21,7 @@ namespace ProperLogger
         public static LogCategoriesConfig Instance => m_instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("Log Categories. Use them to filter and group your log messages.")]
         protected List<LogCategory> m_categories = null;
 
         //[System.NonSerialized]

@@ -23,12 +23,14 @@ namespace ProperLogger
         };
 
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("Name of the category. Will be used in filters. Must be unique")]
         private string m_name = null;
         [SerializeField, Obfuscation(Exclude = true)]
         private Color m_color = Color.red;
         /*[SerializeField]
         private Sprite m_icon = null;*/
         [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("Name of the parent category in the category trees. Use this to group categories and filter them more easily")]
         //[CategoryParent]
         private string m_parentCategory = null;
 

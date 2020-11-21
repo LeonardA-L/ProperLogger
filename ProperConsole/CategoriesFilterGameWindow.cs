@@ -15,6 +15,9 @@ namespace ProperLogger
         public IProperLogger Console => ProperConsoleGameWindow.Instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
         protected int m_depth = 1;
 
         [Obfuscation(Exclude = true)]
