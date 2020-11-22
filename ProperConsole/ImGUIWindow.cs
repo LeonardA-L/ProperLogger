@@ -11,10 +11,6 @@ namespace ProperLogger
         public static T Instance => m_instance;
 
         [SerializeField, Obfuscation(Exclude = true)]
-        [Tooltip("The window will open when this key is pressed")]
-        private KeyCode m_triggerKey = KeyCode.None;
-
-        [SerializeField, Obfuscation(Exclude = true)]
         [Tooltip("GUI Skin Override")]
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin;
@@ -66,16 +62,10 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         protected virtual void Update()
         {
-#if ENABLE_INPUT_SYSTEM
-            // TODO implement and test this
-#endif
-            if (m_triggerKey != KeyCode.None && Input.GetKeyDown(m_triggerKey))
-            {
-                Toggle();
-            }
         }
 
-        internal virtual void Toggle()
+        [Obfuscation(Exclude = true)]
+        public virtual void Toggle()
         {
             m_active = !m_active;
             if (m_active)
@@ -88,13 +78,23 @@ namespace ProperLogger
             }
         }
 
-        internal virtual void Open()
+        [Obfuscation(Exclude = true)]
+        public virtual void Open()
         {
             if (!m_active)
             {
                 Toggle();
             }
             GUI.BringWindowToFront(m_windowID);
+        }
+
+        [Obfuscation(Exclude = true)]
+        public virtual void Close()
+        {
+            if (m_active)
+            {
+                Toggle();
+            }
         }
 
         protected virtual void OnWindowEnabled()

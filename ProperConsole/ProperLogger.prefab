@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1490771459762167226}
   - component: {fileID: 1490771459762167227}
   - component: {fileID: 1490771459762167224}
+  - component: {fileID: 4128596737214064538}
   m_Layer: 0
   m_Name: ProperLogger
   m_TagString: Untagged
@@ -45,7 +46,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe8251746827eaf4a807b1256a088f18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_triggerKey: 282
   m_skin: {fileID: 11400000, guid: 69cafbb5347670642b7174e6e47f0b8c, type: 2}
   m_windowRect:
     serializedVersion: 2
@@ -85,7 +85,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd71b1e6817d7d346b8ff3e69e69cfc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_triggerKey: 283
   m_skin: {fileID: 11400000, guid: 69cafbb5347670642b7174e6e47f0b8c, type: 2}
   m_windowRect:
     serializedVersion: 2
@@ -108,3 +107,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_depth: 0
+--- !u!114 &4128596737214064538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490771459762167228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6e9fb74aa1eeb6448b58d5e19dc9d0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_triggerKey: 282
