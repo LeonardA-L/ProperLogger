@@ -210,7 +210,15 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
             GUILayout.Space(15);
             EditorGUI.BeginChangeCheck();
+            var previousName = category.Name;
             category.Name = EditorGUILayout.TextField("Category Name", category.Name);
+            if(category.Name != previousName)
+            {
+                foreach (var item in category.Children)
+                {
+                    item.Parent = category.Name;
+                }
+            }
             category.Color = EditorGUILayout.ColorField("Color", category.Color);
             if (EditorGUI.EndChangeCheck())
             {
