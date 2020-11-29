@@ -367,6 +367,15 @@ namespace ProperLogger
                 string tempAssetPath = null;
                 string tempAssetLine = null;
                 string newStackTrace = string.IsNullOrEmpty(stackTrace) ? null : Utils.ParseStackTrace(stackTrace, out tempAssetPath, out tempAssetLine);
+                string parsedMessage = null;
+                string tempMessageAssetPath = null;
+                string tempMessageAssetLine = null;
+                if (Utils.ParseMessage(categoryLessMessage, out tempMessageAssetPath, out tempMessageAssetLine, out parsedMessage))
+                {
+                    tempAssetPath = tempMessageAssetPath;
+                    tempAssetLine = tempMessageAssetLine;
+                    categoryLessMessage = parsedMessage;
+                }
 
                 newConsoleEntry = new ConsoleLogEntry()
                 {
@@ -769,7 +778,7 @@ namespace ProperLogger
             imageSize += imageSize % 2;
             float sidePaddings = 10;
             float collapseBubbleSize = console.Config.Collapse ? (40 - sidePaddings) : 0; // Globally accessible ?
-            float empiricalPaddings = 30 + sidePaddings;
+            float empiricalPaddings = 14 + sidePaddings;
 
             bool displayCategoryNameInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.NameColumn);
             bool displayCategoryIconInColumn = console.Config.CategoryDisplay.HasFlag(ECategoryDisplay.Icon);

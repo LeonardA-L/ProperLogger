@@ -11,6 +11,7 @@ namespace ProperLogger
     internal class Utils
     {
         private static Regex s_linkMatchRegex = null;
+        private static Regex s_warningLinkMatchRegex = null;
 
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {
@@ -117,6 +118,77 @@ namespace ProperLogger
             }
 
             return result;
+        }
+
+        internal static bool ParseMessage(string message, out string firstAsset, out string firstLine, out string parsedMessage)
+        {
+            firstAsset = null;
+            firstLine = null;
+            parsedMessage = null;
+            if (string.IsNullOrEmpty(message))
+            {
+                return false;
+            }
+
+            var split = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            string result = string.Empty;
+
+            if (s_warningLinkMatchRegex == null)
+            {
+                s_warningLinkMatchRegex = new Regex("^([\\/a-zA-Z0-9\\-_\\.\\\\]+)(\\((\\d+),\\d+\\))", RegexOptions.IgnoreCase);
+            }
+
+            bool success = false;
+
+            for (int i = 0; i < split.Length; i++)
+            {
+                Match m = s_warningLinkMatchRegex.Match(split[i]);
+                if (i == 0 && m.Success)
+                {
+                    success = true;
+                    List<string> groups = new List<string>();
+                    for (int k = 0; k < m.Groups.Count; k++)
+                    {
+                        groups.Add(m.Groups[k].Value);
+                    }
+
+                    bool isHidden = false;
+                    try
+                    {
+                        if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
+                        {
+                            result = string.Empty;
+                            continue;
+                        }
+
+                        Type type = Type.GetType(m.Groups[2].Value);
+                        MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
+                        var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true);
+                        isHidden = attributes.Length > 0;
+                    }
+                    catch (Exception) { }
+
+                    if (isHidden)
+                    {
+                        continue;
+                    }
+                    result += split[i].Replace(m.Value, $"<a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[3].Value }\">{ m.Groups[0].Value }</a>") + Environment.NewLine;
+
+                    if (string.IsNullOrEmpty(firstAsset))
+                    {
+                        firstAsset = m.Groups[1].Value;
+                        firstLine = m.Groups[3].Value;
+                    }
+                }
+                else
+                {
+                    result += split[i].ToString() + Environment.NewLine;
+                }
+            }
+
+            parsedMessage = result;
+            return success;
         }
 
         #endregion Text Manipulation
