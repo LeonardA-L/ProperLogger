@@ -58,24 +58,25 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="UnityEditor">
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEngine.IMGUIModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Unities\2020.1.11f1\Editor\Data\Managed\UnityEngine\UnityEditor.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\..\..\..\..\Program Files\Unities\2019.3.9f1\Editor\Data\Managed\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\Unities\2020.1.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\Unities\2020.1.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\Unities\2020.1.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\Unities\2020.1.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +102,7 @@
   <ItemGroup>
     <Compile Include="Attributes.cs" />
     <Compile Include="CategoriesFilterGameWindow.cs" />
+    <Compile Include="CategoryParentAttribute.cs" />
     <Compile Include="CommonMethods.cs" />
     <Compile Include="ConfigsProvider.cs" />
     <Compile Include="CustomLogHandler.cs" />
@@ -499,7 +501,6 @@
     <None Include=".git\ORIG_HEAD" />
     <None Include=".git\refs\heads\master" />
     <None Include=".git\sourcetreeconfig.json" />
-    <None Include="GameCustomSkin.guiskin" />
     <None Include="Icons\AssertIcon.png.meta" />
     <None Include="Icons\Bubble_Gray.png.meta" />
     <None Include="Icons\Bubble_Red.png.meta" />
@@ -517,15 +518,6 @@
     <None Include="Icons\ProperConsoleRegexIcon.png.meta" />
     <None Include="Icons\ProperConsoleResetIcon.png.meta" />
     <None Include="Icons\White.png.meta" />
-    <None Include="LogCategoriesConfig.cs.meta" />
-    <None Include="LogCategory.cs.meta" />
-    <None Include="LogLevel.cs.meta" />
-    <None Include="LogStructures.cs.meta" />
-    <None Include="ProperConsoleEditorCustomSkin.guiskin" />
-    <None Include="ProperConsoleEditorCustomSkin.guiskin.meta" />
-    <None Include="ProperConsoleGameWindow.cs.meta" />
-    <None Include="Strings.cs.meta" />
-    <None Include="Utils.cs.meta" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".git\objects\info\" />

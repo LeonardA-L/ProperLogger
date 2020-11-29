@@ -31,11 +31,7 @@ namespace ProperLogger
         //private void OnToggle()
         private void OnToggle(InputAction.CallbackContext obj)
         {
-            if (ProperConsoleGameWindow.Instance != null)
-                {
-                    ProperConsoleGameWindow.Instance.Toggle();
-                }
-            }
+            gameObject.SendMessage("ToggleConsole");
         }
 #else
     public class InGameConsoleOpener : MonoBehaviour
@@ -46,9 +42,9 @@ namespace ProperLogger
 
         void Update()
         {
-            if (ProperConsoleGameWindow.Instance != null && m_triggerKey != KeyCode.None && Input.GetKeyDown(m_triggerKey))
+            if (m_triggerKey != KeyCode.None && Input.GetKeyDown(m_triggerKey))
             {
-                ProperConsoleGameWindow.Instance.Toggle();
+                gameObject.SendMessage("ToggleConsole");
             }
         }
     }

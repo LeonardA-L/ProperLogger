@@ -1074,7 +1074,9 @@ namespace ProperLogger
             {
                 if (console.TriggerSyncWithUnityComputation)
                 {
+#if DEBUG
                     Debug.Log("Trigger Unity Sync");
+#endif
                     lock (console.Entries)
                     {
                         console.SyncWithUnityEntries();

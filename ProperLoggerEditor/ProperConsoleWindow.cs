@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Linq;
 using System.IO;
 using C = ProperLogger.CommonMethods;
-using UnityEngine.Networking.PlayerConnection;
-using UnityEditor.Networking.PlayerConnection;
+//using UnityEngine.Networking.PlayerConnection;
+//using UnityEditor.Networking.PlayerConnection;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLogger")]
 
@@ -202,7 +202,7 @@ namespace ProperLogger
 
         #endregion Caches
 
-        IConnectionState m_attachProfilerState;
+        //IConnectionState m_attachProfilerState;
 
         #endregion Members
 
@@ -282,7 +282,7 @@ namespace ProperLogger
             ProperConsoleWindow.s_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
             ResetUnityConsoleFlags();
 
-            m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
+            //m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
 
             NeedRegexRecompile = true;
 
@@ -293,7 +293,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
-            m_attachProfilerState.Dispose();
+            //m_attachProfilerState.Dispose();
             C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
             s_instance = null;
@@ -655,8 +655,13 @@ namespace ProperLogger
         {
             EditorApplication.delayCall += () =>
             {
+#if DEBUG
                 Debug.Log("Reloaded Scripts");
-                Instance.TriggerSyncWithUnityComputation = true;
+#endif
+                if (Instance != null)
+                {
+                    Instance.TriggerSyncWithUnityComputation = true;
+                }
             };
         }
 
@@ -664,7 +669,9 @@ namespace ProperLogger
         {
             EditorApplication.delayCall += () =>
             {
+#if DEBUG
                 Debug.Log("Reloaded Assets");
+#endif
                 Instance.TriggerSyncWithUnityComputation = true;
             };
         }
@@ -762,7 +769,7 @@ namespace ProperLogger
 
         public void ShowRemoteConnectionUtility()
         {
-            PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
+            //PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
         }
     }
 }

@@ -302,6 +302,12 @@ namespace ProperLogger
         }
 
         [Obfuscation(Exclude = true)]
+        public void ToggleConsole()
+        {
+            Toggle();
+        }
+
+        [Obfuscation(Exclude = true)]
         protected override void Update()
         {
             base.Update();
