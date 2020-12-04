@@ -652,7 +652,12 @@ namespace ProperLogger
                 }
             }
 
+            bool previousAdvancedSearch = console.Config.AdvancedSearchToolbar;
             console.Config.AdvancedSearchToolbar = GUILayout.Toggle(console.Config.AdvancedSearchToolbar, console.AdvancedSearchButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false));
+            if(console.AutoScroll && previousAdvancedSearch != console.Config.AdvancedSearchToolbar)
+            {
+                console.EntryListScrollPosition = new Vector2(console.EntryListScrollPosition.x, console.EntryListScrollPosition.y + (console.Config.AdvancedSearchToolbar ? 22 : 0));
+            }
             Rect dropdownRect = GUILayoutUtility.GetLastRect();
 
             if (GUILayout.Button(console.CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))

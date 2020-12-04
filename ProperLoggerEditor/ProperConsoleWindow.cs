@@ -27,6 +27,8 @@ namespace ProperLogger
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin ?? (m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
 
+        private double m_autoRepaintDebounce = 200;
+
         #endregion Consts
 
         #region Configs
@@ -49,6 +51,8 @@ namespace ProperLogger
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
         public bool CallForRepaint { get; set; } = false;
+
+        private DateTime LastSuccessfulRepaint { get; set; } = default;
 
         #region Logs
 
@@ -273,6 +277,7 @@ namespace ProperLogger
             EntriesLock = new object();
             s_instance = this;
             TriggerFilteredEntryComputation = true;
+            TriggerSyncWithUnityComputation = true;
             EditorApplication.playModeStateChanged += ModeChanged;
             C.InitListener(this);
             LoadIcons();
@@ -376,7 +381,9 @@ namespace ProperLogger
 
         private void ModeChanged(PlayModeStateChange obj)
         {
+#if DEBUG
             Debug.Log(obj);
+#endif
             switch (obj)
             {
                 case PlayModeStateChange.ExitingPlayMode:
@@ -411,11 +418,11 @@ namespace ProperLogger
             PendingContexts?.Clear();
         }
 
-        #endregion Mode Changes
+#endregion Mode Changes
 
-        #endregion Editor Window
+#endregion Editor Window
 
-        #region Logs
+#region Logs
 
         private static bool IsError(int mode)
         {
@@ -550,7 +557,7 @@ namespace ProperLogger
                             consoleEntry.unityMode = unityEntry.mode;
                             consoleEntry.unityIndex = i;
                             newConsoleEntries.Add(consoleEntry);
-                            firstIndex++;
+                            firstIndex = j;
                             break;
                         }
                     }
@@ -602,17 +609,22 @@ namespace ProperLogger
             C.ContextListener(this, type, context, format, args);
         }
 
-        #endregion Logs
+#endregion Logs
 
-        #region GUI
+#region GUI
 
         [Obfuscation(Exclude = true)]
         void OnGUI()
         {
             C.DoGui(this);
+
+            if(Event.current.type == EventType.Repaint)
+            {
+                LastSuccessfulRepaint = DateTime.Now;
+            }
         }
 
-        #region GUI Components
+#region GUI Components
 
         private Rect ComputeCategoryDropdownPosition(Rect dropdownRect)
         {
@@ -642,13 +654,13 @@ namespace ProperLogger
             EditorGUI.SelectableLabel(new Rect(0,0,0,0), string.Empty);
         }
 
-        #endregion GUI Components
+#endregion GUI Components
 
-        #endregion GUI
+#endregion GUI
 
-        #region Utilities
+#region Utilities
 
-        #endregion Utilities
+#endregion Utilities
 
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded()
@@ -683,8 +695,14 @@ namespace ProperLogger
 
             if (CallForRepaint)
             {
-                Repaint();
+                RepaintImmediate();
             }
+
+            if((DateTime.Now - LastSuccessfulRepaint).TotalMilliseconds > m_autoRepaintDebounce)
+            {
+                RepaintImmediate();
+            }
+
             C.RegexCompilation(this);
         }
 
