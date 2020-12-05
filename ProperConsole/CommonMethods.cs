@@ -586,7 +586,7 @@ namespace ProperLogger
                 Debug.LogException(e);
             }
         }
-        internal static void DisplayToolbar(IProperLogger console, ref bool callForRepaint)
+        internal static void DisplayToolbar(IProperLogger console)
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
 
@@ -597,11 +597,11 @@ namespace ProperLogger
             }
             bool lastCollapse = console.Config.Collapse;
             console.Config.Collapse = GUILayout.Toggle(console.Config.Collapse, console.CollapseButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-            callForRepaint = console.Config.Collapse != lastCollapse;
             if (console.Config.Collapse != lastCollapse)
             {
                 console.TriggerFilteredEntryComputation = true;
                 console.SelectedEntries.Clear();
+                console.TriggerRepaint();
             }
             if (!console.IsGame)
             {
@@ -1036,7 +1036,6 @@ namespace ProperLogger
                 CacheStyles(console);
             }
 
-            bool callForRepaint = false;
             bool repaint = Event.current.type == EventType.Repaint;
 
             if (console.IsGame)
@@ -1047,9 +1046,7 @@ namespace ProperLogger
 	            }
             }
 
-            DisplayToolbar(console, ref callForRepaint);
-
-            console.CallForRepaint = callForRepaint;
+            DisplayToolbar(console);
 
             if (console.Config.AdvancedSearchToolbar)
             {
@@ -1385,7 +1382,7 @@ namespace ProperLogger
                 bool lastActive = !inactiveCategories.Contains(category);
                 GUI.color = Color.Lerp(category.Color, defaultColor, categoryWindow.Config.CategoryNameColorize);
                 GUILayout.BeginHorizontal();
-                GUILayout.Space(LogCategoriesConfig.s_categoryIndent * level);
+                GUILayout.Space(LogCategoriesConfig.s_categoryIndent * level + 5);
                 bool isActive = GUILayout.Toggle(lastActive, category.Name);
                 GUILayout.EndHorizontal();
                 if (isActive != lastActive)

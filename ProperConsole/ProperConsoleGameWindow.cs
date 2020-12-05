@@ -38,7 +38,6 @@ namespace ProperLogger
 
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
-        public bool CallForRepaint { get; set; } = false;
 
         private PlayerSettingsWindow m_settingsWindow = null;
         private PlayerSettingsWindow SettingsWindow => m_settingsWindow ?? (m_settingsWindow = GetComponent<PlayerSettingsWindow>());

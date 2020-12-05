@@ -50,7 +50,6 @@ namespace ProperLogger
 
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
-        public bool CallForRepaint { get; set; } = false;
 
         private DateTime LastSuccessfulRepaint { get; set; } = default;
 
@@ -693,11 +692,6 @@ namespace ProperLogger
         {
             //CheckForUnitySync();
 
-            if (CallForRepaint)
-            {
-                RepaintImmediate();
-            }
-
             if((DateTime.Now - LastSuccessfulRepaint).TotalMilliseconds > m_autoRepaintDebounce)
             {
                 RepaintImmediate();
@@ -708,6 +702,7 @@ namespace ProperLogger
 
         public void AddItemsToMenu(GenericMenu menu)
         {
+            // TODO why is this commented?
             //menu.AddItem(EditorGUIUtility.TrTextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
             menu.AddItem(EditorGUIUtility.TrTextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
             menu.AddItem(EditorGUIUtility.TrTextContent("Export All Logs to File"), false, ExportAllToFile);

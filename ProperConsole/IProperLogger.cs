@@ -49,7 +49,6 @@ namespace ProperLogger
         Rect SearchFieldRect { get; set; }
         Rect ResetSearchButtonRect { get; set; }
         Rect ShowCategoriesButtonRect { get; set; }
-        bool CallForRepaint { get; set; }
         int DisplayedEntriesCount { get; set; }
         bool IsDarkSkin { get; set; }
         Rect WindowRect { get; }
