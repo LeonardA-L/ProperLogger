@@ -272,6 +272,12 @@ namespace ProperLogger
             GUILayout.EndHorizontal();
             GUILayout.Space(20);
 
+            GUILayout.BeginHorizontal();
+            m_configs.ShowPathInMessage = EditorGUILayout.Toggle("Show full file paths", m_configs.ShowPathInMessage);
+            GUILayout.EndHorizontal();
+            GUILayout.Label("Uncheck this to hide full path to files in\nerrors and warnings for increased readability", m_subtitleStyle);
+            GUILayout.Space(20);
+
             GUILayout.Label("Log Inspector", EditorStyles.boldLabel);
             GUILayout.Space(10);
 

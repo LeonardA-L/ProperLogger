@@ -68,6 +68,23 @@ namespace ProperLogger
             ResetDisplayIcons();
         }
 
+        internal void ResetShowPathInMessage()
+        {
+            Reset("ProperConsole.ShowPathInMessage");
+        }
+        internal bool ShowPathInMessage
+        {
+            get
+            {
+                return GetBool("ProperConsole.ShowPathInMessage", false);
+            }
+            set
+            {
+                SetBool("ProperConsole.ShowPathInMessage", value);
+                Save();
+            }
+        }
+
         internal void ResetDisplayIcons()
         {
             Reset("ProperConsole.DisplayIcons");

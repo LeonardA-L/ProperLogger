@@ -864,7 +864,13 @@ namespace ProperLogger
                     textStyle.fontSize = console.Config.LogEntryMessageFontSize;
                     if (string.IsNullOrEmpty(entry.cachedFirstLine) || console.PurgeGetLinesCache)
                     {
-                        entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false)}";
+                        var firstLine = Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false);
+                        if (!console.Config.ShowPathInMessage)
+                        {
+                            Regex path = new Regex("([a-zA-Z0-9\\-_]+[\\/\\\\])+(([a-zA-Z0-9\\-_]+\\.\\w{1,4})\\(\\d+,\\d+\\))"); // TODO cache regex
+                            firstLine = path.Replace(firstLine, "$2");
+                        }
+                        entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{firstLine}";
                     }
                     GUILayout.Label(entry.cachedFirstLine, textStyle, GUILayout.MaxWidth(entrywidth));
                     textStyle.fontSize = console.Config.LogEntryStackTraceFontSize;

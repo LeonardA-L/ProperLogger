@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
-using System.Linq;
 using System.IO;
 using C = ProperLogger.CommonMethods;
 //using UnityEngine.Networking.PlayerConnection;
