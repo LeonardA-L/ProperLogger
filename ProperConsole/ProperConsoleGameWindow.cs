@@ -15,7 +15,9 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = false)]
+    //[Obfuscation(Exclude = true, ApplyToMembers = true)]
+    //[Obfuscation(Exclude = true, ApplyToMembers = true)]
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver, IProperLogger
     {
         public bool IsGame => true;

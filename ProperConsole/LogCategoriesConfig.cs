@@ -11,7 +11,7 @@ using UnityEditor;
 namespace ProperLogger
 {
     [CreateAssetMenu(menuName = "Proper Logger/Categories")]
-    [Obfuscation(Exclude = true, ApplyToMembers = false)]
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategoriesConfig : ScriptableObject
     {
         internal static int s_categoryIndent = 20;

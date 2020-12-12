@@ -8,7 +8,7 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = false)]
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class CategoriesFilterGameWindow : MonoBehaviour, ICategoryWindow
     {
         public ConfigsProvider Config => PlayerConfigs.Instance;

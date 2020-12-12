@@ -76,7 +76,7 @@
     <VisualStudio AllowExistingFolder="true" />
   </ProjectExtensions>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>"C:\Program Files\ConfuserEx\Confuser.CLI" -n "C:\Users\Leonard\Desktop\ProperBuild\EditorRelease.crproj"
+"C:\Program Files\ConfuserEx\Confuser.CLI" -n "C:\Users\Leonard\Desktop\ProperBuild\Release.crproj"</PostBuildEvent>
   </PropertyGroup>
 </Project>

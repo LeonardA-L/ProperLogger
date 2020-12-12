@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = false)]
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class PlayerSettingsWindow : ImGuiWindow<PlayerSettingsWindow>
     {
         private GUIContent m_resetButtonContent = null;

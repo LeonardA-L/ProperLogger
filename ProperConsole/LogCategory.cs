@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ProperLogger
 {
     [System.Serializable]
-    [Obfuscation(Exclude = true, ApplyToMembers = false)]
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategory
     {
         internal static readonly List<Color> s_categoryColors = new List<Color>()
