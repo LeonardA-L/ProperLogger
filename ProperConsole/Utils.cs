@@ -38,7 +38,7 @@ namespace ProperLogger
             {
                 return string.Empty;
             }
-            if (isCallStack && lines.Length > 1)
+            if (isCallStack && lines.Length > 1 && lines[0].StartsWith(nameof(UnityEngine)))
             {
                 skip += 1;
             }
@@ -74,6 +74,11 @@ namespace ProperLogger
 
             for (int i = 0; i < split.Length; i++)
             {
+                if (split[i].StartsWith(typeof(CustomLogHandler).FullName) && !split[i].Contains(nameof(CustomLogHandler.LogException)))
+                {
+                    result = string.Empty;
+                    continue;
+                }
                 Match m = s_linkMatchRegex.Match(split[i]);
                 if (m.Success)
                 {
@@ -86,12 +91,6 @@ namespace ProperLogger
                     bool isHidden = false;
                     try
                     {
-                        if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
-                        {
-                            result = string.Empty;
-                            continue;
-                        }
-
                         Type type = Type.GetType(m.Groups[2].Value);
                         MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
                         var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true); 
@@ -143,6 +142,11 @@ namespace ProperLogger
 
             for (int i = 0; i < split.Length; i++)
             {
+                if (split[i].StartsWith(typeof(CustomLogHandler).FullName) && !split[i].Contains(nameof(CustomLogHandler.LogException)))
+                {
+                    result = string.Empty;
+                    continue;
+                }
                 Match m = s_warningLinkMatchRegex.Match(split[i]);
                 if (i == 0 && m.Success)
                 {
@@ -156,12 +160,6 @@ namespace ProperLogger
                     bool isHidden = false;
                     try
                     {
-                        if (m.Groups[2].Value == typeof(CustomLogHandler).FullName)
-                        {
-                            result = string.Empty;
-                            continue;
-                        }
-
                         Type type = Type.GetType(m.Groups[2].Value);
                         MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
                         var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true);
