@@ -590,11 +590,24 @@ namespace ProperLogger
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
 
+#if DEBUG
+            bool doesScroll = console.InnerScrollableHeight - console.OuterScrollableHeight + ItemHeight(console) > 0;
+            var defCol = GUI.color;
+            if (doesScroll) {
+                //GUI.color = Color.red;
+            }
+#endif
+
             if (GUILayout.Button(console.ClearButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
             {
                 console.Clear();
                 GUIUtility.keyboardControl = 0;
             }
+
+#if DEBUG
+            //GUI.color = defCol;
+#endif
+
             bool lastCollapse = console.Config.Collapse;
             console.Config.Collapse = GUILayout.Toggle(console.Config.Collapse, console.CollapseButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             if (console.Config.Collapse != lastCollapse)
@@ -818,14 +831,50 @@ namespace ProperLogger
 
             float entrywidth = totalWidth - imageSize - collapseBubbleSize - categoryColumnWidth - empiricalPaddings - rightSplitterWidth - categoriesStripsTotalWidth;
 
-            { // TODO dirty hardcoded hack
+            // Try to adapt entry width
+
+            {
+                bool doesScroll = console.InnerScrollableHeight - console.OuterScrollableHeight + ItemHeight(console) > 0;
+                bool rightInspector = console.Config.InspectorOnTheRight;
+
+                if (rightInspector)
+                {
+                    if (doesScroll)
+                    {
+                        entrywidth -= 17;
+                    }
+                    else
+                    {
+                        entrywidth -= 2;
+                    }
+                    if (console.IsGame)
+                    {
+                        entrywidth -= 1;
+                    }
+                }
+                else
+                {
+                    if (doesScroll)
+                    {
+                        entrywidth -= 0;
+                    }
+                    else
+                    {
+                        entrywidth += 14;
+                    }
+                    if (console.IsGame)
+                    {
+                        entrywidth -= 4;
+                    }
+                }
+
                 if (console.Config.Collapse)
                 {
                     entrywidth -= 9;
-                }
-                if (console.IsGame)
-                {
-                    entrywidth += 15;
+                    if (console.IsGame && doesScroll)
+                    {
+                        entrywidth -= 3;
+                    }
                 }
             }
 
