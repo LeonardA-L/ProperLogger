@@ -29,6 +29,7 @@ namespace ProperLogger
         private Color m_color = Color.red;
         /*[SerializeField]
         private Sprite m_icon = null;*/
+#if !DEMO
         [SerializeField, Obfuscation(Exclude = true)]
         [Tooltip("Name of the parent category in the category trees. Use this to group categories and filter them more easily")]
         //[CategoryParent]
@@ -36,6 +37,7 @@ namespace ProperLogger
 
         [NonSerialized]
         private List<LogCategory> m_children = null;
+#endif
 
         public LogCategory(string name)
         {
@@ -61,6 +63,7 @@ namespace ProperLogger
             }
         }
 
+#if !DEMO
         public string Parent
         {
             get => m_parentCategory;
@@ -69,6 +72,7 @@ namespace ProperLogger
                 m_parentCategory = value;
             }
         }
+
         public List<LogCategory> Children => m_children ?? (m_children = new List<LogCategory>());
 
         public void ClearChildren()
@@ -84,5 +88,6 @@ namespace ProperLogger
                 m_children.Add(category);
             }
         }
+#endif
     }
 }

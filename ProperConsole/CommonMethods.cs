@@ -464,12 +464,16 @@ namespace ProperLogger
             {
                 return false;
             }
+#if !DEMO
             if (string.IsNullOrEmpty(category.Parent))
             {
                 return true;
             }
             observed.Add(category.Name);
             return IsActiveCategory(config[category.Parent], inactiveRoots, observed, config);
+#else
+            return true;
+#endif
         }
 
         internal static bool ValidFilter(IProperLogger console, ConsoleLogEntry e)
@@ -1284,7 +1288,7 @@ namespace ProperLogger
             {
                 GUILayout.EndVertical(); // Inspector
             }
-            #endregion Inspector
+#endregion Inspector
 
 #if DEBUG
 #region Debug Buttons
@@ -1460,10 +1464,12 @@ namespace ProperLogger
                     }
                 }
 
+#if !DEMO
                 if(category.Children != null && category.Children.Count > 0)
                 {
                     GoThroughCategoryTree(category.Children, level + 1, categoryWindow, inactiveCategories, defaultColor);
                 }
+#endif
             }
         }
     }

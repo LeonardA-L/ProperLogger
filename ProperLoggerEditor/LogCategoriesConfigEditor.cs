@@ -106,10 +106,12 @@ namespace ProperLogger
                 {
                     accumulator.Add(new String(' ', level * 3) + category.Name);
                 }
+#if !DEMO
                 if (category.Children != null && category.Children.Count > 0)
                 {
                     PopulateParentOptions(category.Children, level + 1, accumulator);
                 }
+#endif
             }
         }
 
@@ -145,10 +147,12 @@ namespace ProperLogger
             }
 
             var newCategory = config.Add(name, LogCategory.s_categoryColors[config.Categories.Count % LogCategory.s_categoryColors.Count]);
+#if !DEMO
             if (parent != null)
             {
                 newCategory.Parent = parent.Name;
             }
+#endif
         }
 
         private void DisplayCategories(List<LogCategory> roots, int level)
@@ -158,11 +162,13 @@ namespace ProperLogger
                 GUILayout.BeginVertical(m_consoleSkin.FindStyle("CategoryConfigBox"));
                 var category = roots[i];
                 DisplayCategory(category);
+#if !DEMO
                 if (!IsCollapsed(category) && category.Children != null && category.Children.Count > 0)
                 {
                     GUILayout.Space(15);
                     DisplayCategories(category.Children, level + 1);
                 }
+#endif
                 GUILayout.EndVertical();
                 //GUILayout.Space(15);
             }
@@ -200,8 +206,9 @@ namespace ProperLogger
             {
                 AddCategory(category);
             }
-#endif
+
             if (category.Children == null || category.Children.Count == 0)
+#endif
             {
                 if (GUILayout.Button(new GUIContent("X", "Remove Category"), GUILayout.ExpandWidth(false), GUILayout.Width(35)))
                 {
@@ -216,6 +223,7 @@ namespace ProperLogger
             EditorGUI.BeginChangeCheck();
             var previousName = category.Name;
             category.Name = EditorGUILayout.TextField("Category Name", category.Name);
+#if !DEMO
             if(category.Name != previousName)
             {
                 foreach (var item in category.Children)
@@ -223,6 +231,7 @@ namespace ProperLogger
                     item.Parent = category.Name;
                 }
             }
+#endif
             category.Color = EditorGUILayout.ColorField("Color", category.Color);
             if (EditorGUI.EndChangeCheck())
             {

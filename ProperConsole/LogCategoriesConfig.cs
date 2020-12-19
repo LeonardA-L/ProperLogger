@@ -38,13 +38,13 @@ namespace ProperLogger
 #if DEMO
         public List<LogCategory> RootCategories => new List<LogCategory>(m_rootCategories).Take(s_maxCategories).ToList();
 #else
-        public List<LogCategory> RootCategories => new List<LogCategory>(m_rootCategories);
+        public List<LogCategory> RootCategories => m_rootCategories;
 #endif
 
 #if DEMO
         public List<LogCategory> Categories => new List<LogCategory>(m_categories).Take(s_maxCategories).ToList();
 #else
-        public List<LogCategory> Categories => new List<LogCategory>(m_categories);
+        public List<LogCategory> Categories => m_categories;
 #endif
 
         protected virtual void OnEnable()
@@ -93,7 +93,9 @@ namespace ProperLogger
             // Clear Children in Categories and register them
             foreach (var category in Categories)
             {
+#if !DEMO
                 category.ClearChildren();
+#endif
                 if (!categories.ContainsKey(category.Name))
                 {
                     categories.Add(category.Name, category);
@@ -101,6 +103,7 @@ namespace ProperLogger
                 m_rootCategories.Add(category);
             }
 
+#if !DEMO
             // Populate children
             foreach (var category in Categories)
             {
@@ -110,6 +113,7 @@ namespace ProperLogger
                     m_rootCategories.Remove(category);
                 }
             }
+#endif
 
             m_longestName = 0;
             FindLongestName(m_rootCategories, 0, ref m_longestName);
@@ -129,10 +133,12 @@ namespace ProperLogger
                     length = catLength;
                 }
 
+#if !DEMO
                 if (category.Children != null && category.Children.Count > 0)
                 {
                     FindLongestName(category.Children, level + 1, ref length);
                 }
+#endif
             }
         }
 
