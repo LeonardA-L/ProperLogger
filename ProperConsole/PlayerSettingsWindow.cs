@@ -248,12 +248,6 @@ namespace ProperLogger
             m_configs.InspectorOnTheRight = GUILayout.Toggle(m_configs.InspectorOnTheRight, "");
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Copy on Select", GUILayout.Width(m_labelWidth));
-            m_configs.CopyOnSelect = GUILayout.Toggle(m_configs.CopyOnSelect, "");
-            GUILayout.EndHorizontal();
-            GUILayout.Label("Selecting a log will automatically copy\nits content to your clipboard", m_subtitleStyle);
-            GUILayout.Space(12);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Log List Category Count Limit", GUILayout.Width(m_labelWidth));

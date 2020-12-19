@@ -49,7 +49,6 @@ namespace ProperLogger
             ResetclearOnPlay();
             Resetcollapse();
             ResetColorStripWidth();
-            ResetcopyOnSelect();
             ReseterrorPause();
             ResetInactiveCategories();
             ResetInspectorMessageFontSize();
@@ -430,24 +429,6 @@ namespace ProperLogger
                 Save();
             }
         }
-
-        internal void ResetcopyOnSelect()
-        {
-            Reset("ProperConsole.copyOnSelect");
-        }
-        internal bool CopyOnSelect
-        {
-            get
-            {
-                return GetBool("ProperConsole.copyOnSelect", false);
-            }
-            set
-            {
-                SetBool("ProperConsole.copyOnSelect", value);
-                Save();
-            }
-        }
-
 
         private bool ShowContextNameInsteadOfStackIsCached = false;
         private bool ShowContextNameInsteadOfStackCache = true;

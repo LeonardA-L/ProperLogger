@@ -1035,11 +1035,6 @@ namespace ProperLogger
                     console.SelectedEntries.Add(entry);
                 }
                 console.LastCLickIsDisplayList = true;
-
-                if (console.Config.CopyOnSelect)
-                {
-                    CopySelection(console);
-                }
             }
         }
         internal static void DisplayCollapseBubble(IProperLogger console, LogLevel level, int count, float collapseBubbleSize, float sidePaddings)

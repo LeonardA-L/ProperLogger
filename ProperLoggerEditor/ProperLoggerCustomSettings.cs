@@ -359,9 +359,6 @@ namespace ProperLogger
         {
             m_configs.InspectorOnTheRight = EditorGUILayout.Toggle("Show log inspector on the right", m_configs.InspectorOnTheRight);
             GUILayout.Space(10);
-            m_configs.CopyOnSelect = EditorGUILayout.Toggle("Copy on Select", m_configs.CopyOnSelect);
-            EditorGUILayout.LabelField("Selecting a log will automatically copy\nits content to your clipboard", m_subtitleStyle);
-            GUILayout.Space(12);
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("Log List Category Count");
