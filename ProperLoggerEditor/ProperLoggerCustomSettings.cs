@@ -27,6 +27,8 @@ namespace ProperLogger
 
         private bool m_isDarkSkin = false;
 
+        private DateTime m_lastPrefabCheck = default;
+
         private string PrefabPath => EditorUtils.FindAssetPath<ProperConsoleGameWindow>(Strings.ProperLogger);
 
         private static ProperLoggerCustomSettingsProvider m_instance = null;
@@ -101,10 +103,30 @@ namespace ProperLogger
                     break;
             }
 
+            PrefabReference();
+
+            if (EditorGUI.EndChangeCheck() && ProperConsoleWindow.Instance != null)
+            {
+                ProperConsoleWindow.Instance.PurgeGetLinesCache = true;
+                CommonMethods.ClearStyles(ProperConsoleWindow.Instance);
+                ProperConsoleWindow.Instance.Repaint();
+            }
+
+        }
+
+        private void PrefabReference()
+        {
+            if((DateTime.Now - m_lastPrefabCheck).TotalMilliseconds < 200)
+            {
+                return;
+            }
+            m_lastPrefabCheck = DateTime.Now;
+
             if (string.IsNullOrEmpty(PrefabPath))
             {
                 GUILayout.Label("Could not locate ProperLogger prefab. You will want to reimport the plugin to restore it.", (GUIStyle)"ErrorLabel");
-            } else // Try and salvage reference error on the Prefab
+            }
+            else // Try and salvage reference error on the Prefab
             {
                 var inGamePrefab = PrefabUtility.LoadPrefabContents(PrefabPath);
                 var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
@@ -115,14 +137,6 @@ namespace ProperLogger
                 }
                 PrefabUtility.UnloadPrefabContents(inGamePrefab);
             }
-
-            if (EditorGUI.EndChangeCheck() && ProperConsoleWindow.Instance != null)
-            {
-                ProperConsoleWindow.Instance.PurgeGetLinesCache = true;
-                CommonMethods.ClearStyles(ProperConsoleWindow.Instance);
-                ProperConsoleWindow.Instance.Repaint();
-            }
-
         }
 
         private void SetCategoriesAsset(LogCategoriesConfig asset)
