@@ -63,6 +63,12 @@ namespace ProperLogger
                     AddCategory(null);
                 }
             }
+            else
+            {
+#if DEMO
+                GUILayout.Label($"You've reached {LogCategoriesConfig.s_maxCategories} categories. That's the limit for the basic version of the plugin.");
+#endif
+            }
 
             DisplayErrors();
         }
