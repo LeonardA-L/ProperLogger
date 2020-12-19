@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,6 +15,9 @@ namespace ProperLogger
     [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategoriesConfig : ScriptableObject
     {
+#if DEMO
+        internal static int s_maxCategories = 5;
+#endif
         internal static int s_categoryIndent = 20;
         internal static int s_categoryCharacterSize = 6;
 
@@ -31,9 +35,17 @@ namespace ProperLogger
         internal int LongestName => m_longestName;
         [NonSerialized]
         protected List<LogCategory> m_rootCategories = null;
-        public List<LogCategory> RootCategories => m_rootCategories;
+#if DEMO
+        public List<LogCategory> RootCategories => new List<LogCategory>(m_rootCategories).Take(s_maxCategories).ToList();
+#else
+        public List<LogCategory> RootCategories => new List<LogCategory>(m_rootCategories);
+#endif
 
-        public List<LogCategory> Categories => m_categories;
+#if DEMO
+        public List<LogCategory> Categories => new List<LogCategory>(m_categories).Take(s_maxCategories).ToList();
+#else
+        public List<LogCategory> Categories => new List<LogCategory>(m_categories);
+#endif
 
         protected virtual void OnEnable()
         {
@@ -122,6 +134,22 @@ namespace ProperLogger
                     FindLongestName(category.Children, level + 1, ref length);
                 }
             }
+        }
+
+        public void Remove(LogCategory cat)
+        {
+            m_categories.Remove(cat);
+        }
+
+        public void Add(LogCategory cat)
+        {
+#if DEMO
+            if(m_categories.Count > s_maxCategories)
+            {
+                return;
+            }
+#endif
+            m_categories.Add(cat);
         }
     }
 }

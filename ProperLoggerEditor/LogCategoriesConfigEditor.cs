@@ -56,10 +56,12 @@ namespace ProperLogger
             var rootCategories = config.RootCategories;
             DisplayCategories(rootCategories, 0);
 
-
-            if (GUILayout.Button("Add Category", GUILayout.Height(30)))
+            if (CanAddCategory())
             {
-                AddCategory(null);
+                if (GUILayout.Button("Add Category", GUILayout.Height(30)))
+                {
+                    AddCategory(null);
+                }
             }
 
             DisplayErrors();
@@ -193,16 +195,18 @@ namespace ProperLogger
                 GUILayout.EndHorizontal();
                 return;
             }
+#if !DEMO
             if (GUILayout.Button(new GUIContent("+", "Add Child Category"), GUILayout.ExpandWidth(false), GUILayout.Width(35)))
             {
                 AddCategory(category);
             }
+#endif
             if (category.Children == null || category.Children.Count == 0)
             {
                 if (GUILayout.Button(new GUIContent("X", "Remove Category"), GUILayout.ExpandWidth(false), GUILayout.Width(35)))
                 {
                     LogCategoriesConfig config = target as LogCategoriesConfig;
-                    config.Categories.Remove(category);
+                    config.Remove(category);
                     EditorUtility.SetDirty(target);
                     return;
                 }
@@ -224,6 +228,8 @@ namespace ProperLogger
             {
                 EditorUtility.SetDirty(target);
             }
+
+#if !DEMO
             int currentParentIndex = -1;
             if (!string.IsNullOrEmpty(category.Parent))
             {
@@ -246,18 +252,32 @@ namespace ProperLogger
                 category.Parent = Trimmed(m_parentOptions[parentIndex]);
                 EditorUtility.SetDirty(target);
             }
+#endif
         }
 
         private void ReorderLast(LogCategory category)
         {
             LogCategoriesConfig config = target as LogCategoriesConfig;
-            config.Categories.Remove(category);
-            config.Categories.Add(category);
+            config.Remove(category);
+            config.Add(category);
         }
 
         private string Trimmed(string str)
         {
             return str.Trim();
         }
+
+#if DEMO
+        private bool CanAddCategory()
+        {
+            LogCategoriesConfig config = target as LogCategoriesConfig;
+            return config.Categories.Count < LogCategoriesConfig.s_maxCategories;
+        }
+#else
+        private bool CanAddCategory()
+        {
+            return true;
+        }
+#endif
     }
 }
