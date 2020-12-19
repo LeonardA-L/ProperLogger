@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if !DEMO
+using UnityEngine;
 
 namespace ProperLogger
 {
@@ -57,3 +58,4 @@ namespace ProperLogger
         internal override LogCategoriesConfig CurrentCategoriesConfig { get => (ProperConsoleGameWindow.Instance == null ? null : ProperConsoleGameWindow.Instance.CategoriesAsset); set { Debug.LogAssertion("This should never be called"); } }
     }
 }
+#endif

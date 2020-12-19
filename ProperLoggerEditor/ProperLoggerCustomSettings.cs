@@ -29,7 +29,9 @@ namespace ProperLogger
 
         private DateTime m_lastPrefabCheck = default;
 
+#if !DEMO
         private string PrefabPath => EditorUtils.FindAssetPath<ProperConsoleGameWindow>(Strings.ProperLogger);
+#endif
 
         private static ProperLoggerCustomSettingsProvider m_instance = null;
         internal static ProperLoggerCustomSettingsProvider Instance => m_instance;
@@ -121,7 +123,7 @@ namespace ProperLogger
                 return;
             }
             m_lastPrefabCheck = DateTime.Now;
-
+#if !DEMO
             if (string.IsNullOrEmpty(PrefabPath))
             {
                 GUILayout.Label("Could not locate ProperLogger prefab. You will want to reimport the plugin to restore it.", (GUIStyle)"ErrorLabel");
@@ -137,12 +139,13 @@ namespace ProperLogger
                 }
                 PrefabUtility.UnloadPrefabContents(inGamePrefab);
             }
+#endif
         }
 
         private void SetCategoriesAsset(LogCategoriesConfig asset)
         {
             m_configs.CurrentCategoriesConfig = asset;
-
+#if !DEMO
             var inGamePrefab = PrefabUtility.LoadPrefabContents(PrefabPath);
             var prefabConsole = inGamePrefab.GetComponent<ProperConsoleGameWindow>();
             Debug.Assert(prefabConsole != null, $"Could not find console prefab named {Strings.ProperLogger}. Try reimporting package.");
@@ -152,6 +155,7 @@ namespace ProperLogger
                 PrefabUtility.SaveAsPrefabAsset(inGamePrefab, PrefabPath);
             }
             PrefabUtility.UnloadPrefabContents(inGamePrefab);
+#endif
         }
 
         private void DisplayCategoriesTab()

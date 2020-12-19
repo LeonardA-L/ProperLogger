@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if !DEMO
+using System.Collections;
 using UnityEngine;
 using System.Reflection;
 #if UNITY_EDITOR
@@ -96,3 +97,4 @@ namespace ProperLogger
         }
     }
 }
+#endif

@@ -15,6 +15,7 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
+#if !DEMO
     //[Obfuscation(Exclude = true, ApplyToMembers = true)]
     //[Obfuscation(Exclude = true, ApplyToMembers = true)]
     [Obfuscation(Exclude = true, ApplyToMembers = true)]
@@ -24,7 +25,7 @@ namespace ProperLogger
 
         protected override string WindowName => "Proper Logger";
 
-        #region Configs
+#region Configs
 
         public ConfigsProvider Config => PlayerConfigs.Instance;
 
@@ -36,7 +37,7 @@ namespace ProperLogger
 
         public bool PurgeGetLinesCache { get; set; } = true;
 
-        #endregion Configs
+#endregion Configs
 
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
@@ -44,7 +45,7 @@ namespace ProperLogger
         private PlayerSettingsWindow m_settingsWindow = null;
         private PlayerSettingsWindow SettingsWindow => m_settingsWindow ?? (m_settingsWindow = GetComponent<PlayerSettingsWindow>());
 
-        #region Logs
+#region Logs
 
         public List<ConsoleLogEntry> Entries { get; set; } = null;
         public List<ConsoleLogEntry> FilteredEntries { get; set; } = null;
@@ -58,17 +59,17 @@ namespace ProperLogger
         public object EntriesLock { get; set; } = null;
         public bool Listening { get; set; } = false;
 
-        #region Filters
+#region Filters
 
         public string SearchString { get; set; } = null;
         public string[] SearchWords { get; set; } = null;
         public List<string> InactiveCategories { get; set; } = null;
 
-        #endregion Filters
+#endregion Filters
 
-        #endregion Logs
+#endregion Logs
 
-        #region Layout
+#region Layout
 
         //private int m_selectedIndex = -1;
         public List<ConsoleLogEntry> SelectedEntries { get; set; } = null;
@@ -97,9 +98,9 @@ namespace ProperLogger
         public int WarnLog { get; set; }
         public int ErrLog { get; set; }
 
-        #endregion Layout
+#endregion Layout
 
-        #region Loaded Textures
+#region Loaded Textures
 
         [SerializeField, Obfuscation(Exclude = true)]
 #if !DEBUG
@@ -179,7 +180,7 @@ namespace ProperLogger
 #endif
         private Texture2D m_assertIcon;
 
-        #endregion Loaded Textures
+#endregion Loaded Textures
 
         [SerializeField, Obfuscation(Exclude = true)]
         [Tooltip("Categories Asset. This should be injected automatically when opening plugin settings in editor")]
@@ -204,7 +205,7 @@ namespace ProperLogger
         public bool Active => m_active;
         public Rect WindowRect => m_windowRect;
 
-        #region Caches
+#region Caches
         public LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
 
         public Regex SearchRegex { get; set; } = null;
@@ -263,7 +264,7 @@ namespace ProperLogger
         private System.Threading.Thread m_mainThread = null;
         public System.Threading.Thread MainThread => m_mainThread;
 
-        #endregion Caches
+#endregion Caches
 
         [Obfuscation(Exclude = true)]
         protected override void Awake()
@@ -451,4 +452,5 @@ namespace ProperLogger
         }
         public void ShowRemoteConnectionUtility() { }
     }
+#endif
 }

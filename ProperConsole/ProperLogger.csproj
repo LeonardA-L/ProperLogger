@@ -50,6 +50,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Optimize>true</Optimize>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EditorDemoRelease|AnyCPU'">
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorDemoRelease\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR;DEMO</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -529,7 +534,7 @@
     <VisualStudio AllowExistingFolder="true" />
   </ProjectExtensions>
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files\ConfuserEx\Confuser.CLI" -n "C:\Users\Leonard\Desktop\ProperBuild\EditorRelease.crproj"
-"C:\Program Files\ConfuserEx\Confuser.CLI" -n "C:\Users\Leonard\Desktop\ProperBuild\Release.crproj"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
