@@ -48,7 +48,7 @@ namespace ProperLogger
 
             GUI.depth = m_depth;
 
-            GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, Strings.Box);
+            GUILayout.BeginArea(ProperConsoleGameWindow.Instance.CategoryFilterRect, (GUIStyle)Strings.Box);
 
             if(Config.CurrentCategoriesConfig == null)
             {
