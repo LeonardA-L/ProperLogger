@@ -13,6 +13,14 @@ namespace ProperLogger
         private static Regex s_linkMatchRegex = null;
         private static Regex s_warningLinkMatchRegex = null;
 
+        private static Assembly[] s_allAssemblies = null;
+        private static Assembly[] AllAssemblies => s_allAssemblies ?? (s_allAssemblies = AppDomain.CurrentDomain.GetAssemblies());
+
+        internal static void ClearAssemblies()
+        {
+            s_allAssemblies = null;
+        }
+
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {
             switch (type)
@@ -88,15 +96,7 @@ namespace ProperLogger
                         groups.Add(m.Groups[k].Value);
                     }
 
-                    bool isHidden = false;
-                    try
-                    {
-                        Type type = Type.GetType(m.Groups[2].Value);
-                        MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-                        var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true); 
-                        isHidden = attributes.Length > 0;
-                    }
-                    catch (Exception) { }
+                    bool isHidden = IsHiddenCall(m);
 
                     if (isHidden)
                     {
@@ -157,15 +157,7 @@ namespace ProperLogger
                         groups.Add(m.Groups[k].Value);
                     }
 
-                    bool isHidden = false;
-                    try
-                    {
-                        Type type = Type.GetType(m.Groups[2].Value);
-                        MethodInfo method = type.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-                        var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true);
-                        isHidden = attributes.Length > 0;
-                    }
-                    catch (Exception) { }
+                    bool isHidden = IsHiddenCall(m);
 
                     if (isHidden)
                     {
@@ -187,6 +179,34 @@ namespace ProperLogger
 
             parsedMessage = result;
             return success;
+        }
+
+        private static bool IsHiddenCall(Match m)
+        {
+            try
+            {
+                foreach (Assembly ass in AllAssemblies)
+                {
+                    foreach (Type t in ass.GetExportedTypes())
+                    {
+                        if (t.Name == m.Groups[2].Value)
+                        {
+                            MethodInfo method = t.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
+                            if (method != null)
+                            {
+                                var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true);
+
+                                if (attributes.Length > 0)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+            return false;
         }
 
         #endregion Text Manipulation

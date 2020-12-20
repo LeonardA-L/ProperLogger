@@ -270,6 +270,7 @@ namespace ProperLogger
         protected override void Awake()
         {
             base.Awake();
+            Utils.ClearAssemblies();
             m_mainThread = System.Threading.Thread.CurrentThread;
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
