@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 #endif
 using UnityEngine;
 
@@ -59,8 +60,8 @@ namespace ProperLogger
         {
             console.ClearButtonContent = CreateButtonGUIContent(console, console.ClearIcon, "Clear");
             console.CollapseButtonContent = CreateButtonGUIContent(console, console.CollapseIcon, "Collapse");
-            console.ClearOnPlayButtonContent = CreateButtonGUIContent(console, console.ClearOnPlayIcon, "Clear on Play");
-            console.ClearOnBuildButtonContent = CreateButtonGUIContent(console, console.ClearOnBuildIcon, "Clear on Build");
+            console.ClearOnPlayButtonContent = new GUIContent("Clear on Play");
+            console.ClearOnBuildButtonContent = new GUIContent("Clear on Build");
             console.ErrorPauseButtonContent = CreateButtonGUIContent(console, console.ErrorPauseIcon, "Error Pause");
 
             console.AdvancedSearchButtonContent = new GUIContent(console.AdvancedSearchIcon, "Advanced Search");
@@ -131,6 +132,9 @@ namespace ProperLogger
             {
                 console.RemoteConnectionUtilityStyle = new GUIStyle("ToolbarDropDown");
                 console.RemoteConnectionUtilityStyle.stretchWidth = true;
+
+                console.DropdownToggleStyle = new GUIStyle("toolbarDropDownToggle");
+                console.DropdownToggleStyle.stretchWidth = false;
             }
         }
         internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
@@ -568,6 +572,7 @@ namespace ProperLogger
 #endif //UNITY_EDITOR
             }
         }
+
         internal static void RegexCompilation(IProperLogger console)
         {
             try
@@ -608,10 +613,42 @@ namespace ProperLogger
             }
 #endif
 
-            if (GUILayout.Button(console.ClearButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
+            if (console.IsGame)
             {
-                console.Clear();
-                GUIUtility.keyboardControl = 0;
+                if (GUILayout.Button(console.ClearButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false)))
+                {
+                    console.Clear();
+                    GUIUtility.keyboardControl = 0;
+                }
+            }
+            else
+            {
+#if UNITY_EDITOR
+                // Clear button and clearing options
+                if(console.EditorDropdownToggle == null)
+                {
+                    var editorGUILayout = typeof(EditorGUILayout);
+                    console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                }
+                var parameters = new object[] { false, console.ClearButtonContent, console.DropdownToggleStyle };
+                if ((bool)console.EditorDropdownToggle.Invoke(null, parameters))
+                {
+                    var clearOnPlay = console.Config.ClearOnPlay;
+                    var clearOnBuild = console.Config.ClearOnBuild;
+
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(console.ClearOnPlayButtonContent, clearOnPlay, () => { console.Config.ClearOnPlay = !console.Config.ClearOnPlay; });
+                    menu.AddItem(console.ClearOnBuildButtonContent, clearOnBuild, () => { console.Config.ClearOnBuild = console.Config.ClearOnBuild; });
+                    var rect = GUILayoutUtility.GetLastRect();
+                    rect.y += EditorGUIUtility.singleLineHeight;
+                    menu.DropDown(rect);
+                }
+                if ((bool)parameters[0])
+                {
+                    console.Clear();
+                    GUIUtility.keyboardControl = 0;
+                }
+#endif
             }
 
 #if DEBUG
@@ -625,11 +662,6 @@ namespace ProperLogger
                 console.TriggerFilteredEntryComputation = true;
                 console.SelectedEntries.Clear();
                 console.TriggerRepaint();
-            }
-            if (!console.IsGame)
-            {
-                console.Config.ClearOnPlay = GUILayout.Toggle(console.Config.ClearOnPlay, console.ClearOnPlayButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
-                console.Config.ClearOnBuild = GUILayout.Toggle(console.Config.ClearOnBuild, console.ClearOnBuildButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));
             }
 #if UNITY_EDITOR
             console.Config.ErrorPause = GUILayout.Toggle(console.Config.ErrorPause, console.ErrorPauseButtonContent, console.ToolbarIconButtonStyle, GUILayout.ExpandWidth(false));

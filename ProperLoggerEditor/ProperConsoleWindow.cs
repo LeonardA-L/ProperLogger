@@ -203,6 +203,7 @@ namespace ProperLogger
         public GUIStyle InspectorTextStyle { get; set; } = null;
         public GUIStyle EntryIconStyle { get; set; } = null;
         public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
+        public GUIStyle DropdownToggleStyle { get; set; } = null;
 
         #endregion Caches
 
@@ -227,6 +228,7 @@ namespace ProperLogger
         private MethodInfo GetEntryInternal => m_getEntryInternal ?? (m_getEntryInternal = LogEntries.GetMethod(Strings.GetEntryInternal, new[] { typeof(int), LogEntry }));
         private MethodInfo StartGettingEntries => m_startGettingEntries ?? (m_startGettingEntries = LogEntries.GetMethod(Strings.StartGettingEntries));
         private MethodInfo EndGettingEntries => m_endGettingEntries ?? (m_endGettingEntries = LogEntries.GetMethod(Strings.EndGettingEntries));
+        public MethodInfo EditorDropdownToggle { get; set; } = null;
 
         // Unused
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;

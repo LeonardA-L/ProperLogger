@@ -257,6 +257,7 @@ namespace ProperLogger
         public GUIStyle InspectorTextStyle { get; set; } = null;
         public GUIStyle EntryIconStyle { get; set; } = null;
         public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
+        public GUIStyle DropdownToggleStyle { get; set; } = null;
 
         public bool ShowCategoryFilter { get; set; } = false;
         public Rect CategoryFilterRect { get; private set; } = default;
@@ -265,7 +266,9 @@ namespace ProperLogger
         private System.Threading.Thread m_mainThread = null;
         public System.Threading.Thread MainThread => m_mainThread;
 
-#endregion Caches
+        public MethodInfo EditorDropdownToggle { get; set; } = null;
+
+        #endregion Caches
 
         [Obfuscation(Exclude = true)]
         protected override void Awake()

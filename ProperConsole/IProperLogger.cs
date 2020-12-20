@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -101,6 +102,9 @@ namespace ProperLogger
         GUIStyle InspectorTextStyle { get; set; }
         GUIStyle EntryIconStyle { get; set; }
         GUIStyle RemoteConnectionUtilityStyle { get; set; }
+        GUIStyle DropdownToggleStyle { get; set; }
+
+        MethodInfo EditorDropdownToggle { get; set; }
 
         List<ConsoleLogEntry> CollapsedEntries { get; set; }
         List<PendingContext> PendingContexts { get; set; }
