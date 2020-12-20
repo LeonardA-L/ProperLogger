@@ -64,6 +64,8 @@ namespace ProperLogger
         public List<PendingContext> PendingContexts { get; set; } = null;
         public object EntriesLock { get; set; } = null;
         public bool Listening { get; set; } = false;
+        public bool FilterOutUncategorized { get; set; } = false;
+
         #region Filters
 
         public string SearchString { get; set; } = null;

@@ -54,6 +54,7 @@ namespace ProperLogger
         Rect WindowRect { get; }
         bool PurgeGetLinesCache { get; set; }
         bool ShowCategoryFilter { get; set; }
+        bool FilterOutUncategorized { get; set; }
 
         GUIContent ClearButtonContent { get; set; }
         GUIContent CollapseButtonContent { get; set; }

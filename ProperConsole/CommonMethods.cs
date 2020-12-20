@@ -490,6 +490,12 @@ namespace ProperLogger
                 }
             }
 
+            // Filter out uncategorized logs
+            if (console.FilterOutUncategorized && e.categoriesStrings.Count == 0)
+            {
+                return false;
+            }
+
             // Text Search
             string searchableText = (console.SearchMessage ? e.originalMessage : string.Empty) + (console.Config.SearchInStackTrace ? e.stackTrace : string.Empty) + ((console.Config.SearchObjectName && e.context != null) ? e.context.name : string.Empty); // TODO opti
             if (console.Config.RegexSearch)
@@ -1426,6 +1432,18 @@ namespace ProperLogger
             var inactiveCategories = categoryWindow.Config.InactiveCategories;
             GoThroughCategoryTree(categoryWindow.Config.CurrentCategoriesConfig.RootCategories, 0, categoryWindow, inactiveCategories, defaultColor);
             GUI.color = defaultColor;
+            { // Filter out uncategorized
+                bool lastActive = categoryWindow.Console.FilterOutUncategorized;
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(5);
+                categoryWindow.Console.FilterOutUncategorized = GUILayout.Toggle(lastActive, "Exclude uncategorized entries");
+                GUILayout.EndHorizontal();
+                if(categoryWindow.Console.FilterOutUncategorized != lastActive)
+                {
+                    categoryWindow.Console.TriggerFilteredEntryComputation = true;
+                    categoryWindow.Console.TriggerRepaint();
+                }
+            }
         }
 
         private static void GoThroughCategoryTree(List<LogCategory> roots, int level, ICategoryWindow categoryWindow, List<LogCategory> inactiveCategories, Color defaultColor)
