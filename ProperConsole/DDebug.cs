@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    // TODO documentation
     [System.Reflection.Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class DDebug
     {

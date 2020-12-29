@@ -18,18 +18,36 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EditorRelease|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EditorRelease20201|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorRelease\</OutputPath>
-    <DefineConstants>TRACE;UNITY_EDITOR</DefineConstants>
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorRelease20201\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR;UNITY_2020_1_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EditorDemoRelease|AnyCPU'">
-    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorDemoRelease\</OutputPath>
-    <DefineConstants>TRACE;UNITY_EDITOR;DEMO</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EditorDemoRelease20194|AnyCPU' ">
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorDemoRelease20194\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR;DEMO;UNITY_2019_4_OR_NEWER</DefineConstants>
     <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EditorRelease20194|AnyCPU'">
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorRelease20194\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR;UNITY_2019_4_OR_NEWER</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EditorDemoRelease20201|AnyCPU'">
+    <OutputPath>..\..\..\..\Desktop\ProperBuild\EditorDemoRelease20201\</OutputPath>
+    <DefineConstants>TRACE;UNITY_EDITOR;DEMO;UNITY_2020_1_OR_NEWER</DefineConstants>
+    <Optimize>true</Optimize>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +87,7 @@
     <Compile Include="LogCategoriesConfigEditor.cs" />
     <Compile Include="ProperConsoleWindow.cs" />
     <Compile Include="ProperLoggerCustomSettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ProperConsole\ProperLogger.csproj">

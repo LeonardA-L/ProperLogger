@@ -8,8 +8,10 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.IO;
 using C = ProperLogger.CommonMethods;
-//using UnityEngine.Networking.PlayerConnection;
-//using UnityEditor.Networking.PlayerConnection;
+#if UNITY_2020_1_OR_NEWER
+using UnityEngine.Networking.PlayerConnection;
+using UnityEditor.Networking.PlayerConnection;
+#endif
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ProperLogger")]
 
@@ -206,9 +208,9 @@ namespace ProperLogger
         public GUIStyle DropdownToggleStyle { get; set; } = null;
 
         #endregion Caches
-
-        //IConnectionState m_attachProfilerState;
-
+#if UNITY_2020_1_OR_NEWER
+        IConnectionState m_attachProfilerState;
+#endif
         #endregion Members
 
         #region Properties
@@ -234,9 +236,9 @@ namespace ProperLogger
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;
         public bool Active { get; }
 
-        #endregion Properties
+#endregion Properties
 
-        #region Editor Window
+#region Editor Window
 
         [MenuItem("Leonard/Console")]
         static void Init()
@@ -290,7 +292,9 @@ namespace ProperLogger
             ProperConsoleWindow.s_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
             ResetUnityConsoleFlags();
 
-            //m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
+#if UNITY_2020_1_OR_NEWER
+            m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
+#endif
 
             NeedRegexRecompile = true;
 
@@ -301,7 +305,9 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
-            //m_attachProfilerState.Dispose();
+#if UNITY_2020_1_OR_NEWER
+            m_attachProfilerState.Dispose();
+#endif
             C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
             s_instance = null;
@@ -380,7 +386,7 @@ namespace ProperLogger
             }
         }
 
-        #region Mode Changes
+#region Mode Changes
 
         private void ModeChanged(PlayModeStateChange obj)
         {
@@ -788,7 +794,9 @@ namespace ProperLogger
 
         public void ShowRemoteConnectionUtility()
         {
-            //PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
+#if UNITY_2020_1_OR_NEWER
+            PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
+#endif
         }
     }
 }
