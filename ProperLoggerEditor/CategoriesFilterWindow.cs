@@ -44,8 +44,6 @@ namespace ProperLogger
                     C.DisplayCategoryFilterContent(this);
                 }
 
-                GUILayout.Space(10);
-
                 if (GUILayout.Button("Open Categories Settings"))
                 {
                     Selection.activeObject = Config.CurrentCategoriesConfig;

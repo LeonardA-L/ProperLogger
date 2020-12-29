@@ -564,7 +564,6 @@ namespace ProperLogger
             }
 
             console.SplitterRect = GUILayoutUtility.GetLastRect();
-            // TODO find a way to change cursor in game
             if (!console.IsGame)
             {
 #if UNITY_EDITOR
@@ -731,7 +730,7 @@ namespace ProperLogger
                         }
                         else
                         {
-                            size.y = (console.Config.CurrentCategoriesConfig.Categories.Count) * 18; // TODO put this somewhere in a style
+                            size.y = (console.Config.CurrentCategoriesConfig.Categories.Count + 1) * 18; // TODO put this somewhere in a style
                         }
                     }
 
@@ -1464,6 +1463,9 @@ namespace ProperLogger
             var inactiveCategories = categoryWindow.Config.InactiveCategories;
             GoThroughCategoryTree(categoryWindow.Config.CurrentCategoriesConfig.RootCategories, 0, categoryWindow, inactiveCategories, defaultColor);
             GUI.color = defaultColor;
+
+            GUILayout.Space(10);
+
             { // Filter out uncategorized
                 bool lastActive = categoryWindow.Console.FilterOutUncategorized;
                 GUILayout.BeginHorizontal();

@@ -52,7 +52,7 @@ namespace ProperLogger
 
             if(Config.CurrentCategoriesConfig == null)
             {
-                GUILayout.Label("No categories asset have been configured.\nPlease open the preference window\nto setup categories."); // TODO style
+                GUILayout.Label("No categories asset have been configured.\nPlease open the preference window\nto setup categories.");
 
                 GUILayout.Space(15);
             }
@@ -66,8 +66,6 @@ namespace ProperLogger
                 {
                     C.DisplayCategoryFilterContent(this);
                 }
-
-                GUILayout.Space(10);
 
                 if (GUI.changed)
                 {
