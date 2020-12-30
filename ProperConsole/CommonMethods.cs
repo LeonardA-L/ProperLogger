@@ -68,9 +68,9 @@ namespace ProperLogger
             console.CategoriesButtonContent = new GUIContent("Categories");
             console.RegexSearchButtonNameOnlyContent = CreateButtonGUIContent(console, console.RegexSearchIcon, "Regex Search");
             console.CaseSensitiveButtonContent = CreateButtonGUIContent(console, console.CaseSensitiveIcon, "Case Sensitive");
-            console.SearchInLogMessageButtonContent = new GUIContent("Search in Log Message");
-            console.SearchInObjectNameButtonContent = new GUIContent("Search in Object Name");
-            console.SearchInStackTraceButtonContent = new GUIContent("Search in Stack Trace");
+            console.SearchInLogMessageButtonContent = new GUIContent("Include Log Message");
+            console.SearchInObjectNameButtonContent = new GUIContent("Include Object Name");
+            console.SearchInStackTraceButtonContent = new GUIContent("Include Stack Trace");
             console.PluginSettingsButtonContent = new GUIContent("Plugin Settings");
         }
         internal static void ClearStyles(IProperLogger console)

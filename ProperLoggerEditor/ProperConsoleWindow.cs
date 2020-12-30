@@ -240,7 +240,7 @@ namespace ProperLogger
 
 #region Editor Window
 
-        [MenuItem("Leonard/Console")]
+        [MenuItem("Window/Proper Logger/Console")]
         static void Init()
         {
             // Get existing open window or if none, make a new one:

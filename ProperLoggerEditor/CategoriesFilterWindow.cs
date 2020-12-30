@@ -2,9 +2,11 @@
 using UnityEngine;
 using UnityEditor;
 using C = ProperLogger.CommonMethods;
+using System.Reflection;
 
 namespace ProperLogger
 {
+    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class CategoriesFilterWindow : EditorWindow, ICategoryWindow
     {
         public ConfigsProvider Config => EditorConfigs.Instance;
