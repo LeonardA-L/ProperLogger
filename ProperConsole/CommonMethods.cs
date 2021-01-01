@@ -139,7 +139,7 @@ namespace ProperLogger
         }
         internal static void ComputeCollapsedEntries(IProperLogger console, List<ConsoleLogEntry> filteredEntries)
         {
-            console.CollapsedEntries = new List<ConsoleLogEntry>();
+            console.CollapsedEntries.Clear();
 
             for (int i = 0; i < filteredEntries.Count; i++)
             {
@@ -629,7 +629,8 @@ namespace ProperLogger
                     var editorGUILayout = typeof(EditorGUILayout);
                     console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
                 }
-                var parameters = new object[] { false, console.ClearButtonContent, console.DropdownToggleStyle };
+                var parameters = console.ClearButtonReflectionParameters;
+                parameters[0] = false;
                 if ((bool)console.EditorDropdownToggle.Invoke(null, parameters))
                 {
                     var clearOnPlay = console.Config.ClearOnPlay;
@@ -637,7 +638,7 @@ namespace ProperLogger
 
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(console.ClearOnPlayButtonContent, clearOnPlay, () => { console.Config.ClearOnPlay = !console.Config.ClearOnPlay; });
-                    menu.AddItem(console.ClearOnBuildButtonContent, clearOnBuild, () => { console.Config.ClearOnBuild = console.Config.ClearOnBuild; });
+                    menu.AddItem(console.ClearOnBuildButtonContent, clearOnBuild, () => { console.Config.ClearOnBuild = !console.Config.ClearOnBuild; });
                     var rect = GUILayoutUtility.GetLastRect();
                     rect.y += EditorGUIUtility.singleLineHeight;
                     menu.DropDown(rect);

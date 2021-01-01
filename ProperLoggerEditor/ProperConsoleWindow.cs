@@ -231,6 +231,9 @@ namespace ProperLogger
         private MethodInfo StartGettingEntries => m_startGettingEntries ?? (m_startGettingEntries = LogEntries.GetMethod(Strings.StartGettingEntries));
         private MethodInfo EndGettingEntries => m_endGettingEntries ?? (m_endGettingEntries = LogEntries.GetMethod(Strings.EndGettingEntries));
         public MethodInfo EditorDropdownToggle { get; set; } = null;
+        public object[] m_clearButtonReflectionParameters = null;
+        public object[] ClearButtonReflectionParameters => m_clearButtonReflectionParameters ?? (m_clearButtonReflectionParameters = new object[] { false, ClearButtonContent, DropdownToggleStyle });
+        public GenericMenu ClearButtonMenu { get; set; } = null;
 
         // Unused
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;
@@ -278,6 +281,7 @@ namespace ProperLogger
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
+            CollapsedEntries = new List<ConsoleLogEntry>();
             Listening = false;
             EntriesLock = new object();
             s_instance = this;

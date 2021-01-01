@@ -267,6 +267,7 @@ namespace ProperLogger
         public System.Threading.Thread MainThread => m_mainThread;
 
         public MethodInfo EditorDropdownToggle { get; set; } = null;
+        public object[] ClearButtonReflectionParameters => null;
 
         #endregion Caches
 
@@ -279,6 +280,7 @@ namespace ProperLogger
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();
             SelectedEntries = SelectedEntries ?? new List<ConsoleLogEntry>();
+            CollapsedEntries = new List<ConsoleLogEntry>();
             Listening = false;
             EntriesLock = new object();
             TriggerFilteredEntryComputation = true;
