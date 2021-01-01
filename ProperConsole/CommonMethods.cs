@@ -19,6 +19,9 @@ namespace ProperLogger
         private static Regex s_categoryParse = null;
         private static Regex CategoryParse => s_categoryParse ?? (s_categoryParse = new Regex("\\[([^\\s\\[\\]]+)\\]"));
 
+        private static Regex s_pathParse = null;
+        private static Regex PathParse = s_pathParse ?? (s_pathParse = new Regex("([a-zA-Z0-9\\-_]+[\\/\\\\])+(([a-zA-Z0-9\\-_]+\\.\\w{1,4})\\(\\d+,\\d+\\))"));
+
         internal static float ItemHeight(IProperLogger console) => (console.Config.LogEntryMessageFontSize + (console.Config.LogEntryMessageFontSize < 15 ? 3 : 4)) * console.Config.LogEntryMessageLineCount
                                   + (console.Config.LogEntryStackTraceFontSize + (console.Config.LogEntryStackTraceFontSize < 15 ? 3 : 4)) * console.Config.LogEntryStackTraceLineCount
                                   + 8; // padding
@@ -958,8 +961,7 @@ namespace ProperLogger
                         var firstLine = Utils.GetFirstLines(entry.messageLines, 0, console.Config.LogEntryMessageLineCount, false);
                         if (!console.Config.ShowPathInMessage)
                         {
-                            Regex path = new Regex("([a-zA-Z0-9\\-_]+[\\/\\\\])+(([a-zA-Z0-9\\-_]+\\.\\w{1,4})\\(\\d+,\\d+\\))"); // TODO cache regex
-                            firstLine = path.Replace(firstLine, "$2");
+                            firstLine = PathParse.Replace(firstLine, "$2");
                         }
                         entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{firstLine}";
                     }
