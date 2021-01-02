@@ -176,6 +176,8 @@ namespace ProperLogger
         public System.Threading.Thread MainThread => m_mainThread;
 
         public bool ShowCategoryFilter { get; set; } = false;
+        public bool CategoryFilterButtonUp { get; set; } = true;
+        public Rect CategoryFilterRect { get; private set; } = default;
 
         public GUIContent ClearButtonContent { get; set; } = null;
         public GUIContent CollapseButtonContent { get; set; } = null;
@@ -631,6 +633,15 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         void OnGUI()
         {
+            if (CategoryFilterButtonUp && ShowCategoryFilter && ShowCategoriesButtonRect.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)
+            {
+                CategoryFilterButtonUp = false;
+            }
+            else if (!CategoryFilterButtonUp && Event.current.type == EventType.MouseDown)
+            {
+                CategoryFilterButtonUp = true;
+            }
+
             C.DoGui(this);
 
             if(Event.current.type == EventType.Repaint)
@@ -650,6 +661,7 @@ namespace ProperLogger
         public void DrawCategoriesWindow(Rect dropdownRect, Vector2 size)
         {
             ShowCategoryFilter = true;
+            CategoryFilterRect = ComputeCategoryDropdownPosition(dropdownRect);
             var window = (CategoriesFilterWindow)EditorWindow.CreateInstance<CategoriesFilterWindow>();
             window.ShowAsDropDown(ComputeCategoryDropdownPosition(dropdownRect), size);
             window.Repaint();

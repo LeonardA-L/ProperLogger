@@ -260,6 +260,7 @@ namespace ProperLogger
         public GUIStyle DropdownToggleStyle { get; set; } = null;
 
         public bool ShowCategoryFilter { get; set; } = false;
+        public bool CategoryFilterButtonUp { get; set; } = true;
         public Rect CategoryFilterRect { get; private set; } = default;
         public Rect CategoryToggleRect { get; private set; } = default;
 

@@ -720,9 +720,9 @@ namespace ProperLogger
 
             if (GUILayout.Button(console.CategoriesButtonContent, Strings.ToolbarButton, GUILayout.ExpandWidth(false)))
             {
-                //if (!console.ShowCategoryFilter)
+                if (console.CategoryFilterButtonUp)
                 {
-                        var categoriesAsset = console.Config.CurrentCategoriesConfig;
+                    var categoriesAsset = console.Config.CurrentCategoriesConfig;
                     Vector2 size = new Vector2(250, 150);
                     if (categoriesAsset != null)
                     {
