@@ -359,9 +359,10 @@ namespace ProperLogger
                 {
                     foreach (Match match in CategoryParse.Matches(categoryLessMessage))
                     {
+                        var group1 = match.Groups[1].Value;
                         foreach (var category in categoryAsset.Categories)
                         {
-                            if (category.Name == match.Groups[1].Value && !categories.Contains(category))
+                            if (category.Name == group1 && !categories.Contains(category))
                             {
                                 categories.Add(category);
                                 categoryLessMessage = categoryLessMessage.Replace($"[{category.Name}] ", string.Empty);

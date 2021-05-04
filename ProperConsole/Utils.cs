@@ -11,10 +11,14 @@ namespace ProperLogger
     internal class Utils
     {
         private static Regex s_linkMatchRegex = null;
+        private static Regex s_linkPreMatchRegex = null;
         private static Regex s_warningLinkMatchRegex = null;
 
         private static Assembly[] s_allAssemblies = null;
         private static Assembly[] AllAssemblies => s_allAssemblies ?? (s_allAssemblies = AppDomain.CurrentDomain.GetAssemblies());
+
+        private static Dictionary<string, bool> s_cachedHiddenCalls = null;
+        public static Dictionary<string, bool> CachedHiddenCalls => s_cachedHiddenCalls ?? (s_cachedHiddenCalls = new Dictionary<string, bool>());
 
         internal static void ClearAssemblies()
         {
@@ -75,9 +79,15 @@ namespace ProperLogger
 
             string result = string.Empty;
 
-            if(s_linkMatchRegex == null)
+            if (s_linkPreMatchRegex == null)
             {
-                s_linkMatchRegex = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase);
+                s_linkPreMatchRegex = new Regex("\\:(\\d+)\\)$", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+            }
+
+            if (s_linkMatchRegex == null)
+            {
+                //s_linkMatchRegex = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase);
+                s_linkMatchRegex = new Regex("^(([^\\s]+)[:\\.]([^\\s]+)(\\s?\\([^\\s]*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
             }
 
             for (int i = 0; i < split.Length; i++)
@@ -87,27 +97,34 @@ namespace ProperLogger
                     result = string.Empty;
                     continue;
                 }
-                Match m = s_linkMatchRegex.Match(split[i]);
-                if (m.Success)
+                if (s_linkPreMatchRegex.IsMatch(split[i]))
                 {
-                    List<string> groups = new List<string>();
-                    for (int k = 0; k < m.Groups.Count; k++)
+                    Match m = s_linkMatchRegex.Match(split[i]);
+                    if (m.Success)
                     {
-                        groups.Add(m.Groups[k].Value);
+                        List<string> groups = new List<string>();
+                        for (int k = 0; k < m.Groups.Count; k++)
+                        {
+                            groups.Add(m.Groups[k].Value);
+                        }
+
+                        bool isHidden = IsHiddenCall(m);
+
+                        if (isHidden)
+                        {
+                            continue;
+                        }
+                        result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + Environment.NewLine;
+
+                        if (string.IsNullOrEmpty(firstAsset))
+                        {
+                            firstAsset = m.Groups[5].Value;
+                            firstLine = m.Groups[6].Value;
+                        }
                     }
-
-                    bool isHidden = IsHiddenCall(m);
-
-                    if (isHidden)
+                    else
                     {
-                        continue;
-                    }
-                    result += split[i].Replace(m.Value, $"{m.Groups[1].Value}(at <a href=\"{ m.Groups[5].Value }\" line=\"{ m.Groups[6].Value }\">{ m.Groups[5].Value }:{ m.Groups[6].Value }</a>)") + Environment.NewLine;
-
-                    if (string.IsNullOrEmpty(firstAsset))
-                    {
-                        firstAsset = m.Groups[5].Value;
-                        firstLine = m.Groups[6].Value;
+                        result += split[i].ToString() + Environment.NewLine;
                     }
                 }
                 else
@@ -135,7 +152,7 @@ namespace ProperLogger
 
             if (s_warningLinkMatchRegex == null)
             {
-                s_warningLinkMatchRegex = new Regex("^([\\/a-zA-Z0-9\\-_\\.\\\\]+)(\\((\\d+),\\d+\\))", RegexOptions.IgnoreCase);
+                s_warningLinkMatchRegex = new Regex("^([\\/a-zA-Z0-9\\-_\\.\\\\]+)(\\((\\d+),\\d+\\))", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
             }
 
             bool success = false;
@@ -183,6 +200,10 @@ namespace ProperLogger
 
         private static bool IsHiddenCall(Match m)
         {
+            if(CachedHiddenCalls.TryGetValue(m.Groups[1].Value, out bool hidden))
+            {
+                return hidden;
+            }
             try
             {
                 foreach (Assembly ass in AllAssemblies)
@@ -198,6 +219,7 @@ namespace ProperLogger
 
                                 if (attributes.Length > 0)
                                 {
+                                    CachedHiddenCalls.Add(m.Groups[1].Value, true);
                                     return true;
                                 }
                             }
@@ -206,6 +228,7 @@ namespace ProperLogger
                 }
             }
             catch (Exception) { }
+            CachedHiddenCalls.Add(m.Groups[1].Value, false);
             return false;
         }
 

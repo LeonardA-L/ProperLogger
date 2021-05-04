@@ -4,6 +4,8 @@ namespace ProperLogger
 {
     internal class EditorConfigs : ConfigsProvider<EditorConfigs>
     {
+        private LogCategoriesConfig m_cachedCategoriesAsset = null;
+
         protected override bool GetBool(string key, bool defaultValue)
         {
             return EditorPrefs.GetBool(key, defaultValue);
@@ -72,17 +74,25 @@ namespace ProperLogger
         {
             get
             {
+                if(m_cachedCategoriesAsset != null)
+                {
+                    return m_cachedCategoriesAsset;
+                }
+
                 string guid = GetString("ProperConsole.CategoriesConfigPath", "");
                 if (string.IsNullOrEmpty(guid))
                 {
-                    return AttemptFindingCategoriesAsset();
+                    m_cachedCategoriesAsset = AttemptFindingCategoriesAsset();
+                    return m_cachedCategoriesAsset;
                 }
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (string.IsNullOrEmpty(path))
                 {
-                    return AttemptFindingCategoriesAsset();
+                    m_cachedCategoriesAsset = AttemptFindingCategoriesAsset();
+                    return m_cachedCategoriesAsset;
                 }
-                return (LogCategoriesConfig)AssetDatabase.LoadMainAssetAtPath(path);
+                m_cachedCategoriesAsset = (LogCategoriesConfig)AssetDatabase.LoadMainAssetAtPath(path);
+                return m_cachedCategoriesAsset;
             }
             set
             {
