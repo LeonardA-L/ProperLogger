@@ -357,7 +357,10 @@ namespace ProperLogger
                 string categoryLessMessage = condition;
                 if (categoryAsset != null && categoryAsset.Categories != null && categoryAsset.Categories.Count > 0)
                 {
-                    foreach (Match match in CategoryParse.Matches(categoryLessMessage))
+                    var rawMatches = CategoryParse.Matches(categoryLessMessage);
+                    var matches = new Match[rawMatches.Count];
+                    rawMatches.CopyTo(matches, 0);
+                    foreach (Match match in matches)
                     {
                         var group1 = match.Groups[1].Value;
                         foreach (var category in categoryAsset.Categories)
@@ -444,9 +447,6 @@ namespace ProperLogger
                 {
                     console.ExternalToggle();
                 }
-            } else
-            {
-                console.TriggerRepaint();
             }
 
 

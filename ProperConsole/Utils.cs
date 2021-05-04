@@ -164,28 +164,31 @@ namespace ProperLogger
                     result = string.Empty;
                     continue;
                 }
-                Match m = s_warningLinkMatchRegex.Match(split[i]);
-                if (i == 0 && m.Success)
+                if (i == 0)
                 {
-                    success = true;
-                    List<string> groups = new List<string>();
-                    for (int k = 0; k < m.Groups.Count; k++)
+                    Match m = s_warningLinkMatchRegex.Match(split[i]);
+                    if (m.Success)
                     {
-                        groups.Add(m.Groups[k].Value);
-                    }
+                        success = true;
+                        List<string> groups = new List<string>();
+                        for (int k = 0; k < m.Groups.Count; k++)
+                        {
+                            groups.Add(m.Groups[k].Value);
+                        }
 
-                    bool isHidden = IsHiddenCall(m);
+                        bool isHidden = IsHiddenCall(m);
 
-                    if (isHidden)
-                    {
-                        continue;
-                    }
-                    result += split[i].Replace(m.Value, $"<a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[3].Value }\">{ m.Groups[0].Value }</a>") + Environment.NewLine;
+                        if (isHidden)
+                        {
+                            continue;
+                        }
+                        result += split[i].Replace(m.Value, $"<a href=\"{ m.Groups[1].Value }\" line=\"{ m.Groups[3].Value }\">{ m.Groups[0].Value }</a>") + Environment.NewLine;
 
-                    if (string.IsNullOrEmpty(firstAsset))
-                    {
-                        firstAsset = m.Groups[1].Value;
-                        firstLine = m.Groups[3].Value;
+                        if (string.IsNullOrEmpty(firstAsset))
+                        {
+                            firstAsset = m.Groups[1].Value;
+                            firstLine = m.Groups[3].Value;
+                        }
                     }
                 }
                 else
