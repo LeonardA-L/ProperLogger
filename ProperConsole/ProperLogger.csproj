@@ -124,23 +124,31 @@
     <Content Include="Icons\White.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetPostProcessor.cs" />
     <Compile Include="Attributes.cs" />
+    <Compile Include="BuildPreprocessor.cs" />
     <Compile Include="CategoriesFilterGameWindow.cs" />
+    <Compile Include="CategoriesFilterWindow.cs" />
     <Compile Include="CategoryParentAttribute.cs" />
     <Compile Include="CommonMethods.cs" />
     <Compile Include="ConfigsProvider.cs" />
     <Compile Include="CustomLogHandler.cs" />
     <Compile Include="DDebug.cs" />
     <Compile Include="ECategoryDisplay.cs" />
+    <Compile Include="EditorConfigs.cs" />
+    <Compile Include="EditorUtils.cs" />
     <Compile Include="ImGUIWindow.cs" />
     <Compile Include="IProperLogger.cs" />
     <Compile Include="LogCategoriesConfig.cs" />
+    <Compile Include="LogCategoriesConfigEditor.cs" />
     <Compile Include="LogCategory.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="LogStructures.cs" />
     <Compile Include="PlayerConfigs.cs" />
     <Compile Include="PlayerSettingsWindow.cs" />
     <Compile Include="ProperConsoleGameWindow.cs" />
+    <Compile Include="ProperConsoleWindow.cs" />
+    <Compile Include="ProperLoggerCustomSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strings.cs" />
     <Compile Include="Utils.cs" />

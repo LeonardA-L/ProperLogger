@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 
 namespace ProperLogger
 {
@@ -108,3 +109,4 @@ namespace ProperLogger
         }
     }
 }
+#endif

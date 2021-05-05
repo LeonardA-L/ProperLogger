@@ -1022,9 +1022,9 @@ namespace ProperLogger
                         GUI.backgroundColor = Color.white;
                         GUI.contentColor = Color.white;
                         GUI.Box(new Rect(lastRect.xMax + i * categoryStripWidth, lastRect.yMin - 4, categoryStripWidth, ItemHeight(console)), string.Empty, console.CategoryColorStrip);
-                        GUILayout.Space(categoryStripWidth);
                         i++;
                     }
+                    //GUILayout.Space(categoryStripWidth * i);
                     GUI.contentColor = saveContentColor;
                     GUI.backgroundColor = saveBGColor;
                     GUI.color = saveColor;

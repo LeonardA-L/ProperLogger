@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
+using System.Collections;
 using UnityEngine;
 using UnityEditor;
 using System;
@@ -22,17 +24,17 @@ namespace ProperLogger
     {
         public bool IsGame => false;
 
-        #region Members
-        #region Consts
+#region Members
+#region Consts
 
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin ?? (m_skin = EditorUtils.LoadAssetByName<GUISkin>(Strings.EditorSkin));
 
         private double m_autoRepaintDebounce = 200;
 
-        #endregion Consts
+#endregion Consts
 
-        #region Configs
+#region Configs
         public Rect WindowRect => default;
 
         private ConfigsProvider m_configs = EditorConfigs.Instance;
@@ -47,14 +49,14 @@ namespace ProperLogger
 
         public bool PurgeGetLinesCache { get; set; } = true;
 
-        #endregion Configs
+#endregion Configs
 
         public bool NeedRegexRecompile { get; set; } = false;
         public DateTime LastRegexRecompile { get; set; }
 
         private DateTime LastSuccessfulRepaint { get; set; } = default;
 
-        #region Logs
+#region Logs
 
         public List<ConsoleLogEntry> Entries { get; set; } = null;
         public List<ConsoleLogEntry> FilteredEntries { get; set; } = null;
@@ -68,17 +70,17 @@ namespace ProperLogger
         public bool Listening { get; set; } = false;
         public bool FilterOutUncategorized { get; set; } = false;
 
-        #region Filters
+#region Filters
 
         public string SearchString { get; set; } = null;
         public string[] SearchWords { get; set; } = null;
         public List<string> InactiveCategories { get; set; } = null;
 
-        #endregion Filters
+#endregion Filters
 
-        #endregion Logs
+#endregion Logs
 
-        #region Layout
+#region Layout
 
         //private int m_selectedIndex = -1;
         public List<ConsoleLogEntry> SelectedEntries { get; set; } = null;
@@ -103,9 +105,9 @@ namespace ProperLogger
 
         public bool LastCLickIsDisplayList { get; set; } = false;
 
-        #endregion Layout
+#endregion Layout
 
-        #region Loaded Textures
+#region Loaded Textures
 
         public Texture2D IconInfo { get; set; } = null;
         public Texture2D IconWarning { get; set; } = null;
@@ -127,9 +129,9 @@ namespace ProperLogger
         public Texture2D CaseSensitiveIcon { get; set; } = null;
         public Texture2D AdvancedSearchIcon { get; set; } = null;
 
-        #endregion Loaded Textures
+#endregion Loaded Textures
 
-        #region Caches
+#region Caches
 
         //Reflection
         MethodInfo m_loadIcon = null;
@@ -209,13 +211,13 @@ namespace ProperLogger
         public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
         public GUIStyle DropdownToggleStyle { get; set; } = null;
 
-        #endregion Caches
+#endregion Caches
 #if UNITY_2020_1_OR_NEWER
         IConnectionState m_attachProfilerState;
 #endif
-        #endregion Members
+#endregion Members
 
-        #region Properties
+#region Properties
 
         private static ProperConsoleWindow s_instance = null;
         internal static ProperConsoleWindow Instance => s_instance;
@@ -816,3 +818,4 @@ namespace ProperLogger
         }
     }
 }
+#endif

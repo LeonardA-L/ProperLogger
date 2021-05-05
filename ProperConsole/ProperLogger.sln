@@ -5,41 +5,22 @@ VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperLogger", "ProperLogger.csproj", "{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperLoggerEditor", "..\ProperLoggerEditor\ProperLoggerEditor.csproj", "{0775F299-B19A-41E9-9D64-2FD585CBB34E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		EditorDemoRelease20194|Any CPU = EditorDemoRelease20194|Any CPU
 		EditorDemoRelease20201|Any CPU = EditorDemoRelease20201|Any CPU
-		EditorRelease20194|Any CPU = EditorRelease20194|Any CPU
 		EditorRelease20201|Any CPU = EditorRelease20201|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorDemoRelease20194|Any CPU.ActiveCfg = EditorDemoRelease20194|Any CPU
-		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorDemoRelease20194|Any CPU.Build.0 = EditorDemoRelease20194|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorDemoRelease20201|Any CPU.ActiveCfg = EditorDemoRelease20201|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorDemoRelease20201|Any CPU.Build.0 = EditorDemoRelease20201|Any CPU
-		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorRelease20194|Any CPU.ActiveCfg = EditorRelease20194|Any CPU
-		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorRelease20194|Any CPU.Build.0 = EditorRelease20194|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorRelease20201|Any CPU.ActiveCfg = EditorRelease20201|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.EditorRelease20201|Any CPU.Build.0 = EditorRelease20201|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD6418B0-7FF6-4BB1-9F98-C174ADE66C14}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.Debug|Any CPU.ActiveCfg = EditorDebug|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.Debug|Any CPU.Build.0 = EditorDebug|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorDemoRelease20194|Any CPU.ActiveCfg = EditorDemoRelease20194|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorDemoRelease20194|Any CPU.Build.0 = EditorDemoRelease20194|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorDemoRelease20201|Any CPU.ActiveCfg = EditorDemoRelease20201|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorDemoRelease20201|Any CPU.Build.0 = EditorDemoRelease20201|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorRelease20194|Any CPU.ActiveCfg = EditorRelease20194|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorRelease20194|Any CPU.Build.0 = EditorRelease20194|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorRelease20201|Any CPU.ActiveCfg = EditorRelease20201|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.EditorRelease20201|Any CPU.Build.0 = EditorRelease20201|Any CPU
-		{0775F299-B19A-41E9-9D64-2FD585CBB34E}.Release|Any CPU.ActiveCfg = EditorRelease20201|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
