@@ -212,9 +212,11 @@ namespace ProperLogger
         public GUIStyle DropdownToggleStyle { get; set; } = null;
 
 #endregion Caches
+/*
 #if UNITY_2020_1_OR_NEWER
         IConnectionState m_attachProfilerState;
 #endif
+*/
 #endregion Members
 
 #region Properties
@@ -299,11 +301,11 @@ namespace ProperLogger
             AutoScroll = true;
             ProperConsoleWindow.s_instance.titleContent = new GUIContent(Strings.WindowTitle, IconConsole);
             ResetUnityConsoleFlags();
-
+            /*
 #if UNITY_2020_1_OR_NEWER
             m_attachProfilerState = PlayerConnectionGUIUtility.GetConnectionState(this, OnRemotePlayerAttached);
 #endif
-
+*/
             NeedRegexRecompile = true;
 
             LastMainThreadCategoriesConfig = Config.CurrentCategoriesConfig;
@@ -313,9 +315,11 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
+        /*
 #if UNITY_2020_1_OR_NEWER
             m_attachProfilerState.Dispose();
 #endif
+*/
             C.RemoveListener(this);
             EditorApplication.playModeStateChanged -= ModeChanged;
             s_instance = null;
@@ -812,9 +816,11 @@ namespace ProperLogger
 
         public void ShowRemoteConnectionUtility()
         {
+            /*
 #if UNITY_2020_1_OR_NEWER
             PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_attachProfilerState, RemoteConnectionUtilityStyle);
 #endif
+            */
         }
     }
 }
