@@ -206,6 +206,12 @@ namespace ProperLogger
         public bool Active => m_active;
         public Rect WindowRect => m_windowRect;
 
+        [SerializeField, Obfuscation(Exclude = true)]
+#if !DEBUG
+        [HideInInspector]
+#endif
+        private HiddenMethodsRegistry m_hiddenMethods = null;
+
 #region Caches
         public LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
 

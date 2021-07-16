@@ -73,6 +73,7 @@ MonoBehaviour:
   m_categoriesAsset: {fileID: 11400000, guid: b4800db30cb2a954b9117138f5869680, type: 2}
   m_hideUnityBuiltInConsole: 1
   m_openConsoleOnError: 1
+  m_hiddenMethods: {fileID: 11400000, guid: 2d11eeec21e07a5488f88d5e433460cf, type: 2}
 --- !u!114 &1490771459762167227
 MonoBehaviour:
   m_ObjectHideFlags: 0

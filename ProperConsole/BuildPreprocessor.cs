@@ -23,6 +23,11 @@ namespace ProperLogger
             {
                 ProperConsoleWindow.Instance.OnBuild();
             }
+
+            if(HiddenMethodsRegistry.Instance != null)
+            {
+                HiddenMethodsRegistry.Instance.SetMethods(Utils.GetHiddenMethods());
+            }
         }
     }
 }

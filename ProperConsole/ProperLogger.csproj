@@ -14,7 +14,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\..\..\Desktop\ProperBuild\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;UNITY_EDITOR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -137,6 +137,8 @@
     <Compile Include="ECategoryDisplay.cs" />
     <Compile Include="EditorConfigs.cs" />
     <Compile Include="EditorUtils.cs" />
+    <Compile Include="EntryInspector.cs" />
+    <Compile Include="HiddenMethodsRegistry.cs" />
     <Compile Include="ImGUIWindow.cs" />
     <Compile Include="IProperLogger.cs" />
     <Compile Include="LogCategoriesConfig.cs" />

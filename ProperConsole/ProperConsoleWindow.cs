@@ -703,6 +703,8 @@ namespace ProperLogger
 #if DEBUG
                 Debug.Log("Reloaded Scripts");
 #endif
+                Utils.PopulateHiddenMethods();
+
                 if (Instance != null)
                 {
                     Instance.TriggerSyncWithUnityComputation = true;

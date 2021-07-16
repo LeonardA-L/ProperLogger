@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace ProperLogger
@@ -19,6 +22,8 @@ namespace ProperLogger
 
         private static Dictionary<string, bool> s_cachedHiddenCalls = null;
         public static Dictionary<string, bool> CachedHiddenCalls => s_cachedHiddenCalls ?? (s_cachedHiddenCalls = new Dictionary<string, bool>());
+
+        internal static List<string> s_hiddenMethods = null;
 
         internal static void ClearAssemblies()
         {
@@ -87,7 +92,7 @@ namespace ProperLogger
             if (s_linkMatchRegex == null)
             {
                 //s_linkMatchRegex = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase);
-                s_linkMatchRegex = new Regex("^(([^\\s]+)[:\\.]([^\\s]+)(\\s?\\([^\\s]*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+                s_linkMatchRegex = new Regex("^(([^\\s]+)[:\\.]([^\\s]+)(\\s?\\([^\\s]*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/\\:\\\\]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
             }
 
             for (int i = 0; i < split.Length; i++)
@@ -203,36 +208,50 @@ namespace ProperLogger
 
         private static bool IsHiddenCall(Match m)
         {
-            if(CachedHiddenCalls.TryGetValue(m.Groups[1].Value, out bool hidden))
+            if (s_hiddenMethods == null || s_hiddenMethods.Count == 0) return false;
+            var group1Value = m.Groups[1].Value;
+            /*if (group1Value.StartsWith("RandomLogs"))
+            {
+                throw new Exception("In A");
+            }*/
+            if (CachedHiddenCalls.TryGetValue(group1Value, out bool hidden))
             {
                 return hidden;
             }
-            try
+            foreach (var item in s_hiddenMethods)
             {
-                foreach (Assembly ass in AllAssemblies)
+                if (group1Value.StartsWith(item))
                 {
-                    foreach (Type t in ass.GetExportedTypes())
-                    {
-                        if (t.Name == m.Groups[2].Value)
-                        {
-                            MethodInfo method = t.GetMethod(m.Groups[3].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
-                            if (method != null)
-                            {
-                                var attributes = method.GetCustomAttributes(typeof(HideInCallStackAttribute), true);
-
-                                if (attributes.Length > 0)
-                                {
-                                    CachedHiddenCalls.Add(m.Groups[1].Value, true);
-                                    return true;
-                                }
-                            }
-                        }
-                    }
+                    CachedHiddenCalls.Add(group1Value, true);
+                    return true;
                 }
             }
-            catch (Exception) { }
-            CachedHiddenCalls.Add(m.Groups[1].Value, false);
+            CachedHiddenCalls.Add(group1Value, false);
             return false;
+        }
+
+#if UNITY_EDITOR
+        internal static void PopulateHiddenMethods()
+        {
+            s_hiddenMethods = GetHiddenMethods();
+        }
+
+        internal static List<string> GetHiddenMethods()
+        {
+            var result = new List<string>();
+            var allHidden = TypeCache.GetMethodsWithAttribute<HideInCallStackAttribute>();
+            foreach (var item in allHidden)
+            {
+                result.Add($"{item.DeclaringType.FullName}:{item.Name}");
+            }
+            return result;
+        }
+#endif
+
+        internal static void SetHiddenMethods(List<string> methods)
+        {
+            s_hiddenMethods = new List<string>(methods);
+                Debug.Log($"hidden methods set {s_hiddenMethods.Count} {s_hiddenMethods[0]}");
         }
 
         #endregion Text Manipulation
