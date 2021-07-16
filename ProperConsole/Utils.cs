@@ -17,18 +17,10 @@ namespace ProperLogger
         private static Regex s_linkPreMatchRegex = null;
         private static Regex s_warningLinkMatchRegex = null;
 
-        private static Assembly[] s_allAssemblies = null;
-        private static Assembly[] AllAssemblies => s_allAssemblies ?? (s_allAssemblies = AppDomain.CurrentDomain.GetAssemblies());
-
         private static Dictionary<string, bool> s_cachedHiddenCalls = null;
         public static Dictionary<string, bool> CachedHiddenCalls => s_cachedHiddenCalls ?? (s_cachedHiddenCalls = new Dictionary<string, bool>());
 
         internal static List<string> s_hiddenMethods = null;
-
-        internal static void ClearAssemblies()
-        {
-            s_allAssemblies = null;
-        }
 
         internal static LogLevel GetLogLevelFromUnityLogType(LogType type)
         {
@@ -107,12 +99,6 @@ namespace ProperLogger
                     Match m = s_linkMatchRegex.Match(split[i]);
                     if (m.Success)
                     {
-                        List<string> groups = new List<string>();
-                        for (int k = 0; k < m.Groups.Count; k++)
-                        {
-                            groups.Add(m.Groups[k].Value);
-                        }
-
                         bool isHidden = IsHiddenCall(m);
 
                         if (isHidden)
@@ -175,12 +161,6 @@ namespace ProperLogger
                     if (m.Success)
                     {
                         success = true;
-                        List<string> groups = new List<string>();
-                        for (int k = 0; k < m.Groups.Count; k++)
-                        {
-                            groups.Add(m.Groups[k].Value);
-                        }
-
                         bool isHidden = IsHiddenCall(m);
 
                         if (isHidden)
@@ -210,10 +190,6 @@ namespace ProperLogger
         {
             if (s_hiddenMethods == null || s_hiddenMethods.Count == 0) return false;
             var group1Value = m.Groups[1].Value;
-            /*if (group1Value.StartsWith("RandomLogs"))
-            {
-                throw new Exception("In A");
-            }*/
             if (CachedHiddenCalls.TryGetValue(group1Value, out bool hidden))
             {
                 return hidden;
@@ -251,7 +227,9 @@ namespace ProperLogger
         internal static void SetHiddenMethods(List<string> methods)
         {
             s_hiddenMethods = new List<string>(methods);
-                Debug.Log($"hidden methods set {s_hiddenMethods.Count} {s_hiddenMethods[0]}");
+#if DEBUG
+            Debug.Log($"hidden methods set {s_hiddenMethods.Count} {s_hiddenMethods[0]}");
+#endif
         }
 
         #endregion Text Manipulation
