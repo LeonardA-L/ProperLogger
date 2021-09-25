@@ -33,6 +33,7 @@ namespace ProperLogger
         {
             gameObject.SendMessage("ToggleConsole");
         }
+    }
 #else
     public class InGameConsoleOpener : MonoBehaviour
     {

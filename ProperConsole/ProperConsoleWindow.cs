@@ -238,7 +238,14 @@ namespace ProperLogger
         private MethodInfo EndGettingEntries => m_endGettingEntries ?? (m_endGettingEntries = LogEntries.GetMethod(Strings.EndGettingEntries));
         public MethodInfo EditorDropdownToggle { get; set; } = null;
         public object[] m_clearButtonReflectionParameters = null;
-        public object[] ClearButtonReflectionParameters => m_clearButtonReflectionParameters ?? (m_clearButtonReflectionParameters = new object[] { false, ClearButtonContent, DropdownToggleStyle });
+        public object[] ClearButtonReflectionParameters
+        {
+            get => m_clearButtonReflectionParameters ?? (m_clearButtonReflectionParameters = new object[] { false, ClearButtonContent, DropdownToggleStyle });
+            set
+            {
+                m_clearButtonReflectionParameters = value;
+            }
+        }
         public GenericMenu ClearButtonMenu { get; set; } = null;
 
         // Unused
@@ -359,7 +366,7 @@ namespace ProperLogger
 
             IconConsole = (Texture2D)LoadIcon.Invoke(null, new object[] { "UnityEditor.ConsoleWindow" });
 
-            ClearIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearIcon + (IsDarkSkin ? "_d" : ""));
+            ClearIcon = EditorUtils.LoadAssetByName<Texture2D>(IsDarkSkin ? Strings.ClearIconDark : Strings.ClearIcon);
             CollapseIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.CollapseIcon + (IsDarkSkin ? "_d" : ""));
             ClearOnBuildIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnBuildIcon + (IsDarkSkin ? "_d" : ""));
             ClearOnPlayIcon = EditorUtils.LoadAssetByName<Texture2D>(Strings.ClearOnPlayIcon + (IsDarkSkin ? "_d" : ""));

@@ -13,6 +13,7 @@
         #region Resources
         internal const string ResetIcon = "ProperConsoleResetIcon";
         internal const string ClearIcon = "ProperConsoleClearIcon";
+        internal const string ClearIconDark = "ProperConsoleClearDark";
         internal const string CollapseIcon = "ProperConsoleCollapseIcon";
         internal const string ClearOnPlayIcon = "ProperConsoleClearOnPlayIcon";
         internal const string ClearOnBuildIcon = "ProperConsoleClearOnBuildIcon";

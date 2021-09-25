@@ -97,6 +97,7 @@ namespace ProperLogger
 
         private void PopulateParentOptions(List<LogCategory> roots, int level, List<string> accumulator)
         {
+            if (roots == null) return;
             for (int i = 0; i < roots.Count; i++)
             {
                 var category = roots[i];
@@ -137,6 +138,7 @@ namespace ProperLogger
             while (bad)
             {
                 bad = false;
+                if (config.Categories == null) break;
 
                 name = basename + (tryId > 0 ? tryId.ToString() : "");
 
@@ -164,6 +166,7 @@ namespace ProperLogger
 
         private void DisplayCategories(List<LogCategory> roots, int level)
         {
+            if (roots == null) return;
             for (int i = 0; i < roots.Count; i++)
             {
                 GUILayout.BeginVertical(m_consoleSkin.FindStyle("CategoryConfigBox"));
@@ -287,6 +290,7 @@ namespace ProperLogger
         private bool CanAddCategory()
         {
             LogCategoriesConfig config = target as LogCategoriesConfig;
+            if(config.Categories == null) return true;
             return config.Categories.Count < LogCategoriesConfig.s_maxCategories;
         }
 #else

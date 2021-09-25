@@ -117,7 +117,7 @@ namespace ProperLogger
         LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
         System.Threading.Thread MainThread { get; }
 
-        object[] ClearButtonReflectionParameters { get; }
+        object[] ClearButtonReflectionParameters { get; set; }
         void Clear();
         void Listener(string condition, string stackTrace, LogType type);
         void ExternalToggle();

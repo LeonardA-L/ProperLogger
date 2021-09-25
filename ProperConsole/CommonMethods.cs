@@ -41,6 +41,8 @@ namespace ProperLogger
             console.SearchInObjectNameButtonContent = null;
             console.SearchInStackTraceButtonContent = null;
             console.PluginSettingsButtonContent = null;
+
+            console.ClearButtonReflectionParameters = null;
         }
         private static GUIContent CreateButtonGUIContent(IProperLogger console, Texture2D icon, string text)
         {
@@ -1372,7 +1374,9 @@ namespace ProperLogger
 
                 if (GUILayout.Button("LogAssert"))
                 {
-                    DDebug.Assert(false);
+                    Tools.DDebug.Assert(false);
+                    Debug.LogAssertion(false, null);
+                    Debug.LogAssertion(false);
                 }
 
                 if (GUILayout.Button("Add 1000 Log"))
@@ -1522,6 +1526,20 @@ namespace ProperLogger
                 }
 #endif
             }
+        }
+
+        internal static void NoStripping()
+        {
+            Debug.Log($"Log");
+            Debug.Log($"Log", null);
+            Debug.LogException(new Exception());
+            Debug.LogException(new Exception(), null);
+            Debug.LogWarning("Warning");
+            Debug.LogWarning("Warning", null);
+            Debug.LogError("Error");
+            Debug.LogError("Error", null);
+            Debug.LogAssertion("False");
+            Debug.LogAssertion("False", null);
         }
     }
 }

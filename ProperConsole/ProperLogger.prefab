@@ -70,7 +70,7 @@ MonoBehaviour:
     type: 3}
   m_exceptionIcon: {fileID: 2800000, guid: 1b7ffbefdce7cb34abda9c04ea9a92e2, type: 3}
   m_assertIcon: {fileID: 2800000, guid: e351bb8d3e6eaab44867576fd507778a, type: 3}
-  m_categoriesAsset: {fileID: 11400000, guid: b4800db30cb2a954b9117138f5869680, type: 2}
+  m_categoriesAsset: {fileID: 11400000, guid: ad99607f55c361e4080c412a0cb4d1a1, type: 2}
   m_hideUnityBuiltInConsole: 1
   m_openConsoleOnError: 1
   m_hiddenMethods: {fileID: 11400000, guid: 2d11eeec21e07a5488f88d5e433460cf, type: 2}

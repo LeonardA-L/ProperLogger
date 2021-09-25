@@ -274,7 +274,7 @@ namespace ProperLogger
         public System.Threading.Thread MainThread => m_mainThread;
 
         public MethodInfo EditorDropdownToggle { get; set; } = null;
-        public object[] ClearButtonReflectionParameters => null;
+        public object[] ClearButtonReflectionParameters { get; set; } = null;
 
         #endregion Caches
 

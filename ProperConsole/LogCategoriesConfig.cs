@@ -44,7 +44,7 @@ namespace ProperLogger
 #if DEMO
         public List<LogCategory> Categories => new List<LogCategory>(m_categories).Take(s_maxCategories).ToList();
 #else
-        public List<LogCategory> Categories => m_categories;
+        public List<LogCategory> Categories => m_categories ?? (m_categories = new List<LogCategory>());
 #endif
 
         protected virtual void OnEnable()
@@ -86,6 +86,8 @@ namespace ProperLogger
 
         internal List<LogCategory> PopulateRootCategories()
         {
+            if (Categories == null) return new List<LogCategory>();
+
             Dictionary<string, LogCategory> categories = new Dictionary<string, LogCategory>();
             m_rootCategories = m_rootCategories ?? new List<LogCategory>();
             m_rootCategories.Clear();
@@ -155,7 +157,13 @@ namespace ProperLogger
                 return;
             }
 #endif
+            m_categories = m_categories ?? new List<LogCategory>();
+
             m_categories.Add(cat);
+
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
         }
     }
 }
