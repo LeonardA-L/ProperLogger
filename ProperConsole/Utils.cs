@@ -84,7 +84,7 @@ namespace ProperLogger
             if (s_linkMatchRegex == null)
             {
                 //s_linkMatchRegex = new Regex("^((.+)[:\\.](.+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase);
-                s_linkMatchRegex = new Regex("^(([^\\s]+)[:\\.]([^\\s]+)(\\s?\\([^\\s]*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/\\:\\\\]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+                s_linkMatchRegex = new Regex("^(([^\\s]+)[:\\.]([^\\s]+)(\\s?\\(.*\\))\\s?)\\(at\\s([a-zA-Z0-9\\-_\\.\\/\\:\\\\]+)\\:(\\d+)\\)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
             }
 
             for (int i = 0; i < split.Length; i++)
