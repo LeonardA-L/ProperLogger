@@ -373,6 +373,21 @@ namespace ProperLogger
             GUILayout.Space(12);
 
             GUILayout.BeginHorizontal();
+            GUILayout.Label("Time format in messages");
+            int prevTimeFormat = m_configs.TimeFormat;
+            m_configs.TimeFormat = GUILayout.Toolbar(m_configs.TimeFormat, new string[] { "Date", "Time.time", "Frame", "Not Displayed" });
+            if(m_configs.TimeFormat != prevTimeFormat)
+            {
+                if (ProperConsoleWindow.Instance != null)
+                {
+                    ProperConsoleWindow.Instance.PurgeGetLinesCache = true;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(12);
+
+            GUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(" ");
             if (GUILayout.Button(new GUIContent("  Reset Everything to Default Values", m_resetIcon), GUILayout.Height(25)))
             {

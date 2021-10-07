@@ -178,6 +178,8 @@ namespace ProperLogger
                         originalMessage = console.CollapsedEntries[foundIdx].originalMessage,
                         unityIndex = console.CollapsedEntries[foundIdx].unityIndex,
                         unityMode = console.CollapsedEntries[foundIdx].unityMode,
+                        timetime = console.CollapsedEntries[foundIdx].timetime,
+                        frame = console.CollapsedEntries[foundIdx].frame,
                     };
                 }
                 else
@@ -390,8 +392,7 @@ namespace ProperLogger
                     categoryLessMessage = parsedMessage;
                 }
 
-                newConsoleEntry = new ConsoleLogEntry()
-                {
+                newConsoleEntry = new ConsoleLogEntry() {
                     date = now.Ticks,
                     timestamp = now.ToString("T", System.Globalization.DateTimeFormatInfo.InvariantInfo),
                     level = Utils.GetLogLevelFromUnityLogType(type),
@@ -406,6 +407,8 @@ namespace ProperLogger
                     categories = categories,
                     originalMessage = condition,
                     originalStackTrace = stackTrace,
+                    timetime = Time.time,
+                    frame = Time.frameCount,
                 };
 
                 console.Entries.Add(newConsoleEntry);
@@ -966,7 +969,7 @@ namespace ProperLogger
                         {
                             firstLine = PathParse.Replace(firstLine, "$2");
                         }
-                        entry.cachedFirstLine = $"[{entry.timestamp}] {categoriesString}{firstLine}";
+                        entry.cachedFirstLine = $"{GetTimeStamp(console, entry)}{categoriesString}{firstLine}";
                     }
                     GUILayout.Label(entry.cachedFirstLine, textStyle, GUILayout.MaxWidth(entrywidth));
                     textStyle.fontSize = console.Config.LogEntryStackTraceFontSize;
@@ -1311,8 +1314,11 @@ namespace ProperLogger
                 }
                 if (!string.IsNullOrEmpty(entry.stackTrace))
                 {
+                    GUILayout.Space(8);
                     console.SelectableLabel(entry.stackTrace, console.InspectorTextStyle, currentX);
                 }
+
+                console.SelectableLabel($"Date: {entry.timestamp} | Time.time: {entry.timetime}s | Frame: {entry.frame}", console.InspectorTextStyle, currentX);
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
@@ -1540,6 +1546,21 @@ namespace ProperLogger
             Debug.LogError("Error", null);
             Debug.LogAssertion("False");
             Debug.LogAssertion("False", null);
+        }
+
+        internal static string GetTimeStamp(IProperLogger console, ConsoleLogEntry entry) {
+            switch(console.Config.TimeFormat)
+            {
+                case 0: // Date
+                default:
+                    return $"[{entry.timestamp}] ";
+                case 1: // Time.time
+                    return $"[{entry.timetime.ToString("0.000")}] ";
+                case 2: // Frame
+                    return $"[{entry.frame.ToString()}] ";
+                case 3:
+                    return "";
+            }
         }
     }
 }

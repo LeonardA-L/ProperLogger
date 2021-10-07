@@ -65,6 +65,7 @@ namespace ProperLogger
             ResetshowContextNameInsteadOfStack();
             ResetShowCustomErrorIcons();
             ResetDisplayIcons();
+            ResetTimeFormat();
         }
 
         internal void ResetShowPathInMessage()
@@ -97,6 +98,19 @@ namespace ProperLogger
             set
             {
                 SetInt("ProperConsole.DisplayIcons", value);
+                Save();
+            }
+        }
+
+        internal void ResetTimeFormat() {
+            Reset("ProperConsole.TimeFormat");
+        }
+        internal int TimeFormat {
+            get {
+                return GetInt("ProperConsole.TimeFormat", 0);
+            }
+            set {
+                SetInt("ProperConsole.TimeFormat", value);
                 Save();
             }
         }

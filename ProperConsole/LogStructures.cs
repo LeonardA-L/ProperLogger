@@ -37,6 +37,8 @@ namespace ProperLogger
         public string originalStackTrace;
         public int unityMode;
         public int unityIndex = -1;
+        public float timetime;
+        public int frame;
 
         internal string GetExportString()
         {
