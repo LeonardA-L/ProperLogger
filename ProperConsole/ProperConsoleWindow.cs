@@ -293,6 +293,7 @@ namespace ProperLogger
         [Obfuscation(Exclude = true)]
         private void OnEnable()
         {
+            SplitterPosition = Config.SplitterPosition;
             m_mainThread = System.Threading.Thread.CurrentThread;
             Entries = Entries ?? new List<ConsoleLogEntry>();
             PendingContexts = PendingContexts ?? new List<PendingContext>();

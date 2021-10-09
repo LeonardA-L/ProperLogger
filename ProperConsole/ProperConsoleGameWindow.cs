@@ -293,6 +293,7 @@ namespace ProperLogger
             TriggerFilteredEntryComputation = true;
             C.InitListener(this);
             AutoScroll = true;
+            SplitterPosition = Config.SplitterPosition;
 
             NeedRegexRecompile = true;
 

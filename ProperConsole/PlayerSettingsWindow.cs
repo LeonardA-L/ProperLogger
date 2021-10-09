@@ -246,7 +246,15 @@ namespace ProperLogger
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label("Show log inspector on the right", GUILayout.Width(m_labelWidth));
+            bool cacheInspectorOnTheRight = m_configs.InspectorOnTheRight;
             m_configs.InspectorOnTheRight = GUILayout.Toggle(m_configs.InspectorOnTheRight, "");
+            if(cacheInspectorOnTheRight != m_configs.InspectorOnTheRight)
+            {
+                m_configs.SplitterPosition = 150;
+                if (ProperConsoleGameWindow.Instance != null) {
+                    ProperConsoleGameWindow.Instance.SplitterPosition = 150;
+                }
+            }
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 

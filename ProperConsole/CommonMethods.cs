@@ -1449,6 +1449,7 @@ namespace ProperLogger
                     //Debug.Log("moving splitter");
                     var delta = Event.current.mousePosition - console.SplitterDragStartPosition;
                     console.SplitterPosition += console.Config.InspectorOnTheRight ? -delta.x : -delta.y;
+                    console.Config.SplitterPosition = console.SplitterPosition;
                     console.SplitterDragStartPosition = Event.current.mousePosition;
                     console.RepaintImmediate();
                 }

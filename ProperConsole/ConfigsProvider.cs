@@ -53,6 +53,7 @@ namespace ProperLogger
             ResetInactiveCategories();
             ResetInspectorMessageFontSize();
             ResetinspectorOnTheRight();
+            ResetSplitterPosition();
             ResetLogEntryMessageFontSize();
             ResetLogEntryMessageLineCount();
             ResetLogEntryStackTraceFontSize();
@@ -500,6 +501,19 @@ namespace ProperLogger
             set
             {
                 SetBool("ProperConsole.inspectorOnTheRight", value);
+                Save();
+            }
+        }
+
+        internal void ResetSplitterPosition() {
+            Reset("ProperConsole.SplitterPosition");
+        }
+        internal float SplitterPosition {
+            get {
+                return GetFloat("ProperConsole.SplitterPosition", 100);
+            }
+            set {
+                SetFloat("ProperConsole.SplitterPosition", value);
                 Save();
             }
         }

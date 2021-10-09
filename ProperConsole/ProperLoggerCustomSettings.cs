@@ -362,7 +362,15 @@ namespace ProperLogger
 
         private void DisplayGeneralTab()
         {
+            bool cacheInspectorOnTheRight = m_configs.InspectorOnTheRight;
             m_configs.InspectorOnTheRight = EditorGUILayout.Toggle("Show log inspector on the right", m_configs.InspectorOnTheRight);
+            if (cacheInspectorOnTheRight != m_configs.InspectorOnTheRight)
+            {
+                m_configs.SplitterPosition = 150;
+                if (ProperConsoleWindow.Instance != null) {
+                    ProperConsoleWindow.Instance.SplitterPosition = 150;
+                }
+            }
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
