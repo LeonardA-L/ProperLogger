@@ -892,7 +892,7 @@ namespace ProperLogger
                 {
                     if (doesScroll)
                     {
-                        entrywidth -= 17;
+                        entrywidth -= 15;
                     }
                     else
                     {
@@ -907,7 +907,7 @@ namespace ProperLogger
                 {
                     if (doesScroll)
                     {
-                        entrywidth -= 0;
+                        entrywidth -= 2;
                     }
                     else
                     {
@@ -1154,7 +1154,7 @@ namespace ProperLogger
             }
 
             float startY = 0;
-            float totalWidth = console.IsGame ? console.WindowRect.width : Screen.width;
+            float totalWidth = console.ScaledScreenSize.x;
             GUILayout.Space(1);
             if (repaint)
             {
@@ -1265,7 +1265,7 @@ namespace ProperLogger
                 GUILayout.BeginVertical(); // Inspector
             }
 
-            console.SplitterPosition = Mathf.Clamp(console.SplitterPosition, 100, (console.Config.InspectorOnTheRight ? Screen.width : Screen.height) - 200);
+            console.SplitterPosition = Mathf.Clamp(console.SplitterPosition, 100, (console.Config.InspectorOnTheRight ? console.ScaledScreenSize.x : console.ScaledScreenSize.y) - 200);
 
             Splitter(console);
 

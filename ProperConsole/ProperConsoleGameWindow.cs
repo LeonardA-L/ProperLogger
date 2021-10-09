@@ -205,6 +205,7 @@ namespace ProperLogger
         public EOpenOnError OpenConsoleOnError => m_openConsoleOnError;
         public bool Active => m_active;
         public Rect WindowRect => m_windowRect;
+        public Vector2 ScaledScreenSize => new Vector2(m_windowRect.width, m_windowRect.height);
 
         [SerializeField, Obfuscation(Exclude = true)]
 #if !DEBUG

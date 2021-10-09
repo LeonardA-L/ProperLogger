@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.IO;
 using C = ProperLogger.CommonMethods;
+using System.Linq;
 #if UNITY_2020_1_OR_NEWER
 using UnityEngine.Networking.PlayerConnection;
 using UnityEditor.Networking.PlayerConnection;
@@ -35,7 +36,7 @@ namespace ProperLogger
 #endregion Consts
 
 #region Configs
-        public Rect WindowRect => default;
+        public Vector2 ScaledScreenSize => new Vector2(Screen.width, Screen.height) / PixelsPerPoint;
 
         private ConfigsProvider m_configs = EditorConfigs.Instance;
         public ConfigsProvider Config => m_configs;
@@ -211,6 +212,7 @@ namespace ProperLogger
         public GUIStyle RemoteConnectionUtilityStyle { get; set; } = null;
         public GUIStyle DropdownToggleStyle { get; set; } = null;
 
+        private PropertyInfo PixelsPerPointProperty { get; set; } = null;
 #endregion Caches
 /*
 #if UNITY_2020_1_OR_NEWER
@@ -252,9 +254,11 @@ namespace ProperLogger
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;
         public bool Active { get; }
 
-#endregion Properties
+        public float PixelsPerPoint => ComputePixelsPerPoint();
 
-#region Editor Window
+        #endregion Properties
+
+        #region Editor Window
 
         [MenuItem("Window/Proper Logger/Console")]
         static void Init()
@@ -820,6 +824,16 @@ namespace ProperLogger
         private void OnRemotePlayerAttached(string player)
         {
             Debug.Log($"Successfuly connected to {player}");
+        }
+
+        private float ComputePixelsPerPoint() {
+            if (PixelsPerPointProperty == null) {
+                Type utilityType = typeof(GUIUtility);
+                PropertyInfo[] allProps = utilityType.GetProperties(BindingFlags.Static | BindingFlags.NonPublic);
+                PixelsPerPointProperty = allProps.First(m => m.Name == "pixelsPerPoint");
+            }
+            float pixelsPerPoint = (float)PixelsPerPointProperty.GetValue(null);
+            return pixelsPerPoint;
         }
 
         public void ShowRemoteConnectionUtility()
