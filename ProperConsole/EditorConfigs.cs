@@ -7,6 +7,8 @@ namespace ProperLogger
     {
         private LogCategoriesConfig m_cachedCategoriesAsset = null;
 
+        public EditorConfigs() : base() { }
+
         protected override bool GetBool(string key, bool defaultValue)
         {
             return EditorPrefs.GetBool(key, defaultValue);

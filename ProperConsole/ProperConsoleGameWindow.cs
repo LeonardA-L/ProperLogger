@@ -223,6 +223,7 @@ namespace ProperLogger
         public GUIContent ErrorPauseButtonContent { get; set; } = null;
         public GUIContent ClearOnPlayButtonContent { get; set; } = null;
         public GUIContent ClearOnBuildButtonContent { get; set; } = null;
+        public GUIContent ClearOnRecompileButtonContent { get; set; } = null;
         public GUIContent AdvancedSearchButtonContent { get; set; } = null;
         public GUIContent CategoriesButtonContent { get; set; } = null;
         public GUIContent RegexSearchButtonNameOnlyContent { get; set; } = null;

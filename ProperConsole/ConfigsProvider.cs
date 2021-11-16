@@ -552,6 +552,23 @@ namespace ProperLogger
             }
         }
 
+        internal void ResetclearOnRecompile()
+        {
+            Reset("ProperConsole.clearOnRecompile");
+        }
+        internal bool ClearOnRecompile
+        {
+            get
+            {
+                return GetBool("ProperConsole.clearOnRecompile", false);
+            }
+            set
+            {
+                SetBool("ProperConsole.clearOnRecompile", value);
+                Save();
+            }
+        }
+
         internal void ReseterrorPause()
         {
             Reset("ProperConsole.errorPause");

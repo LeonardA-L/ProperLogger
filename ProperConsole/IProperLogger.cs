@@ -63,6 +63,7 @@ namespace ProperLogger
         GUIContent ErrorPauseButtonContent { get; set; }
         GUIContent ClearOnPlayButtonContent { get; set; }
         GUIContent ClearOnBuildButtonContent { get; set; }
+        GUIContent ClearOnRecompileButtonContent { get; set; }
         GUIContent AdvancedSearchButtonContent { get; set; }
         GUIContent CategoriesButtonContent { get; set; }
         GUIContent RegexSearchButtonNameOnlyContent { get; set; }

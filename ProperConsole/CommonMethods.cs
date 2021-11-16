@@ -67,6 +67,7 @@ namespace ProperLogger
             console.CollapseButtonContent = CreateButtonGUIContent(console, console.CollapseIcon, "Collapse");
             console.ClearOnPlayButtonContent = new GUIContent("Clear on Play");
             console.ClearOnBuildButtonContent = new GUIContent("Clear on Build");
+            console.ClearOnRecompileButtonContent = new GUIContent("Clear on Recompile");
             console.ErrorPauseButtonContent = CreateButtonGUIContent(console, console.ErrorPauseIcon, "Error Pause");
 
             console.AdvancedSearchButtonContent = new GUIContent(console.AdvancedSearchIcon, "Advanced Search");
@@ -633,10 +634,21 @@ namespace ProperLogger
             {
 #if UNITY_EDITOR
                 // Clear button and clearing options
-                if(console.EditorDropdownToggle == null)
+                if (console.EditorDropdownToggle == null)
                 {
                     var editorGUILayout = typeof(EditorGUILayout);
-                    console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                    //console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic, null, System.Reflection.CallingConventions.Any, new Type[] { typeof(bool), typeof(GUIContent), typeof(GUIStyle) });
+                    //console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", new Type[] { typeof(bool).MakeByRefType(), typeof(GUIContent), typeof(GUIStyle) });
+                    //console.EditorDropdownToggle = editorGUILayout.GetMethod("DropDownToggle", new Type[] { typeof(bool), typeof(GUIContent), typeof(GUIStyle) });
+                    var dropdownMethods = editorGUILayout.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                    foreach (var method in dropdownMethods)
+                    {
+                        if(method.Name == "DropDownToggle" && method.GetParameters().Count() == 3)
+                        {
+                            console.EditorDropdownToggle = method;
+                            break;
+                        }
+                    }
                 }
                 var parameters = console.ClearButtonReflectionParameters;
                 parameters[0] = false;
@@ -644,10 +656,12 @@ namespace ProperLogger
                 {
                     var clearOnPlay = console.Config.ClearOnPlay;
                     var clearOnBuild = console.Config.ClearOnBuild;
+                    var clearOnRecompile = console.Config.ClearOnRecompile;
 
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(console.ClearOnPlayButtonContent, clearOnPlay, () => { console.Config.ClearOnPlay = !console.Config.ClearOnPlay; });
                     menu.AddItem(console.ClearOnBuildButtonContent, clearOnBuild, () => { console.Config.ClearOnBuild = !console.Config.ClearOnBuild; });
+                    menu.AddItem(console.ClearOnRecompileButtonContent, clearOnRecompile, () => { console.Config.ClearOnRecompile = !console.Config.ClearOnRecompile; });
                     var rect = GUILayoutUtility.GetLastRect();
                     rect.y += EditorGUIUtility.singleLineHeight;
                     menu.DropDown(rect);
@@ -658,7 +672,7 @@ namespace ProperLogger
                     GUIUtility.keyboardControl = 0;
                 }
 #endif
-            }
+                }
 
 #if DEBUG
             //GUI.color = defCol;

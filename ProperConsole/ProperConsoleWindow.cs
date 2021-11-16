@@ -187,6 +187,7 @@ namespace ProperLogger
         public GUIContent ErrorPauseButtonContent { get; set; } = null;
         public GUIContent ClearOnPlayButtonContent { get; set; } = null;
         public GUIContent ClearOnBuildButtonContent { get; set; } = null;
+        public GUIContent ClearOnRecompileButtonContent { get; set; } = null;
         public GUIContent AdvancedSearchButtonContent { get; set; } = null;
         public GUIContent CategoriesButtonContent { get; set; } = null;
         public GUIContent RegexSearchButtonNameOnlyContent { get; set; } = null;
@@ -242,7 +243,13 @@ namespace ProperLogger
         public object[] m_clearButtonReflectionParameters = null;
         public object[] ClearButtonReflectionParameters
         {
-            get => m_clearButtonReflectionParameters ?? (m_clearButtonReflectionParameters = new object[] { false, ClearButtonContent, DropdownToggleStyle });
+            get 
+            {
+                // Fetch style
+                GUIStyle style = (GUIStyle)typeof(EditorStyles).GetProperty("toolbarDropDownToggle", BindingFlags.NonPublic |BindingFlags.Static).GetValue(null, null);
+                style.stretchWidth = false;
+                return m_clearButtonReflectionParameters ?? (m_clearButtonReflectionParameters = new object[] { false, ClearButtonContent, style });
+            }
             set
             {
                 m_clearButtonReflectionParameters = value;
@@ -714,6 +721,11 @@ namespace ProperLogger
 #if DEBUG
                 Debug.Log("Reloaded Scripts");
 #endif
+                if(ProperConsoleWindow.Instance != null && ProperConsoleWindow.Instance.Config.ClearOnRecompile)
+                {
+                    ProperConsoleWindow.Instance.Clear();
+                }
+
                 Utils.PopulateHiddenMethods();
 
                 if (Instance != null)
@@ -833,7 +845,7 @@ namespace ProperLogger
                 PropertyInfo[] allProps = utilityType.GetProperties(BindingFlags.Static | BindingFlags.NonPublic);
                 PixelsPerPointProperty = allProps.First(m => m.Name == "pixelsPerPoint");
             }
-            float pixelsPerPoint = (float)PixelsPerPointProperty.GetValue(null);
+            float pixelsPerPoint = (float)PixelsPerPointProperty.GetValue(null, null);
             return pixelsPerPoint;
         }
 
