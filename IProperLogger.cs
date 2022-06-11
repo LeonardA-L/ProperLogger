@@ -1,0 +1,146 @@
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using UnityEngine;
+
+namespace ProperLogger
+{
+    internal enum EOpenOnError
+    {
+        Never,
+        DebugBuild,
+        Always,
+    }
+
+    internal interface IProperLogger : ILogObserver
+    {
+        bool IsGame { get; }
+        GUISkin Skin { get; }
+        ConfigsProvider Config { get; }
+        bool AutoScroll { get; set; }
+        bool Listening { get; set; }
+        CustomLogHandler LogHandler { get; set; }
+        bool SplitterDragging { get; set; }
+        Vector2 SplitterDragStartPosition { get; set; }
+        float InnerScrollableHeight { get; set; }
+        float OuterScrollableHeight { get; set; }
+        float SplitterPosition { get; set; }
+        System.DateTime LastClick { get; set; }
+        bool LastCLickIsDisplayList { get; set; }
+        Rect ListDisplay { get; set; }
+        Vector2 EntryListScrollPosition { get; set; }
+        Vector2 InspectorScrollPosition { get; set; }
+        List<ConsoleLogEntry> SelectedEntries { get; set; }
+        List<ConsoleLogEntry> FilteredEntries { get; set; }
+        List<ConsoleLogEntry> DisplayedEntries { get; set; }
+        bool TriggerFilteredEntryComputation { get; set; }
+        bool TriggerSyncWithUnityComputation { get; set; }
+        object EntriesLock { get; set; }
+        List<ConsoleLogEntry> Entries { get; set; }
+        EOpenOnError OpenConsoleOnError { get; }
+        bool DoNotReopenAutomatically { get; }
+        bool ClosedOnce { get; set; }
+        bool Active { get; }
+        bool SearchMessage { get; set; }
+        Regex SearchRegex { get; set; }
+        string[] SearchWords { get; set; }
+        List<string> InactiveCategories { get; set; }
+        Rect SplitterRect { get; set; }
+        bool NeedRegexRecompile { get; set; }
+        System.DateTime LastRegexRecompile { get; set; }
+        string SearchString { get; set; }
+        Rect SearchFieldRect { get; set; }
+        Rect ResetSearchButtonRect { get; set; }
+        Rect ShowCategoriesButtonRect { get; set; }
+        int DisplayedEntriesCount { get; set; }
+        bool IsDarkSkin { get; set; }
+        Vector2 ScaledScreenSize { get; }
+        bool PurgeGetLinesCache { get; set; }
+        bool ShowCategoryFilter { get; set; }
+        bool CategoryFilterButtonUp { get; set; }
+        bool FilterOutUncategorized { get; set; }
+
+        GUIContent ClearButtonContent { get; set; }
+        GUIContent CollapseButtonContent { get; set; }
+        GUIContent ErrorPauseButtonContent { get; set; }
+        GUIContent ClearOnPlayButtonContent { get; set; }
+        GUIContent ClearOnBuildButtonContent { get; set; }
+        GUIContent ClearOnRecompileButtonContent { get; set; }
+        GUIContent AdvancedSearchButtonContent { get; set; }
+        GUIContent CategoriesButtonContent { get; set; }
+        GUIContent RegexSearchButtonNameOnlyContent { get; set; }
+        GUIContent CaseSensitiveButtonContent { get; set; }
+        GUIContent SearchInLogMessageButtonContent { get; set; }
+        GUIContent SearchInObjectNameButtonContent { get; set; }
+        GUIContent SearchInStackTraceButtonContent { get; set; }
+        GUIContent PluginSettingsButtonContent { get; set; }
+        Texture2D ClearIcon { get; set; }
+        Texture2D CollapseIcon { get; set; }
+        Texture2D ClearOnPlayIcon { get; set; }
+        Texture2D ClearOnBuildIcon { get; set; }
+        Texture2D ErrorPauseIcon { get; set; }
+        Texture2D RegexSearchIcon { get; set; }
+        Texture2D CaseSensitiveIcon { get; set; }
+        Texture2D AdvancedSearchIcon { get; set; }
+
+        Texture2D IconInfo { get; set; }
+        Texture2D IconWarning { get; set; }
+        Texture2D IconError { get; set; }
+        Texture2D IconInfoGray { get; set; }
+        Texture2D IconWarningGray { get; set; }
+        Texture2D IconErrorGray { get; set; }
+        Texture2D IconConsole { get; set; }
+        Texture2D ExceptionIcon { get; set; }
+        Texture2D AssertIcon { get; set; }
+        GUIStyle OddEntry { get; set; }
+        GUIStyle SelectedEntry { get; set; }
+        GUIStyle SelectedEntryLabel { get; set; }
+        GUIStyle EvenEntry { get; set; }
+        GUIStyle EvenEntryLabel { get; set; }
+        GUIStyle CategoryNameStyle { get; set; }
+        GUIStyle CategoryColorStrip { get; set; }
+        GUIStyle CollapseBubbleStyle { get; set; }
+        GUIStyle CollapseBubbleWarningStyle { get; set; }
+        GUIStyle CollapseBubbleErrorStyle { get; set; }
+        GUIStyle ToolbarIconButtonStyle { get; set; }
+        GUIStyle InspectorTextStyle { get; set; }
+        GUIStyle EntryIconStyle { get; set; }
+        GUIStyle RemoteConnectionUtilityStyle { get; set; }
+        GUIStyle DropdownToggleStyle { get; set; }
+
+        MethodInfo EditorDropdownToggle { get; set; }
+
+        List<ConsoleLogEntry> CollapsedEntries { get; set; }
+        List<PendingContext> PendingContexts { get; set; }
+
+        int LogLog { get; set; }
+        int WarnLog { get; set; }
+        int ErrLog { get; set; }
+
+        LogCategoriesConfig LastMainThreadCategoriesConfig { get; set; }
+        System.Threading.Thread MainThread { get; }
+
+        object[] ClearButtonReflectionParameters { get; set; }
+        void Clear();
+        void Listener(string condition, string stackTrace, LogType type);
+        void ExternalToggle();
+        void DoubleTriggerRepaint();
+        void TriggerRepaint();
+        void RepaintImmediate();
+        void SelectableLabel(string text, GUIStyle textStyle, float currentX);
+        void HandleDoubleClick(ConsoleLogEntry entry);
+        void DrawCategoriesWindow(Rect dropdownRect, Vector2 size);
+        void ToggleSettings();
+        void ExternalEditorSelectableLabelInvisible();
+        void SyncWithUnityEntries();
+        void LoadIcons();
+        bool ExternalDisplayCloseButton();
+        void ShowRemoteConnectionUtility();
+    }
+
+    internal interface ICategoryWindow
+    {
+        ConfigsProvider Config { get; }
+        IProperLogger Console { get; }
+    }
+}
