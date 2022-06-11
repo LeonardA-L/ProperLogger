@@ -1549,20 +1549,6 @@ namespace ProperLogger
             }
         }
 
-        internal static void NoStripping()
-        {
-            Debug.Log($"Log");
-            Debug.Log($"Log", null);
-            Debug.LogException(new Exception());
-            Debug.LogException(new Exception(), null);
-            Debug.LogWarning("Warning");
-            Debug.LogWarning("Warning", null);
-            Debug.LogError("Error");
-            Debug.LogError("Error", null);
-            Debug.LogAssertion("False");
-            Debug.LogAssertion("False", null);
-        }
-
         internal static string GetTimeStamp(IProperLogger console, ConsoleLogEntry entry) {
             switch(console.Config.TimeFormat)
             {
