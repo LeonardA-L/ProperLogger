@@ -1,4 +1,4 @@
-﻿#if DEBUG && UNITY_EDITOR
+﻿#if PROPER_LOGGER_DEBUG && UNITY_EDITOR
 
 using System;
 using System.Collections;

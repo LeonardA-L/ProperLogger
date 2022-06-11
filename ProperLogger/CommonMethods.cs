@@ -614,7 +614,7 @@ namespace ProperLogger
         {
             GUILayout.BeginHorizontal(Strings.Toolbar);
 
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             bool doesScroll = console.InnerScrollableHeight - console.OuterScrollableHeight + ItemHeight(console) > 0;
             var defCol = GUI.color;
             if (doesScroll) {
@@ -674,7 +674,7 @@ namespace ProperLogger
 #endif
                 }
 
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             //GUI.color = defCol;
 #endif
 
@@ -1199,7 +1199,7 @@ namespace ProperLogger
             {
                 if (console.TriggerSyncWithUnityComputation)
                 {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
                     Debug.Log("Trigger Unity Sync");
 #endif
                     lock (console.Entries)
@@ -1348,7 +1348,7 @@ namespace ProperLogger
             }
 #endregion Inspector
 
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
 #region Debug Buttons
             if (!console.IsGame)
             {
@@ -1426,7 +1426,7 @@ namespace ProperLogger
                 }
             }
 #endregion Debug Buttons
-#endif // DEBUG
+#endif // PROPER_LOGGER_DEBUG
 
             if (Event.current != null)
             {

@@ -104,79 +104,79 @@ namespace ProperLogger
 #region Loaded Textures
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconInfo;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconWarning;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconError;
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconInfoGray;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconWarningGray;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconErrorGray;
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_clearIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_collapseIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_clearOnPlayIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_errorPauseIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_regexSearchIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_caseSensitiveIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_advancedSearchIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_exceptionIcon;
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_assertIcon;
@@ -208,7 +208,7 @@ namespace ProperLogger
         public Vector2 ScaledScreenSize => new Vector2(m_windowRect.width, m_windowRect.height);
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private HiddenMethodsRegistry m_hiddenMethods = null;

@@ -15,14 +15,14 @@ namespace ProperLogger
         internal CustomLogHandler(ILogHandler host)
         {
             m_originalHandler = host;
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Log("Created Handler");
 #endif
         }
 
         ~CustomLogHandler()
         {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Assert(m_observers.Count == 0, "There is more than one log handler remaining");
 #endif
             RemoveAllObservers();
@@ -62,7 +62,7 @@ namespace ProperLogger
 
         private void RemoveAllObservers()
         {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Log($"Remaining observers: {m_observers.Count}");
 #endif
             for (int i = m_observers.Count - 1; i >= 0; i--)

@@ -420,7 +420,7 @@ namespace ProperLogger
 
         private void ModeChanged(PlayModeStateChange obj)
         {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Log(obj);
 #endif
             switch (obj)
@@ -718,7 +718,7 @@ namespace ProperLogger
         {
             EditorApplication.delayCall += () =>
             {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
                 Debug.Log("Reloaded Scripts");
 #endif
                 if(ProperConsoleWindow.Instance != null && ProperConsoleWindow.Instance.Config.ClearOnRecompile)
@@ -739,7 +739,7 @@ namespace ProperLogger
         {
             EditorApplication.delayCall += () =>
             {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
                 Debug.Log("Reloaded Assets");
 #endif
                 Instance.TriggerSyncWithUnityComputation = true;

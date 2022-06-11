@@ -19,7 +19,7 @@ namespace ProperLogger
         private Vector2 m_scrollPos = new Vector2();
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_resetIcon = null;

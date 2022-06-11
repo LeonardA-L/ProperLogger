@@ -24,7 +24,7 @@ namespace ProperLogger
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
 
         [SerializeField, Obfuscation(Exclude = true)]
-#if !DEBUG
+#if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         protected int m_depth = 1;

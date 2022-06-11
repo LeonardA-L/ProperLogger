@@ -24,14 +24,14 @@ namespace ProperLogger
 
         private void OnEnable()
         {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Log($"HiddenMethodsRegistry OnEnable {m_hiddenMethods.Count}");
 #endif
             s_instance = this;
 
             if (!Application.isEditor)
             {
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
                 Debug.Log("Setting hidden methods");
 #endif
                 Utils.SetHiddenMethods(m_hiddenMethods);

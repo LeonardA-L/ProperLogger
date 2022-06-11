@@ -227,7 +227,7 @@ namespace ProperLogger
         internal static void SetHiddenMethods(List<string> methods)
         {
             s_hiddenMethods = new List<string>(methods);
-#if DEBUG
+#if PROPER_LOGGER_DEBUG
             Debug.Log($"hidden methods set {s_hiddenMethods.Count} {s_hiddenMethods[0]}");
 #endif
         }
