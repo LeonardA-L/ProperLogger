@@ -202,6 +202,13 @@ namespace ProperLogger
         [Tooltip("This console will open automatically at the first error log")]
         private EOpenOnError m_openConsoleOnError = EOpenOnError.DebugBuild;
         public EOpenOnError OpenConsoleOnError => m_openConsoleOnError;
+
+        [SerializeField, Obfuscation(Exclude = true)]
+        [Tooltip("When checked, the console will open once when there is an error, but not reopen when the user closes it once")]
+        private bool m_doNotReopenAutomatically = true;
+        public bool DoNotReopenAutomatically => m_doNotReopenAutomatically;
+        public bool ClosedOnce { get; set; }
+
         public bool Active => m_active;
         public Rect WindowRect => m_windowRect;
         public Vector2 ScaledScreenSize => new Vector2(m_windowRect.width, m_windowRect.height);

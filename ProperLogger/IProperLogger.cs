@@ -38,6 +38,8 @@ namespace ProperLogger
         object EntriesLock { get; set; }
         List<ConsoleLogEntry> Entries { get; set; }
         EOpenOnError OpenConsoleOnError { get; }
+        bool DoNotReopenAutomatically { get; }
+        bool ClosedOnce { get; set; }
         bool Active { get; }
         bool SearchMessage { get; set; }
         Regex SearchRegex { get; set; }

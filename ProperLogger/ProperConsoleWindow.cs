@@ -259,6 +259,8 @@ namespace ProperLogger
 
         // Unused
         public EOpenOnError OpenConsoleOnError => EOpenOnError.Never;
+        public bool DoNotReopenAutomatically => false;
+        public bool ClosedOnce { get; set; }
         public bool Active { get; }
 
         public float PixelsPerPoint => ComputePixelsPerPoint();

@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 namespace ProperLogger
 {
 #if ENABLE_INPUT_SYSTEM
-    public class InGameConsoleOpener : MonoBehaviour
+    public class InGameWindowOpener : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("The window will open when this key is pressed")]
@@ -35,7 +35,7 @@ namespace ProperLogger
         }
     }
 #else
-    public class InGameConsoleOpener : MonoBehaviour
+    public class InGameWindowOpener : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("The window will open when this key is pressed")]

@@ -449,6 +449,9 @@ namespace ProperLogger
                         openConsoleOnError = Debug.isDebugBuild;
                         break;
                 }
+
+                openConsoleOnError &= !console.DoNotReopenAutomatically || !console.ClosedOnce;
+
                 if (openConsoleOnError && !console.Active && (type == LogType.Assert || type == LogType.Exception || type == LogType.Error))
                 {
                     console.ExternalToggle();
@@ -1153,6 +1156,7 @@ namespace ProperLogger
             {
                 if (console.ExternalDisplayCloseButton())
 	            {
+                    console.ClosedOnce = true;
 	                return;
 	            }
             }
