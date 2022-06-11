@@ -20,7 +20,6 @@ using UnityEditor.Networking.PlayerConnection;
 
 namespace ProperLogger
 {
-    //[Obfuscation(Exclude = true, ApplyToMembers = false)]
     internal class ProperConsoleWindow : EditorWindow, IHasCustomMenu, ILogObserver, IProperLogger
     {
         public bool IsGame => false;
@@ -299,7 +298,6 @@ namespace ProperLogger
             }
         }
 
-        [Obfuscation(Exclude = true)]
         private void OnEnable()
         {
             SplitterPosition = Config.SplitterPosition;
@@ -332,7 +330,6 @@ namespace ProperLogger
             ShowCategoryFilter = false;
         }
 
-        [Obfuscation(Exclude = true)]
         private void OnDisable()
         {
         /*
@@ -655,7 +652,6 @@ namespace ProperLogger
 
 #region GUI
 
-        [Obfuscation(Exclude = true)]
         void OnGUI()
         {
             if (CategoryFilterButtonUp && ShowCategoryFilter && ShowCategoriesButtonRect.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)
@@ -747,7 +743,6 @@ namespace ProperLogger
             };
         }
 
-        [Obfuscation(Exclude = true)]
         private void Update()
         {
             //CheckForUnitySync();

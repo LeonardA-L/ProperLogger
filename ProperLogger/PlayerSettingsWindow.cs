@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class PlayerSettingsWindow : ImGuiWindow<PlayerSettingsWindow>
     {
         private GUIContent m_resetButtonContent = null;
@@ -17,7 +16,7 @@ namespace ProperLogger
         private float m_labelWidth = 280f;
         private Vector2 m_scrollPos = new Vector2();
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif

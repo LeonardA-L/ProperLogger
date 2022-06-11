@@ -8,19 +8,17 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class CategoriesFilterGameWindow : MonoBehaviour, ICategoryWindow
     {
         public ConfigsProvider Config => PlayerConfigs.Instance;
         public IProperLogger Console => ProperConsoleGameWindow.Instance;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         protected int m_depth = 1;
 
-        [Obfuscation(Exclude = true)]
         private void OnGUI()
         {
             if(ProperConsoleGameWindow.Instance == null)

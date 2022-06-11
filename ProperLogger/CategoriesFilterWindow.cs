@@ -8,7 +8,6 @@ using System.Reflection;
 
 namespace ProperLogger
 {
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class CategoriesFilterWindow : EditorWindow, ICategoryWindow
     {
         public ConfigsProvider Config => EditorConfigs.Instance;
@@ -19,7 +18,6 @@ namespace ProperLogger
             Console.ShowCategoryFilter = false;
         }
 
-        [System.Reflection.Obfuscation(Exclude = true)]
         private void OnGUI()
         {
             if(Config.CurrentCategoriesConfig == null)

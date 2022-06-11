@@ -52,7 +52,6 @@ namespace ProperLogger
             m_currentSelectedTab = idx;
         }
 
-        [Obfuscation(Exclude = true)]
         public override void OnGUI(string searchContext)
         {
             m_configs = m_configs ?? EditorConfigs.Instance;

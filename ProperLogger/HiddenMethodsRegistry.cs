@@ -5,7 +5,6 @@ using UnityEngine;
 namespace ProperLogger
 {
     //[CreateAssetMenu(menuName ="HiddenMethods")]
-    [System.Reflection.Obfuscation(Exclude = true)]
     internal class HiddenMethodsRegistry : ScriptableObject
     {
         private static HiddenMethodsRegistry s_instance = null;

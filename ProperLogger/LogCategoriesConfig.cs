@@ -12,7 +12,6 @@ using UnityEditor;
 namespace ProperLogger
 {
     [CreateAssetMenu(menuName = "Proper Logger/Categories")]
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategoriesConfig : ScriptableObject
     {
         internal static int s_categoryIndent = 20;
@@ -21,7 +20,7 @@ namespace ProperLogger
         protected static LogCategoriesConfig m_instance = null;
         public static LogCategoriesConfig Instance => m_instance;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("Log Categories. Use them to filter and group your log messages.")]
         protected List<LogCategory> m_categories = null;
 

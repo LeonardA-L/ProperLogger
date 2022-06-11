@@ -15,9 +15,6 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-    //[Obfuscation(Exclude = true, ApplyToMembers = true)]
-    //[Obfuscation(Exclude = true, ApplyToMembers = true)]
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     internal class ProperConsoleGameWindow : ImGuiWindow<ProperConsoleGameWindow>, ILogObserver, IProperLogger
     {
         public bool IsGame => true;
@@ -102,79 +99,79 @@ namespace ProperLogger
 
 #region Loaded Textures
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconInfo;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconWarning;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconError;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconInfoGray;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconWarningGray;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_iconErrorGray;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_clearIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_collapseIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_clearOnPlayIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_errorPauseIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_regexSearchIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_caseSensitiveIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_advancedSearchIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
         private Texture2D m_exceptionIcon;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
@@ -182,7 +179,7 @@ namespace ProperLogger
 
 #endregion Loaded Textures
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("Categories Asset. This should be injected automatically when opening plugin settings in editor")]
         private LogCategoriesConfig m_categoriesAsset = null;
         public LogCategoriesConfig CategoriesAsset
@@ -194,16 +191,16 @@ namespace ProperLogger
             }
         }
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("When checked, this option will attempt to close the Unity built in dev-console that usually opens on error")]
         private bool m_hideUnityBuiltInConsole = true;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("This console will open automatically at the first error log")]
         private EOpenOnError m_openConsoleOnError = EOpenOnError.DebugBuild;
         public EOpenOnError OpenConsoleOnError => m_openConsoleOnError;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("When checked, the console will open once when there is an error, but not reopen when the user closes it once")]
         private bool m_doNotReopenAutomatically = true;
         public bool DoNotReopenAutomatically => m_doNotReopenAutomatically;
@@ -213,7 +210,7 @@ namespace ProperLogger
         public Rect WindowRect => m_windowRect;
         public Vector2 ScaledScreenSize => new Vector2(m_windowRect.width, m_windowRect.height);
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
@@ -286,7 +283,6 @@ namespace ProperLogger
 
         #endregion Caches
 
-        [Obfuscation(Exclude = true)]
         protected override void Awake()
         {
             base.Awake();
@@ -307,7 +303,6 @@ namespace ProperLogger
             LastMainThreadCategoriesConfig = Config.CurrentCategoriesConfig;
         }
 
-        [Obfuscation(Exclude = true)]
         protected override void OnDestroy()
         {
             C.RemoveListener(this);
@@ -315,7 +310,6 @@ namespace ProperLogger
             base.OnDestroy();
         }
 
-        [Obfuscation(Exclude = true)]
         protected override void OnDisable()
         {
             if (m_active)
@@ -325,13 +319,11 @@ namespace ProperLogger
             base.OnDisable();
         }
 
-        [Obfuscation(Exclude = true)]
         public void ToggleConsole()
         {
             Toggle();
         }
 
-        [Obfuscation(Exclude = true)]
         protected override void Update()
         {
             base.Update();
@@ -371,7 +363,6 @@ namespace ProperLogger
             TriggerFilteredEntryComputation = true;
         }
 
-        [Obfuscation(Exclude = true)]
         protected override void OnGUI()
         {
             if (m_hideUnityBuiltInConsole)

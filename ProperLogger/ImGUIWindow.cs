@@ -10,7 +10,7 @@ namespace ProperLogger
         private static T m_instance = null;
         public static T Instance => m_instance;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("GUI Skin Override")]
         private GUISkin m_skin = null;
         public GUISkin Skin => m_skin;
@@ -18,11 +18,11 @@ namespace ProperLogger
         protected bool m_active = false;
         private int m_windowID = 0;
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("Size and Position of this window")]
         protected Rect m_windowRect = new Rect(30, 30, 1200, 700);
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
 #if !PROPER_LOGGER_DEBUG
         [HideInInspector]
 #endif
@@ -33,7 +33,6 @@ namespace ProperLogger
         private float m_refScreenWidth = 1282f;
         private float m_refScreenHeight = 772f;
 
-        [Obfuscation(Exclude = true)]
         protected virtual void Awake()
         {
             m_instance = this as T;
@@ -45,12 +44,10 @@ namespace ProperLogger
             }
         }
 
-        [Obfuscation(Exclude = true)]
         protected virtual void OnDestroy()
         {
         }
 
-        [Obfuscation(Exclude = true)]
         protected virtual void OnDisable()
         {
             if (m_active)
@@ -59,12 +56,10 @@ namespace ProperLogger
             }
         }
 
-        [Obfuscation(Exclude = true)]
         protected virtual void Update()
         {
         }
 
-        [Obfuscation(Exclude = true)]
         public virtual void Toggle()
         {
             m_active = !m_active;
@@ -78,7 +73,6 @@ namespace ProperLogger
             }
         }
 
-        [Obfuscation(Exclude = true)]
         public virtual void Open()
         {
             if (!m_active)
@@ -88,7 +82,6 @@ namespace ProperLogger
             GUI.BringWindowToFront(m_windowID);
         }
 
-        [Obfuscation(Exclude = true)]
         public virtual void Close()
         {
             if (m_active)
@@ -105,7 +98,6 @@ namespace ProperLogger
         {
         }
 
-        [Obfuscation(Exclude = true)]
         protected virtual void OnGUI()
         {
             if (!m_active)

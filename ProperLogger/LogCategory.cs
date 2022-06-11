@@ -7,7 +7,6 @@ using UnityEngine;
 namespace ProperLogger
 {
     [System.Serializable]
-    [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategory
     {
         internal static readonly List<Color> s_categoryColors = new List<Color>()
@@ -22,15 +21,15 @@ namespace ProperLogger
             new Color(124f / 255f, 219f / 255f, 105f / 255f, 1f),
         };
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("Name of the category. Will be used in filters. Must be unique")]
         private string m_name = null;
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         private Color m_color = Color.red;
         /*[SerializeField]
         private Sprite m_icon = null;*/
 
-        [SerializeField, Obfuscation(Exclude = true)]
+        [SerializeField]
         [Tooltip("Name of the parent category in the category trees. Use this to group categories and filter them more easily")]
         //[CategoryParent]
         private string m_parentCategory = null;
