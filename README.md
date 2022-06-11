@@ -14,13 +14,22 @@ Propper Logger is here to help you speed up your game development in Unity with 
 
 Why not get in built games the exact same enriched experience that you get in the editor?
 
-![In-Game Console](https://properlogger.com/img/InGameConsole.jpg)
+<img alt="In-Game Console" src="https://properlogger.com/img/InGameConsole.jpg" width="80%" />
 
 ## How to install
 
 ### Install With Unity Package Manager (UPM)
 
-Instructions coming right up...
+* Open the Package Manager ( _Window > Package Manager_ )
+* Click the + button on the top left
+* Select _"Add Package From Git URL..."_
+* Paste the following adress and click _Add_
+
+```
+https://github.com/LeonardA-L/ProperLogger.git#1.0.0
+```
+
+The package should load and install in your Packages folder.
 
 ### Install as a Unity Package
 
@@ -34,10 +43,10 @@ You should be all setup! I recommend you open the plugin settings by going to _E
 
 A picture is worth a thousand words etc etc.
 
-<img src="https://properlogger.com/img/AdvancedSearch.jpg" width="55%" />
-<img src="https://properlogger.com/img/CategoryFilter.jpg" width="55%" />
-<img src="https://properlogger.com/img/InspectorOnTheRight.jpg" width="55%" />
-<img src="https://properlogger.com/img/Customization.jpg" width="55%" />
+<img alt="Advanced Search Filters" src="https://properlogger.com/img/AdvancedSearch.jpg" width="55%" />
+<img alt="Category Filter" src="https://properlogger.com/img/CategoryFilter.jpg" width="55%" />
+<img alt="Inspector on the Right" src="https://properlogger.com/img/InspectorOnTheRight.jpg" width="55%" />
+<img alt="Extensive Customization Options" src="https://properlogger.com/img/Customization.jpg" width="55%" />
 
 ## What's to come
 Quality of life improvements, but also bigger features. See the [project Roadmap](https://properlogger.com/roadmap.html) for details.
