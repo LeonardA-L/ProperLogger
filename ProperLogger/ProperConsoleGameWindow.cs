@@ -15,7 +15,6 @@ using C = ProperLogger.CommonMethods;
 
 namespace ProperLogger
 {
-#if !DEMO
     //[Obfuscation(Exclude = true, ApplyToMembers = true)]
     //[Obfuscation(Exclude = true, ApplyToMembers = true)]
     [Obfuscation(Exclude = true, ApplyToMembers = true)]
@@ -468,5 +467,4 @@ namespace ProperLogger
         }
         public void ShowRemoteConnectionUtility() { }
     }
-#endif
 }

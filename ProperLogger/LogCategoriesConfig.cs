@@ -15,9 +15,6 @@ namespace ProperLogger
     [Obfuscation(Exclude = true, ApplyToMembers = true)]
     public class LogCategoriesConfig : ScriptableObject
     {
-#if DEMO
-        internal static int s_maxCategories = 5;
-#endif
         internal static int s_categoryIndent = 20;
         internal static int s_categoryCharacterSize = 6;
 
@@ -35,17 +32,8 @@ namespace ProperLogger
         internal int LongestName => m_longestName;
         [NonSerialized]
         protected List<LogCategory> m_rootCategories = null;
-#if DEMO
-        public List<LogCategory> RootCategories => new List<LogCategory>(m_rootCategories).Take(s_maxCategories).ToList();
-#else
         public List<LogCategory> RootCategories => m_rootCategories;
-#endif
-
-#if DEMO
-        public List<LogCategory> Categories => new List<LogCategory>(m_categories).Take(s_maxCategories).ToList();
-#else
         public List<LogCategory> Categories => m_categories ?? (m_categories = new List<LogCategory>());
-#endif
 
         protected virtual void OnEnable()
         {
@@ -95,9 +83,8 @@ namespace ProperLogger
             // Clear Children in Categories and register them
             foreach (var category in Categories)
             {
-#if !DEMO
                 category.ClearChildren();
-#endif
+
                 if (!categories.ContainsKey(category.Name))
                 {
                     categories.Add(category.Name, category);
@@ -105,7 +92,6 @@ namespace ProperLogger
                 m_rootCategories.Add(category);
             }
 
-#if !DEMO
             // Populate children
             foreach (var category in Categories)
             {
@@ -115,7 +101,6 @@ namespace ProperLogger
                     m_rootCategories.Remove(category);
                 }
             }
-#endif
 
             m_longestName = 0;
             FindLongestName(m_rootCategories, 0, ref m_longestName);
@@ -135,12 +120,10 @@ namespace ProperLogger
                     length = catLength;
                 }
 
-#if !DEMO
                 if (category.Children != null && category.Children.Count > 0)
                 {
                     FindLongestName(category.Children, level + 1, ref length);
                 }
-#endif
             }
         }
 
@@ -151,12 +134,6 @@ namespace ProperLogger
 
         public void Add(LogCategory cat)
         {
-#if DEMO
-            if(m_categories.Count > s_maxCategories)
-            {
-                return;
-            }
-#endif
             m_categories = m_categories ?? new List<LogCategory>();
 
             m_categories.Add(cat);
