@@ -1,6 +1,6 @@
 # ProperLogger
 An alternative console for Unity engine.
-Propper Logger is here to help you speed up your game development in Unity with its improved console, featuring advanced search features, readability improvements, customizable layout, in-game console, and many more. 
+Propper Logger is here to help you speed up your game development in Unity with its improved console, featuring advanced search features, readability improvements, customizable layout, in-game console, and many more. Check out [the website](https://properlogger.com/) for more info.
 
  We tried to stay close to the Unity Editor look and feel, and build customization and features on top of that. Propper Logger comes with all the features of the vanilla Unity console, and more, including:
 
@@ -17,7 +17,18 @@ Why not get in built games the exact same enriched experience that you get in th
 ![In-Game Console](https://properlogger.com/img/InGameConsole.jpg)
 
 ## How to install
+
+### Install With Unity Package Manager (UPM)
+
 Instructions coming right up...
+
+### Install as a Unity Package
+
+If you prefer a good old .unitypackage file, I don't blame you. Head to the [Release Page](https://github.com/LeonardA-L/ProperLogger/releases) and grab the latest Unity Package, download it, open it in your project and you should be good to go.
+
+### Getting Started
+
+You should be all setup! I recommend you open the plugin settings by going to _Edit > Preferences... > Proper Logger_ and check out all the options available to you to get to know the plugin. Alternatively you can also see the [Documentation Page](https://properlogger.com/documentation.html).
 
 ## More Screenshots
 
