@@ -1156,7 +1156,6 @@ namespace ProperLogger
             {
                 if (console.ExternalDisplayCloseButton())
 	            {
-                    console.ClosedOnce = true;
 	                return;
 	            }
             }

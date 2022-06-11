@@ -354,6 +354,7 @@ namespace ProperLogger
         protected override void OnWindowDisabled()
         {
             ShowCategoryFilter = false;
+            ClosedOnce = true;
             C.ClearStyles(this);
             C.ClearGUIContents(this);
             base.OnWindowDisabled();
